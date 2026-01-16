@@ -1,0 +1,22 @@
+{% extends "core/base.html" %}
+{% block title %}Teacher Dashboard{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-6">
+  <h1 class="text-2xl font-bold">My Teaching Courses</h1>
+  <a href="{% url 'courses:create' %}"
+     class="bg-blue-600 text-white px-4 py-2 rounded">
+    + Create Course
+  </a>
+</div>
+
+<div class="grid grid-cols-2 gap-6">
+  {% for course in courses %}
+    <div class="bg-white p-4 rounded shadow">
+      <h2 class="font-semibold">{{ course.title }}</h2>
+    </div>
+  {% empty %}
+    <p>No courses created yet.</p>
+  {% endfor %}
+</div>
+{% endblock %}

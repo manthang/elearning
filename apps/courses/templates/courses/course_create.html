@@ -1,0 +1,13 @@
+{% extends "core/base.html" %}
+{% block title %}Create Course{% endblock %}
+
+{% block content %}
+<h1>Create Course</h1>
+
+<form method="post">
+  {% csrf_token %}
+  <input name="title" placeholder="Course Title">
+  <textarea name="description" placeholder="Description"></textarea>
+  <button>Create</button>
+</form>
+{% endblock %}
