@@ -27,6 +27,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Application definition
 AUTH_USER_MODEL = "accounts.User"
@@ -44,6 +46,8 @@ INSTALLED_APPS = [
     "apps.courses.apps.CoursesConfig",
     "apps.chat.apps.ChatConfig",
     "apps.api.apps.ApiConfig",
+
+    'django.contrib.humanize',
 ]
 
 MIDDLEWARE = [

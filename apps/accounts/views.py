@@ -10,10 +10,10 @@ def signup_view(request):
     if request.method == "POST":
         user = User.objects.create_user(
             username=request.POST["username"],
+            full_name=request.POST["fullname"],
             email=request.POST["email"],
             password=request.POST["password"],
             role=request.POST["role"],
-            organisation=request.POST.get("organisation", ""),
         )
         login(request, user)
         return redirect("core:home")

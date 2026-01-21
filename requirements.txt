@@ -1,0 +1,6 @@
+Django==4.2.27
+djangorestframework==3.16.1
+factory_boy==3.3.3
+drf-spectacular==0.29.0
+Pillow==12.1.0
+channels==4.3.2

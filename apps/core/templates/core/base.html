@@ -5,7 +5,11 @@
   <meta charset="UTF-8">
   <title>{% block title %}eLearning{% endblock %}</title>
 
+  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Custom CSS (optional, safe) -->
+  <link rel="stylesheet" href="{% static 'core/css/main.css' %}">
 </head>
 
 <body class="bg-gray-100 min-h-screen">
@@ -35,6 +39,9 @@
 <main class="max-w-7xl mx-auto p-6">
   {% block content %}{% endblock %}
 </main>
+
+<!-- PAGE SCRIPTS -->
+{% block extra_js %}{% endblock %}
 
 </body>
 </html>
