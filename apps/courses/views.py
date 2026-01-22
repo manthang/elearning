@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.utils.timezone import now
 
-from .models import Course, CourseFeedback, Enrollment
+from .models import *
 
 from apps.core.models import StatusUpdate
 from apps.core.forms import StatusUpdateForm
@@ -11,29 +11,24 @@ from apps.core.models import Deadline
 
 @login_required
 def teacher_home(request):
-    if request.user.role != "teacher":
+    user = request.user
+    if user.role != user.Role.TEACHER:
         return HttpResponseForbidden("Teachers only")
 
-    courses = Course.objects.filter(teacher=request.user)
-    return render(request, "courses/teacher_home.html", {"courses": courses})
+    # courses = Course.objects.filter(
+    #     sections__teaching__teacher=user
+    # ).distinct()
+
+    return render(request, "courses/teacher_home.html")
 
 @login_required
 def student_home(request):
     user = request.user
 
-    if user.role != "student":
+    if user.role != user.Role.STUDENT:
         return HttpResponseForbidden("Students only")
 
-    enrolled_count = Enrollment.objects.filter(student=user).count()
-
-    # default tab
     tab = request.GET.get("tab", "courses")
-
-    deadlines = Deadline.objects.filter(
-        due_at__gte=now()
-    ).order_by("due_at")[:5]
-
-    updates = StatusUpdate.objects.select_related("author")[:20]
 
     # ================= PROFILE UPDATE =================
     if request.method == "POST" and "full_name" in request.POST:
@@ -50,7 +45,6 @@ def student_home(request):
 
     # ================= STATUS UPDATE =================
     form = StatusUpdateForm()
-
     if request.method == "POST" and tab == "status":
         form = StatusUpdateForm(request.POST)
         if form.is_valid():
@@ -59,15 +53,71 @@ def student_home(request):
             status.save()
             return redirect("courses:student_home") + "?tab=status"
 
+    # ================= ENROLLED COURSES =================
+    enrollments = (
+        Enrollment.objects
+        .filter(student=user)
+        .select_related("section__course")
+    )
+
+    enrolled_courses = []
+    for e in enrollments:
+        course = e.section.course
+        course.progress = e.progress
+        course.is_enrolled = True
+
+        # teacher (first one for the section)
+        teaching = (
+            Teaching.objects
+            .filter(section=e.section)
+            .select_related("teacher")
+            .first()
+        )
+        course.teacher = teaching.teacher if teaching else None
+
+        enrolled_courses.append(course)
+
+    enrolled_course_ids = {c.id for c in enrolled_courses}
+
+    # ================= ALL COURSES =================
+    all_courses = Course.objects.all().prefetch_related("sections")
+
+    for course in all_courses:
+        if course.id in enrolled_course_ids:
+            continue
+
+        course.is_enrolled = False
+        course.progress = 0
+
+        # get teacher via any section
+        teaching = (
+            Teaching.objects
+            .filter(section__course=course)
+            .select_related("teacher")
+            .first()
+        )
+        course.teacher = teaching.teacher if teaching else None
+
+    enrolled_count = len(enrolled_courses)
+
+    deadlines = Deadline.objects.filter(
+        due_at__gte=now()
+    ).order_by("due_at")[:5]
+
+    updates = StatusUpdate.objects.select_related("author")[:20]
+
     context = {
         "tab": tab,
+        "courses": enrolled_courses,        # My Courses tab
+        "all_courses": all_courses,          # All Courses tab
         "enrolled_count": enrolled_count,
+        "deadlines": deadlines,
         "updates": updates,
         "form": form,
-        "deadlines": deadlines,
     }
 
     return render(request, "courses/student_home.html", context)
+
 
 @login_required
 def course_create(request):

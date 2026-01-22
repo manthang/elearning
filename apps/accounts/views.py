@@ -8,13 +8,30 @@ User = get_user_model()
 
 def signup_view(request):
     if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        full_name = request.POST.get("fullname", "").strip()
+        email = request.POST.get("email", "").strip()
+        password = request.POST.get("password", "")
+        role = request.POST.get("role", "STUDENT")
+
+        # ✅ whitelist roles
+        if role not in [User.Role.STUDENT, User.Role.TEACHER]:
+            role = User.Role.STUDENT
+
+        # ❌ basic duplicate check
+        if User.objects.filter(username=username).exists():
+            return render(request, "accounts/signup.html", {
+                "error": "Username already exists"
+            })
+
         user = User.objects.create_user(
-            username=request.POST["username"],
-            full_name=request.POST["fullname"],
-            email=request.POST["email"],
-            password=request.POST["password"],
-            role=request.POST["role"],
+            username=username,
+            full_name=full_name,
+            email=email,
+            password=password,
+            role=role,
         )
+
         login(request, user)
         return redirect("core:home")
 

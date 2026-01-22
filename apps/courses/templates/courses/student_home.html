@@ -3,14 +3,14 @@
 {% block title %}Student Dashboard{% endblock %}
 
 {% block content %}
+<div class="bg-gray-50 min-h-screen p-6">
 
-<div class="p-6 bg-gray-50 min-h-screen">
-
-  <!-- HEADER -->
+  <!-- ================= HEADER ================= -->
   <div class="flex justify-between items-center mb-8">
     <div>
       <h1 class="text-2xl font-bold">
-        Welcome back, {{ request.user.full_name|default:request.user.username }}
+        Welcome back,
+        {{ request.user.full_name|default:request.user.username }}
       </h1>
       <p class="text-gray-500">Your learning dashboard</p>
     </div>
@@ -19,57 +19,58 @@
       type="text"
       placeholder="Search students / teachers"
       disabled
-      class="px-4 py-2 border rounded-lg bg-gray-100 text-gray-400 cursor-not-allowed"
+      class="px-4 py-2 border rounded-lg bg-gray-100
+             text-gray-400 cursor-not-allowed"
     />
   </div>
 
   <div class="grid grid-cols-12 gap-6">
 
-    <!-- LEFT COLUMN -->
+    <!-- ================= LEFT COLUMN ================= -->
     <div class="col-span-4 space-y-6">
 
       <!-- PROFILE CARD -->
-      <div class="bg-white rounded-xl shadow p-6 space-y-3">
+      <div class="bg-white rounded-xl shadow p-6 space-y-4">
         <div class="flex justify-between items-start">
           <img
-            src="{{ user.avatar_url }}"
+            src="{{ request.user.avatar_url }}"
             class="w-16 h-16 rounded-full object-cover"
-            alt="Profile photo"
+            alt="Avatar"
           />
 
+          <!-- Edit button -->
           <button
             type="button"
             id="openProfileModal"
             class="flex items-center gap-2
-                  px-4 py-2
-                  border border-gray-300
-                  rounded-full
-                  text-sm font-medium text-gray-700
-                  bg-white
-                  hover:bg-gray-50
-                  hover:border-gray-400
-                  transition"
+                   px-4 py-2 border rounded-full
+                   text-sm font-medium text-gray-700
+                   hover:bg-gray-50"
           >
-            ✏️
-            <span>Edit</span>
+            ✏️ <span>Edit</span>
           </button>
-
         </div>
 
-        <h2 class="text-lg font-semibold">{{ user.full_name }}</h2>
+        <div>
+          <h2 class="text-lg font-semibold">
+            {{ request.user.full_name|default:request.user.username }}
+          </h2>
+        </div>
 
         <ul class="text-sm text-gray-600 space-y-1">
-          {% if user.location %}
-            <li>📍 {{ user.location }}</li>
+          {% if request.user.location %}
+            <li>📍 {{ request.user.location }}</li>
           {% endif %}
-          <li>📅 Joined {{ user.date_joined|date:"F Y" }}</li>
+          <li>📅 Joined {{ request.user.date_joined|date:"F Y" }}</li>
           <li>🎓 {{ enrolled_count }} Enrolled Courses</li>
         </ul>
       </div>
 
       <!-- UPCOMING DEADLINES -->
-      <div class="bg-white p-6 rounded-xl shadow">
-        <h2 class="text-lg font-semibold mb-3">Upcoming Deadlines</h2>
+      <div class="bg-white rounded-xl shadow p-6">
+        <h2 class="text-lg font-semibold mb-3">
+          Upcoming Deadlines
+        </h2>
 
         {% for d in deadlines %}
           <div class="mb-3">
@@ -80,58 +81,167 @@
             </p>
           </div>
         {% empty %}
-          <p class="text-sm text-gray-400">No upcoming deadlines 🎉</p>
+          <p class="text-sm text-gray-400">
+            No upcoming deadlines 🎉
+          </p>
         {% endfor %}
       </div>
-
     </div>
 
-    <!-- RIGHT COLUMN -->
+    <!-- ================= RIGHT COLUMN ================= -->
     <div class="col-span-8">
 
       <!-- TABS -->
       <div class="mb-6 flex gap-6 border-b">
         <a href="?tab=courses"
-           class="pb-2 {% if tab == 'courses' %}border-b-2 border-blue-600 text-blue-600{% else %}text-gray-500{% endif %}">
+           class="pb-2 {% if tab == 'courses' %}
+                    border-b-2 border-blue-600 text-blue-600
+                    {% else %} text-gray-500 {% endif %}">
           My Courses
         </a>
 
         <a href="?tab=all"
-           class="pb-2 {% if tab == 'all' %}border-b-2 border-blue-600 text-blue-600{% else %}text-gray-500{% endif %}">
+           class="pb-2 {% if tab == 'all' %}
+                    border-b-2 border-blue-600 text-blue-600
+                    {% else %} text-gray-500 {% endif %}">
           All Courses
         </a>
 
         <a href="?tab=status"
-           class="pb-2 {% if tab == 'status' %}border-b-2 border-blue-600 text-blue-600{% else %}text-gray-500{% endif %}">
+           class="pb-2 {% if tab == 'status' %}
+                    border-b-2 border-blue-600 text-blue-600
+                    {% else %} text-gray-500 {% endif %}">
           Status Updates
         </a>
       </div>
 
-      <!-- TAB CONTENT -->
+      <!-- ================= TAB CONTENT ================= -->
 
+      <!-- ===== MY COURSES ===== -->
       {% if tab == "courses" %}
         <div class="grid grid-cols-2 gap-6">
           {% for course in courses %}
-            <div class="bg-white p-6 rounded-xl shadow">
+            <div class="bg-white rounded-xl shadow p-6">
               <h3 class="font-semibold">{{ course.title }}</h3>
               <p class="text-sm text-gray-500">
-                {{ course.teacher.full_name|default:course.teacher.username }}
+                Prof. {{ course.teacher.full_name|default:course.teacher.username }}
               </p>
             </div>
           {% empty %}
-            <p class="text-gray-400">No enrolled courses yet.</p>
+            <p class="text-gray-400">
+              No enrolled courses yet.
+            </p>
           {% endfor %}
         </div>
       {% endif %}
 
+      <!-- ===== ALL COURSES (NEW DESIGN) ===== -->
       {% if tab == "all" %}
-        <div class="bg-white p-6 rounded-xl shadow">
-          <p class="text-gray-400">
-            Course catalogue will be available here.
-          </p>
+
+        <!-- Search bar -->
+        <div class="mb-6">
+          <div class="relative">
+            <input
+              type="text"
+              placeholder="Search course names"
+              class="w-full pl-10 pr-4 py-2 border rounded-lg
+                     text-sm focus:outline-none
+                     focus:ring-2 focus:ring-blue-200"
+            >
+            <span class="absolute left-3 top-1/2 -translate-y-1/2
+                         text-gray-400">
+              🔍
+            </span>
+          </div>
         </div>
+
+        <!-- Course grid -->
+        <div class="grid grid-cols-2 gap-6">
+          {% for course in all_courses %}
+            <div class="bg-white border rounded-xl p-6 space-y-4">
+
+              <!-- Title + status -->
+              <div class="flex justify-between items-start">
+                <div>
+                  <h3 class="text-lg font-semibold">
+                    {{ course.title }}
+                  </h3>
+                  <p class="text-sm text-gray-500">
+                    {% if course.teacher %}
+                      Prof. {{ course.teacher.full_name|default:course.teacher.username }}
+                    {% else %}
+                      <span class="text-gray-400">No instructor assigned</span>
+                    {% endif %}
+                  </p>
+                </div>
+
+                {% if course.is_enrolled %}
+                  <span class="px-3 py-1 text-xs font-medium
+                               rounded-full bg-green-100 text-green-700">
+                    Active
+                  </span>
+                {% else %}
+                  <span class="px-3 py-1 text-xs font-medium
+                               rounded-full bg-gray-100 text-gray-600">
+                    Not Enrolled
+                  </span>
+                {% endif %}
+              </div>
+
+              <!-- Progress -->
+              {% if course.is_enrolled %}
+                <div>
+                  <div class="flex justify-between text-sm text-gray-600 mb-1">
+                    <span>Progress</span>
+                    <span>{{ course.progress }}%</span>
+                  </div>
+                  <div class="h-2 bg-gray-200 rounded-full">
+                    <div
+                      class="h-2 bg-blue-600 rounded-full"
+                      style="width: {{ course.progress }}%"
+                    ></div>
+                  </div>
+                </div>
+              {% endif %}
+
+              <!-- Actions -->
+              <div class="flex gap-3 pt-2">
+                {% if course.is_enrolled %}
+                  <a href="#"
+                     class="flex-1 flex items-center justify-center gap-2
+                            px-4 py-2 border rounded-lg
+                            text-gray-700 hover:bg-gray-50">
+                    ▶ Continue
+                  </a>
+                {% else %}
+                  <a href="#"
+                     class="flex-1 px-4 py-2 bg-blue-600
+                            text-white rounded-lg
+                            hover:bg-blue-700 text-center">
+                    Enroll
+                  </a>
+                {% endif %}
+
+                <button
+                  class="w-10 h-10 border rounded-lg
+                         flex items-center justify-center
+                         text-gray-500 hover:bg-gray-50"
+                  title="Messages"
+                >
+                  💬
+                </button>
+              </div>
+            </div>
+          {% empty %}
+            <p class="text-gray-400">
+              No courses available.
+            </p>
+          {% endfor %}
+        </div>
+
       {% endif %}
 
+      <!-- ===== STATUS UPDATES ===== -->
       {% if tab == "status" %}
         <form method="post" class="flex gap-4 mb-8">
           {% csrf_token %}
@@ -139,7 +249,8 @@
           <div class="flex-1">
             {{ form.content }}
             <div class="flex justify-end mt-3">
-              <button class="bg-blue-600 text-white px-5 py-2 rounded-xl">
+              <button
+                class="bg-blue-600 text-white px-5 py-2 rounded-xl">
                 Post Update
               </button>
             </div>
@@ -148,7 +259,7 @@
 
         <div class="space-y-6">
           {% for update in updates %}
-            <div class="bg-white p-4 rounded-xl shadow">
+            <div class="bg-white rounded-xl shadow p-4">
               <p class="font-semibold">
                 {{ update.author.full_name|default:update.author.username }}
               </p>
@@ -158,16 +269,17 @@
               </p>
             </div>
           {% empty %}
-            <p class="text-gray-400">No updates yet.</p>
+            <p class="text-gray-400">
+              No updates yet.
+            </p>
           {% endfor %}
         </div>
       {% endif %}
-
     </div>
   </div>
 </div>
 
-<!-- EDIT PROFILE MODAL -->
+<!-- ================= EDIT PROFILE MODAL ================= -->
 <div
   id="profileModal"
   class="fixed inset-0 z-50 hidden
@@ -188,6 +300,7 @@
       <button
         id="closeProfileModal"
         class="text-gray-400 hover:text-gray-600 text-xl"
+        type="button"
       >
         &times;
       </button>
@@ -201,7 +314,7 @@
     >
       {% csrf_token %}
 
-      <!-- Profile Photo -->
+      <!-- Profile photo -->
       <div class="space-y-3">
         <p class="text-sm font-medium text-gray-700">
           Profile Photo
@@ -213,7 +326,7 @@
                    flex items-center justify-center
                    text-white text-2xl font-semibold"
           >
-            {{ request.user.first_name|default:request.user.username|slice:":1"|upper }}
+            {{ request.user.full_name|default:request.user.username|slice:":1"|upper }}
           </div>
 
           <label class="cursor-pointer">
@@ -234,7 +347,7 @@
         </p>
       </div>
 
-      <!-- Full Name -->
+      <!-- Full name -->
       <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">
           Full name
@@ -243,6 +356,20 @@
           type="text"
           name="full_name"
           value="{{ request.user.full_name }}"
+          class="w-full border rounded-lg px-3 py-2 text-sm
+                 focus:outline-none focus:ring-2 focus:ring-blue-200"
+        >
+      </div>
+
+      <!-- Email -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">
+          Email
+        </label>
+        <input
+          type="email"
+          name="email"
+          value="{{ request.user.email }}"
           class="w-full border rounded-lg px-3 py-2 text-sm
                  focus:outline-none focus:ring-2 focus:ring-blue-200"
         >
@@ -298,8 +425,6 @@
   </div>
 </div>
 
-{% endblock %}
-
 {% block extra_js %}
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -320,4 +445,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
+{% endblock %}
+
 {% endblock %}
