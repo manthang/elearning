@@ -1,6 +1,6 @@
 # courses/forms.py
 from django import forms
-from .models import CourseFeedback
+from .models import *
 
 class CourseFeedbackForm(forms.ModelForm):
     class Meta:

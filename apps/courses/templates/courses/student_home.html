@@ -112,14 +112,13 @@
         </a>
       </div>
 
-      <!-- ================= TAB CONTENT ================= -->
-
-      <!-- ===== MY COURSES ===== -->
+      <!-- ================= MY COURSES ================= -->
       {% if tab == "courses" %}
         <div class="grid grid-cols-2 gap-6">
           {% for course in courses %}
-            <div class="bg-white rounded-xl shadow p-6 space-y-3">
-              <h3 class="font-semibold">{{ course.title }}</h3>
+            <div class="bg-white rounded-xl shadow p-6 space-y-4">
+
+              <h3 class="font-semibold text-lg">{{ course.title }}</h3>
 
               {% if course.teachers %}
                 <p class="text-sm text-gray-500">
@@ -139,21 +138,33 @@
                   <span>{{ course.progress }}%</span>
                 </div>
                 <div class="h-2 bg-gray-200 rounded-full">
-                  <div
-                    class="h-2 bg-blue-600 rounded-full"
-                    style="width: {{ course.progress }}%">
-                  </div>
+                  <div class="h-2 bg-blue-600 rounded-full"
+                       style="width: {{ course.progress }}%"></div>
                 </div>
               </div>
 
-              <a
-                href="{% url 'courses:course_continue' course.id %}"
-                class="inline-flex items-center justify-center
-                       px-4 py-2 border rounded-lg
-                       text-sm text-gray-700 hover:bg-gray-50"
-              >
-                ▶ Continue
-              </a>
+              <div class="flex gap-3 pt-2">
+                <a
+                  href="{% url 'courses:course_continue' course.id %}"
+                  class="flex-1 flex items-center justify-center
+                         px-4 py-2 border rounded-lg
+                         hover:bg-gray-50">
+                  ▶ Continue
+                </a>
+
+                <button
+                  type="button"
+                  onclick="openFeedbackModal(
+                    '{{ course.title|escapejs }}',
+                    '{% url 'courses:course_feedback' course.id %}'
+                  )"
+                  class="w-10 h-10 border rounded-lg
+                         flex items-center justify-center
+                         hover:bg-gray-50"
+                  title="Leave feedback">
+                  💬
+                </button>
+              </div>
             </div>
           {% empty %}
             <p class="text-gray-400">No enrolled courses yet.</p>
@@ -161,16 +172,15 @@
         </div>
       {% endif %}
 
-      <!-- ===== ALL COURSES ===== -->
+      <!-- ================= ALL COURSES ================= -->
       {% if tab == "all" %}
         <div class="grid grid-cols-2 gap-6">
           {% for course in all_courses %}
-            <div class="bg-white border rounded-xl p-6 space-y-4">
+            <div class="bg-white rounded-xl shadow p-6 space-y-4">
 
-              <!-- Title + status -->
               <div class="flex justify-between items-start">
                 <div>
-                  <h3 class="text-lg font-semibold">{{ course.title }}</h3>
+                  <h3 class="font-semibold text-lg">{{ course.title }}</h3>
 
                   {% if course.teachers %}
                     <p class="text-sm text-gray-500">
@@ -185,40 +195,25 @@
                 </div>
 
                 {% if course.is_enrolled %}
-                  <span class="px-3 py-1 text-sm font-medium
-                               rounded-lg bg-green-100 text-green-700">
+                  <span class="px-3 py-1 text-sm rounded-lg
+                               bg-green-100 text-green-700">
                     Active
                   </span>
                 {% else %}
-                  <span class="px-3 py-1 text-sm font-medium
-                               rounded-lg bg-gray-100 text-gray-600">
+                  <span class="px-3 py-1 text-sm rounded-lg
+                               bg-gray-100 text-gray-600">
                     Not Enrolled
                   </span>
                 {% endif %}
               </div>
 
-              <!-- Progress -->
-              {% if course.is_enrolled %}
-                <div class="space-y-1">
-                  <div class="flex justify-between text-sm text-gray-600">
-                    <span>Progress</span>
-                    <span>{{ course.progress }}%</span>
-                  </div>
-                  <div class="h-2 bg-gray-200 rounded-full">
-                    <div class="h-2 bg-blue-600 rounded-full"
-                         style="width: {{ course.progress }}%"></div>
-                  </div>
-                </div>
-              {% endif %}
-
-              <!-- Actions -->
-              <div class="flex items-center gap-3 pt-4">
+              <div class="flex gap-3 pt-2">
                 {% if course.is_enrolled %}
                   <a
                     href="{% url 'courses:course_continue' course.id %}"
-                    class="flex-1 flex items-center justify-center gap-2
+                    class="flex-1 flex items-center justify-center
                            px-4 py-2 border rounded-lg
-                           text-gray-700 hover:bg-gray-50">
+                           hover:bg-gray-50">
                     ▶ Continue
                   </a>
                 {% else %}
@@ -228,31 +223,46 @@
                     {% csrf_token %}
                     <button
                       type="submit"
-                      class="w-full px-4 py-2 bg-blue-600
-                             text-white rounded-lg hover:bg-blue-700">
+                      class="w-full px-4 py-2
+                             bg-blue-600 text-white
+                             rounded-lg hover:bg-blue-700">
                       ➕ Enroll
                     </button>
                   </form>
                 {% endif %}
 
-                <!-- Feedback -->
-                <button
-                  type="button"
-                  class="w-10 h-10 border rounded-lg
-                         flex items-center justify-center
-                         text-gray-600 hover:bg-gray-50"
-                  title="Feedback">
-                  💬
-                </button>
+                {% if course.is_enrolled %}
+                  <button
+                    type="button"
+                    onclick="openFeedbackModal(
+                      '{{ course.title|escapejs }}',
+                      '{% url 'courses:course_feedback' course.id %}'
+                    )"
+                    class="w-10 h-10 border rounded-lg
+                          flex items-center justify-center
+                          hover:bg-gray-50"
+                    title="Leave feedback">
+                    💬
+                  </button>
+                {% else %}
+                  <button
+                    type="button"
+                    disabled
+                    class="w-10 h-10 border rounded-lg
+                          flex items-center justify-center
+                          text-gray-300 cursor-not-allowed"
+                    title="Enroll to leave feedback">
+                    💬
+                  </button>
+                {% endif %}
+
               </div>
             </div>
-          {% empty %}
-            <p class="text-gray-400">No courses available.</p>
           {% endfor %}
         </div>
       {% endif %}
 
-      <!-- ===== STATUS UPDATES ===== -->
+      <!-- ================= STATUS UPDATES ================= -->
       {% if tab == "status" %}
         <form method="post" class="flex gap-4 mb-8">
           {% csrf_token %}
@@ -278,13 +288,88 @@
                 {{ update.created_at|naturaltime }}
               </p>
             </div>
-          {% empty %}
-            <p class="text-gray-400">No updates yet.</p>
           {% endfor %}
         </div>
       {% endif %}
     </div>
   </div>
 </div>
+
+<!-- ================= FEEDBACK MODAL ================= -->
+<div id="feedbackModal"
+     class="fixed inset-0 bg-black/40 hidden
+            flex items-center justify-center z-50">
+
+  <div class="bg-white rounded-xl w-full max-w-lg p-6 relative">
+
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <h2 class="text-xl font-semibold">Leave Feedback</h2>
+        <p id="feedbackCourseTitle" class="text-gray-500 text-sm"></p>
+      </div>
+
+      <button onclick="closeFeedbackModal()"
+              class="text-gray-400 hover:text-gray-600 text-xl">
+        ×
+      </button>
+    </div>
+
+    <form method="post" id="feedbackForm">
+      {% csrf_token %}
+      <input type="hidden" name="rating" id="ratingInput">
+
+      <p class="font-medium mb-2">How would you rate this course?</p>
+
+      <div class="flex gap-2 text-3xl text-gray-300 cursor-pointer mb-4">
+        {% for i in "12345" %}
+          <span onclick="setRating({{ forloop.counter }})"
+                id="star{{ forloop.counter }}">★</span>
+        {% endfor %}
+      </div>
+
+      <label class="font-medium block mb-1">
+        Additional Comments (Optional)
+      </label>
+      <textarea name="comment"
+                class="w-full border rounded-lg p-3 mb-6"
+                rows="4"
+                placeholder="Share your thoughts about the course, instructor, or learning experience...">
+      </textarea>
+
+      <div class="flex justify-end gap-3">
+        <button type="button"
+                onclick="closeFeedbackModal()"
+                class="px-4 py-2 border rounded-lg">
+          Cancel
+        </button>
+        <button type="submit"
+                class="px-6 py-2 bg-blue-600 text-white rounded-lg">
+          Submit Feedback
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function openFeedbackModal(courseTitle, actionUrl) {
+    document.getElementById("feedbackModal").classList.remove("hidden");
+    document.getElementById("feedbackCourseTitle").innerText = courseTitle;
+    document.getElementById("feedbackForm").action = actionUrl;
+    setRating(0);
+  }
+
+  function closeFeedbackModal() {
+    document.getElementById("feedbackModal").classList.add("hidden");
+  }
+
+  function setRating(value) {
+    document.getElementById("ratingInput").value = value;
+    for (let i = 1; i <= 5; i++) {
+      document.getElementById("star" + i).style.color =
+        i <= value ? "#2563eb" : "#d1d5db";
+    }
+  }
+</script>
 
 {% endblock %}

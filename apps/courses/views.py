@@ -4,6 +4,7 @@ from django.http import HttpResponseForbidden
 from django.utils.timezone import now
 
 from .models import *
+from .forms import *
 from apps.core.models import StatusUpdate
 from apps.core.forms import StatusUpdateForm
 from apps.core.models import Deadline
@@ -159,6 +160,17 @@ def course_feedback(request, course_id):
         return HttpResponseForbidden("Students only")
 
     course = get_object_or_404(Course, id=course_id)
+
+    # 🔒 ENFORCE enrollment
+    is_enrolled = Enrollment.objects.filter(
+        student=request.user,
+        course=course
+    ).exists()
+
+    if not is_enrolled:
+        return HttpResponseForbidden(
+            "You must be enrolled in this course to leave feedback."
+        )
 
     form = CourseFeedbackForm(request.POST)
     if form.is_valid():

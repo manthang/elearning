@@ -77,5 +77,5 @@ class CourseFeedback(models.Model):
         unique_together = ("student", "course")
 
     def __str__(self):
-        return f"Feedback by {self.student} for {self.section}"
+        return f"Feedback by {self.student} for {self.course}"
 
