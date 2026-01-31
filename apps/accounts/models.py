@@ -23,14 +23,6 @@ class User(AbstractUser):
         blank=True,
         null=True,
     )
-    
-    department = models.ForeignKey(
-        "courses.Department",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="users"
-    )
 
     profile_photo = models.ImageField(
         upload_to="profile_photos/",

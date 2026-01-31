@@ -22,7 +22,6 @@ class CustomUserAdmin(UserAdmin):
                 "full_name",
                 "role",
                 "location",
-                "department",
                 "profile_photo",
             )
         }),

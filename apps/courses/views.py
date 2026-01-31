@@ -4,7 +4,6 @@ from django.http import HttpResponseForbidden
 from django.utils.timezone import now
 
 from .models import *
-
 from apps.core.models import StatusUpdate
 from apps.core.forms import StatusUpdateForm
 from apps.core.models import Deadline
@@ -25,6 +24,7 @@ def teacher_home(request):
 def student_home(request):
     user = request.user
 
+    # 🔒 Students only
     if user.role != user.Role.STUDENT:
         return HttpResponseForbidden("Students only")
 
@@ -53,53 +53,50 @@ def student_home(request):
             status.save()
             return redirect("courses:student_home") + "?tab=status"
 
-    # ================= ENROLLED COURSES =================
+    # ================= ENROLLMENTS =================
     enrollments = (
         Enrollment.objects
         .filter(student=user)
-        .select_related("section__course")
+        .select_related("course")
     )
 
+    enrolled_course_ids = set()
     enrolled_courses = []
-    for e in enrollments:
-        course = e.section.course
-        course.progress = e.progress
-        course.is_enrolled = True
 
-        # teacher (first one for the section)
-        teaching = (
-            Teaching.objects
-            .filter(section=e.section)
-            .select_related("teacher")
-            .first()
-        )
-        course.teacher = teaching.teacher if teaching else None
+    for enrollment in enrollments:
+        course = enrollment.course
+        enrolled_course_ids.add(course.id)
+
+        # derived fields (NOT model fields)
+        course.is_enrolled = True
+        course.progress = enrollment.progress
+
+        # attach teachers
+        course.teachers = [
+            t.teacher
+            for t in Teaching.objects.filter(course=course)
+                                     .select_related("teacher")
+        ]
 
         enrolled_courses.append(course)
 
-    enrolled_course_ids = {c.id for c in enrolled_courses}
-
     # ================= ALL COURSES =================
-    all_courses = Course.objects.all().prefetch_related("sections")
+    all_courses = Course.objects.all()
 
     for course in all_courses:
-        if course.id in enrolled_course_ids:
-            continue
-
-        course.is_enrolled = False
+        course.is_enrolled = course.id in enrolled_course_ids
         course.progress = 0
 
-        # get teacher via any section
-        teaching = (
-            Teaching.objects
-            .filter(section__course=course)
-            .select_related("teacher")
-            .first()
-        )
-        course.teacher = teaching.teacher if teaching else None
+        # attach teachers
+        course.teachers = [
+            t.teacher
+            for t in Teaching.objects.filter(course=course)
+                                     .select_related("teacher")
+        ]
 
     enrolled_count = len(enrolled_courses)
 
+    # ================= DEADLINES & UPDATES =================
     deadlines = Deadline.objects.filter(
         due_at__gte=now()
     ).order_by("due_at")[:5]
@@ -108,8 +105,8 @@ def student_home(request):
 
     context = {
         "tab": tab,
-        "courses": enrolled_courses,        # My Courses tab
-        "all_courses": all_courses,          # All Courses tab
+        "courses": enrolled_courses,      # My Courses
+        "all_courses": all_courses,        # All Courses
         "enrolled_count": enrolled_count,
         "deadlines": deadlines,
         "updates": updates,
@@ -136,29 +133,50 @@ def course_create(request):
 
 
 @login_required
-def enrol_course(request, course_id):
-    if request.user.role != "student":
+def course_enroll(request, course_id):
+    if request.user.role != request.user.Role.STUDENT:
         return HttpResponseForbidden("Students only")
 
     course = get_object_or_404(Course, id=course_id)
-    course.students.add(request.user)
+
+    # 🔒 Course must have at least one teacher
+    if not Teaching.objects.filter(course=course).exists():
+        return HttpResponseForbidden(
+            "This course is not yet available for enrollment."
+        )
+
+    Enrollment.objects.get_or_create(
+        student=request.user,
+        course=course
+    )
+
     return redirect("courses:student_home")
 
 
 @login_required
-def leave_feedback(request, course_id):
-    if request.user.role != "student":
+def course_feedback(request, course_id):
+    if request.user.role != request.user.Role.STUDENT:
         return HttpResponseForbidden("Students only")
 
     course = get_object_or_404(Course, id=course_id)
 
-    if request.method == "POST":
-        CourseFeedback.objects.create(
-            course=course,
-            student=request.user,
-            comment=request.POST["comment"],
-            rating=request.POST.get("rating", 5),
-        )
-        return redirect("courses:student_home")
+    form = CourseFeedbackForm(request.POST)
+    if form.is_valid():
+        feedback = form.save(commit=False)
+        feedback.course = course
+        feedback.student = request.user
+        feedback.save()
 
-    return render(request, "courses/feedback.html", {"course": course})
+    return redirect("courses:student_home")
+
+
+@login_required
+def course_continue(request, course_id):
+    if request.user.role != request.user.Role.STUDENT:
+        return HttpResponseForbidden("Students only")
+
+    course = get_object_or_404(Course, id=course_id)
+
+    return render(request, "courses/course_detail.html", {
+        "course": course
+    })

@@ -7,6 +7,19 @@ urlpatterns = [
     path("teacher/", views.teacher_home, name="teacher_home"),
     path("student/", views.student_home, name="student_home"),
     path("create/", views.course_create, name="create"),
-    path("enrol/<int:course_id>/", views.enrol_course, name="enrol"),
-    path("feedback/<int:course_id>/", views.leave_feedback, name="feedback"),
+    path(
+        "courses/<int:course_id>/enroll/",
+        views.course_enroll,
+        name="course_enroll",
+    ),
+    path(
+        "courses/<int:course_id>/continue/",
+        views.course_continue,
+        name="course_continue",
+    ),
+    path(
+        "courses/<int:course_id>/feedback/",
+        views.course_feedback,
+        name="course_feedback",
+    ),
 ]
