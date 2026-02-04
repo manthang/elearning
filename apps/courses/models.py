@@ -84,11 +84,6 @@ class CourseFeedback(models.Model):
 
 
 class Deadline(models.Model):
-    class DeadlineType(models.TextChoices):
-        ASSIGNMENT = "ASSIGNMENT", "Assignment"
-        QUIZ = "QUIZ", "Quiz"
-        EXAM = "EXAM", "Exam"
-
     course = models.ForeignKey(
         Course,
         on_delete=models.CASCADE,
@@ -97,12 +92,6 @@ class Deadline(models.Model):
 
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-
-    type = models.CharField(
-        max_length=20,
-        choices=DeadlineType.choices,
-        default=DeadlineType.ASSIGNMENT
-    )
     
     due_at = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)

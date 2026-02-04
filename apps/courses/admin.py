@@ -46,7 +46,6 @@ class CourseFeedbackAdmin(admin.ModelAdmin):
 
 @admin.register(Deadline)
 class DeadlineAdmin(admin.ModelAdmin):
-    list_display = ("title", "course", "type", "due_at")
-    list_filter = ("type", "course")
+    list_display = ("title", "course", "due_at")
+    list_filter = ("course",)
     search_fields = ("title", "course__title")
-    ordering = ("due_at",)
