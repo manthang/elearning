@@ -42,3 +42,11 @@ class CourseFeedbackAdmin(admin.ModelAdmin):
     )
 
     ordering = ("-created_at",)
+
+
+@admin.register(Deadline)
+class DeadlineAdmin(admin.ModelAdmin):
+    list_display = ("title", "course", "type", "due_at")
+    list_filter = ("type", "course")
+    search_fields = ("title", "course__title")
+    ordering = ("due_at",)

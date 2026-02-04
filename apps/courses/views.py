@@ -5,9 +5,11 @@ from django.utils.timezone import now
 
 from .models import *
 from .forms import *
+
 from apps.core.models import StatusUpdate
 from apps.core.forms import StatusUpdateForm
-from apps.core.models import Deadline
+
+from django.contrib import messages
 
 @login_required
 def teacher_home(request):
@@ -42,6 +44,7 @@ def student_home(request):
             user.profile_photo = request.FILES["profile_photo"]
 
         user.save()
+        messages.success(request, "Profile updated successfully!")
         return redirect("courses:student_home")
 
     # ================= STATUS UPDATE =================
@@ -79,6 +82,15 @@ def student_home(request):
                                      .select_related("teacher")
         ]
 
+        # attach existing feedback (if any)
+        feedback = CourseFeedback.objects.filter(
+            course=course,
+            student=user
+        ).first()
+
+        course.feedback_rating = feedback.rating if feedback else 0
+        course.feedback_comment = feedback.comment if feedback else ""
+
         enrolled_courses.append(course)
 
     # ================= ALL COURSES =================
@@ -95,12 +107,29 @@ def student_home(request):
                                      .select_related("teacher")
         ]
 
+        # attach feedback only if enrolled
+        if course.is_enrolled:
+            feedback = CourseFeedback.objects.filter(
+                course=course,
+                student=user
+            ).first()
+            course.feedback_rating = feedback.rating if feedback else 0
+            course.feedback_comment = feedback.comment if feedback else ""
+        else:
+            course.feedback_rating = 0
+            course.feedback_comment = ""
+
     enrolled_count = len(enrolled_courses)
 
     # ================= DEADLINES & UPDATES =================
-    deadlines = Deadline.objects.filter(
-        due_at__gte=now()
-    ).order_by("due_at")[:5]
+    deadlines = (
+        Deadline.objects
+        .filter(
+            course_id__in=enrolled_course_ids,
+            due_at__gte=now()
+        )
+        .order_by("due_at")[:5]
+    )
 
     updates = StatusUpdate.objects.select_related("author")[:20]
 
@@ -173,12 +202,21 @@ def course_feedback(request, course_id):
         )
 
     form = CourseFeedbackForm(request.POST)
-    if form.is_valid():
-        feedback = form.save(commit=False)
-        feedback.course = course
-        feedback.student = request.user
-        feedback.save()
 
+    if not form.is_valid():
+        # NEVER save anything if form is invalid
+        return redirect("courses:student_home")
+
+    CourseFeedback.objects.update_or_create(
+        course=course,
+        student=request.user,
+        defaults={
+            "rating": form.cleaned_data["rating"],
+            "comment": form.cleaned_data.get("comment", ""),
+        }
+    )
+
+    messages.success(request, "Feedback submitted successfully!")
     return redirect("courses:student_home")
 
 

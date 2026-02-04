@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 
 User = settings.AUTH_USER_MODEL
 
@@ -78,4 +79,38 @@ class CourseFeedback(models.Model):
 
     def __str__(self):
         return f"Feedback by {self.student} for {self.course}"
+
+
+class Deadline(models.Model):
+    class DeadlineType(models.TextChoices):
+        ASSIGNMENT = "ASSIGNMENT", "Assignment"
+        QUIZ = "QUIZ", "Quiz"
+        EXAM = "EXAM", "Exam"
+
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        related_name="deadlines"
+    )
+
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+
+    type = models.CharField(
+        max_length=20,
+        choices=DeadlineType.choices,
+        default=DeadlineType.ASSIGNMENT
+    )
+    
+    due_at = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["due_at"]
+
+    def is_overdue(self):
+        return self.due_at < timezone.now()
+
+    def __str__(self):
+        return f"{self.course.title} – {self.title}"
 

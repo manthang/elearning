@@ -3,30 +3,6 @@ from django.db import models
 
 from apps.courses.models import Course
 
-class Deadline(models.Model):
-    course = models.ForeignKey(
-        Course,
-        on_delete=models.CASCADE,
-        related_name="deadlines",
-    )
-    title = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
-    due_at = models.DateTimeField()
-
-    created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        limit_choices_to={"role": "teacher"},
-    )
-
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ["due_at"]
-
-    def __str__(self):
-        return f"{self.course.title} – {self.title}"
-
 class StatusUpdate(models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
