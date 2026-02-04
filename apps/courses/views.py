@@ -122,14 +122,15 @@ def student_home(request):
     enrolled_count = len(enrolled_courses)
 
     # ================= DEADLINES & UPDATES =================
-    deadlines = (
-        Deadline.objects
-        .filter(
-            course_id__in=enrolled_course_ids,
-            due_at__gte=now()
-        )
-        .order_by("due_at")[:5]
+    show_past = request.GET.get("show_past") == "1"
+    
+    deadlines = Deadline.objects.filter(
+        course_id__in=enrolled_course_ids,
     )
+    if not show_past:
+        deadlines = deadlines.filter(due_at__gte=timezone.now())
+
+    deadlines = deadlines.order_by("due_at")[:5]
 
     updates = StatusUpdate.objects.select_related("author")[:20]
 
@@ -139,6 +140,7 @@ def student_home(request):
         "all_courses": all_courses,        # All Courses
         "enrolled_count": enrolled_count,
         "deadlines": deadlines,
+        "show_past": show_past,
         "updates": updates,
         "form": form,
     }

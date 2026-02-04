@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
@@ -110,6 +112,17 @@ class Deadline(models.Model):
 
     def is_overdue(self):
         return self.due_at < timezone.now()
+
+    def is_due_soon(self):
+        now = timezone.now()
+        return now <= self.due_at <= now + timedelta(hours=48)
+
+    def status(self):
+        if self.is_overdue():
+            return "due"
+        if self.is_due_soon():
+            return "due_soon"
+        return "upcoming"
 
     def __str__(self):
         return f"{self.course.title} – {self.title}"

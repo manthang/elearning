@@ -67,27 +67,66 @@
 
       <!-- UPCOMING DEADLINES -->
       <div class="bg-white rounded-xl shadow p-6">
-        <h2 class="text-lg font-semibold mb-3">Upcoming Deadlines</h2>
 
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-4">
+
+          <h2 class="text-lg font-semibold flex items-center gap-2">
+            ⏰ Upcoming Deadlines
+          </h2>
+
+          <a href="{% if show_past %}?{% else %}?show_past=1{% endif %}"
+            class="inline-flex items-center gap-1.5
+                    px-3 py-1
+                    text-xs font-medium
+                    rounded-full
+                    border border-gray-300
+                    text-gray-600
+                    hover:border-gray-400
+                    hover:bg-gray-50
+                    transition">
+
+            {% if show_past %}
+              <span class="text-gray-400">✕</span>
+              <span>Hide past</span>
+            {% else %}
+              <span class="text-gray-400">⏳</span>
+              <span>Show past</span>
+            {% endif %}
+
+          </a>
+        </div>
+
+        <!-- Deadlines list -->
         {% for d in deadlines %}
-          <div class="mb-3 flex justify-between items-start">
+          <div class="flex justify-between items-center py-3 border-b border-dashed last:border-b-0">
 
             <div>
               <p class="font-medium text-sm">
-                {% if d.type == "ASSIGNMENT" %}📝{% endif %}
-                {% if d.type == "QUIZ" %}🧪{% endif %}
-                {% if d.type == "EXAM" %}🎓{% endif %}
                 {{ d.title }}
               </p>
-
               <p class="text-xs text-gray-500">
                 {{ d.course.title }}
               </p>
             </div>
 
-            <p class="text-xs text-red-500">
-              {{ d.due_at|naturaltime }}
-            </p>
+            {% if d.status == "due" %}
+              <span class="px-2 py-1 text-xs rounded-full
+                          bg-red-100 text-red-700">
+                Due
+              </span>
+            {% elif d.status == "due_soon" %}
+              <span class="px-2 py-1 text-xs rounded-full
+                          bg-orange-100 text-orange-700">
+                Due Soon
+              </span>
+            {% else %}
+              <span class="px-2 py-1 text-xs rounded-full
+                          bg-gray-100 text-gray-600">
+                Upcoming
+              </span>
+            {% endif %}
+
           </div>
         {% empty %}
           <p class="text-sm text-gray-400">
