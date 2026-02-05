@@ -3,8 +3,13 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 
-User = get_user_model()
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 
+from .models import *
+
+User = get_user_model()
 
 def signup_view(request):
     if request.method == "POST":
@@ -56,3 +61,28 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     return redirect("accounts:login")
+
+
+@login_required
+def user_search(request):
+    query = request.GET.get("q", "")
+    role = request.GET.get("role", "student")
+
+    users = User.objects.filter(
+        role=role.upper()
+    ).filter(
+        Q(full_name__icontains=query) |
+        Q(email__icontains=query)
+    )[:10]
+
+    results = []
+    for u in users:
+        results.append({
+            "id": u.id,
+            "name": u.full_name or u.username,
+            "email": u.email,
+            "location": u.location or "",
+            "avatar": u.profile_photo.url if u.profile_photo else "/static/img/default-avatar.png",
+        })
+
+    return JsonResponse({"results": results})

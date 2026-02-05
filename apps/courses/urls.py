@@ -22,4 +22,5 @@ urlpatterns = [
         views.course_feedback,
         name="course_feedback",
     ),
+
 ]
