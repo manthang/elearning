@@ -1,0 +1,20 @@
+{% extends "dashboards/base_dashboard.html" %}
+
+{% block dashboard_content %}
+
+  <!-- LEFT -->
+  <div class="col-span-4 space-y-6">
+    {% include "student/components/profile_card.html" %}
+    {% include "student/components/upcoming_deadlines.html" %}
+  </div>
+
+  <!-- RIGHT -->
+  <div class="col-span-8 space-y-6">
+    {% include "student/components/enrolled_courses.html" %}
+    {% include "student/components/status_updates.html" %}
+  </div>
+
+  {% include "student/components/profile_edit_modal.html" %}
+  {% include "student/components/feedback_modal.html" %}
+
+{% endblock %}

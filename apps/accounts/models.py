@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
@@ -36,7 +37,7 @@ class User(AbstractUser):
     def avatar_url(self):
         if self.profile_photo:
             return self.profile_photo.url
-        return "/static/img/default-avatar.svg"
+        return f"{settings.MEDIA_URL}/profile_photos/default-avatar.svg"
 
     def is_student(self):
         return self.role == self.Role.STUDENT

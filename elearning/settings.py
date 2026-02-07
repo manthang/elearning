@@ -27,9 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
-
 # Application definition
 AUTH_USER_MODEL = "accounts.User"
 
@@ -41,8 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    "apps.core.apps.CoreConfig",
     "apps.accounts.apps.AccountsConfig",
+    "apps.core.apps.CoreConfig",
     "apps.courses.apps.CoursesConfig",
     "apps.chat.apps.ChatConfig",
     "apps.api.apps.ApiConfig",
@@ -127,8 +124,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Media resources
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"

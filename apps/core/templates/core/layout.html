@@ -1,0 +1,11 @@
+{% extends "core/base.html" %}
+
+{% block body %}
+  {% include "core/navbar.html" %}
+
+  <main class="max-w-7xl mx-auto p-6">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% include "core/toast.html" %}
+{% endblock %}
