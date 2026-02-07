@@ -86,3 +86,27 @@ def user_search(request):
         })
 
     return JsonResponse({"results": results})
+
+
+@login_required
+def user_profile(request, user_id):
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        raise Http404
+
+    data = {
+        "id": user.id,
+        "full_name": user.full_name or user.username,
+        "role": user.get_role_display(),
+        "email": user.email,
+        "location": user.location,
+        "bio": user.bio,
+        "joined": user.date_joined.strftime("%b %Y"),
+        "avatar": user.avatar_url if hasattr(user, "avatar_url") else None,
+        "enrolled_courses": (
+            user.enrollments.count() if user.role == "student" else None
+        ),
+    }
+
+    return JsonResponse(data)
