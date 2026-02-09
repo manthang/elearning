@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 
 from .models import *
+from apps.courses.models import *
 
 User = get_user_model()
 
@@ -95,6 +96,8 @@ def user_profile(request, user_id):
     except User.DoesNotExist:
         raise Http404
 
+    enrolled_count = Enrollment.objects.filter(student=user).count()
+
     data = {
         "id": user.id,
         "full_name": user.full_name or user.username,
@@ -104,9 +107,7 @@ def user_profile(request, user_id):
         "bio": user.bio,
         "joined": user.date_joined.strftime("%b %Y"),
         "avatar": user.avatar_url if hasattr(user, "avatar_url") else None,
-        "enrolled_courses": (
-            user.enrollments.count() if user.role == "student" else None
-        ),
+        "enrolled_courses": enrolled_count
     }
 
     return JsonResponse(data)
