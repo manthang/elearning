@@ -1,0 +1,22 @@
+<div class="mb-6 flex gap-6 border-b">
+    <a href="?tab=courses"
+        class="pb-2 {% if tab == 'courses' %}
+                border-b-2 border-blue-600 text-blue-600
+                {% else %} text-gray-500 {% endif %}">
+        My Courses
+    </a>
+
+    <a href="?tab=all"
+        class="pb-2 {% if tab == 'all' %}
+                border-b-2 border-blue-600 text-blue-600
+                {% else %} text-gray-500 {% endif %}">
+        All Courses
+    </a>
+
+    <a href="?tab=status"
+        class="pb-2 {% if tab == 'status' %}
+                border-b-2 border-blue-600 text-blue-600
+                {% else %} text-gray-500 {% endif %}">
+        Status Updates
+    </a>
+</div>

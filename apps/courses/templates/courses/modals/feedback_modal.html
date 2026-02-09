@@ -1,0 +1,56 @@
+<div id="feedbackModal"
+     class="fixed inset-0 bg-black/40 hidden
+            flex items-center justify-center z-50">
+
+  <div class="bg-white rounded-xl w-full max-w-lg p-6 relative">
+
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <h2 class="text-xl font-semibold">Leave Feedback</h2>
+        <p id="feedbackCourseTitle" class="text-gray-500 text-sm"></p>
+      </div>
+
+      <button onclick="closeFeedbackModal()"
+              class="text-gray-400 hover:text-gray-600 text-xl">
+        ×
+      </button>
+    </div>
+
+    <form method="post" id="feedbackForm">
+      {% csrf_token %}
+      <input type="hidden" name="rating" id="ratingInput" value="">
+
+      <p class="font-medium mb-2">How would you rate this course?</p>
+
+      <div class="flex gap-2 text-3xl text-gray-300 cursor-pointer mb-4">
+        {% for i in "12345" %}
+          <span onclick="setRating({{ forloop.counter }})"
+                id="star{{ forloop.counter }}">★</span>
+        {% endfor %}
+      </div>
+
+      <label class="font-medium block mb-1">
+        Additional Comments (Optional)
+      </label>
+      <textarea
+        name="comment"
+        class="w-full border rounded-lg p-3 mb-6"
+        rows="4"
+        placeholder="Share your thoughts about the course, instructor, or learning experience..."></textarea>
+
+      <div class="flex justify-end gap-3">
+        <button type="button"
+                onclick="closeFeedbackModal()"
+                class="px-4 py-2 border rounded-lg">
+          Cancel
+        </button>
+        <button type="submit"
+                id="submitFeedbackBtn"
+                disabled
+                class="px-6 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50">
+          Submit Feedback
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

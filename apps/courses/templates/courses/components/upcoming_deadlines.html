@@ -1,0 +1,65 @@
+<div class="bg-white rounded-xl shadow p-6">
+    
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold flex items-center gap-2">
+            ⏰ Upcoming Deadlines
+        </h2>
+        <a  href="{% if show_past %}?{% else %}?show_past=1{% endif %}"
+            class="inline-flex items-center gap-1.5
+                px-3 py-1
+                text-xs font-medium
+                rounded-full
+                border border-gray-300
+                text-gray-600
+                hover:border-gray-400
+                hover:bg-gray-50
+                transition">
+        {% if show_past %}
+            <span class="text-gray-400">✕</span>
+            <span>Hide past</span>
+        {% else %}
+            <span class="text-gray-400">⏳</span>
+            <span>Show past</span>
+        {% endif %}
+        </a>
+    </div>
+
+    <!-- Deadlines list -->
+    {% for d in deadlines %}
+    <div class="py-4 border-b border-dashed border-gray-200 last:border-b-0">
+        <div class="flex justify-between items-start">
+            <div>
+                <p class="font-semibold text-sm">
+                    {{ d.title }}
+                </p>
+                <p class="text-sm text-gray-600 flex items-center gap-2">
+                    {{ d.course.title }}
+                </p>
+                <p class="text-sm text-gray-500 flex items-center gap-1 mt-1">
+                    🕒 {{ d.due_at|date:"M d, Y" }} | {{ d.due_at|date:"h:i A" }}
+                </p>
+            </div>
+
+            {% if d.status == "due" %}
+            <span class="px-3 py-1 text-xs rounded-full bg-red-100 text-red-700">
+                Due
+            </span>
+            {% elif d.status == "due_soon" %}
+            <span class="px-3 py-1 text-xs rounded-full bg-orange-100 text-orange-700">
+                Due Soon
+            </span>
+            {% else %}
+            <span class="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
+                Upcoming
+            </span>
+            {% endif %}
+        </div>
+    </div>
+
+    {% empty %}
+        <p class="text-sm text-gray-400">
+        No upcoming deadlines 🎉
+        </p>
+    {% endfor %}
+</div>
