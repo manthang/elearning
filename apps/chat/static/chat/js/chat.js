@@ -1,30 +1,61 @@
-let currentChatUserId = null;
+let activeChatUserId = null;
 
-function openChatModal(user) {
-  currentChatUserId = user.id;
+/* =========================
+   OPEN / CLOSE CHAT MODAL
+========================= */
 
-  document.getElementById("chatAvatar").src = user.avatar;
-  document.getElementById("chatName").innerText = user.name;
-  document.getElementById("chatRole").innerText = user.role;
+window.openChatModal = function (userId) {
+  activeChatUserId = userId;
 
-  document.getElementById("chatMessages").innerHTML = "";
   document.getElementById("chatModal").classList.remove("hidden");
+  document.getElementById("chatMessages").innerHTML = "";
 
-  // TODO: connect WebSocket here
-}
+  loadChatHeader(userId);
+  // loadChatHistory(userId); // ← hook WebSocket / AJAX here later
+};
 
-function closeChatModal() {
+window.closeChatModal = function () {
   document.getElementById("chatModal").classList.add("hidden");
+  activeChatUserId = null;
+};
+
+/* =========================
+   LOAD CHAT HEADER (TARGET USER)
+========================= */
+
+function loadChatHeader(userId) {
+  fetch(`/accounts/profile/${userId}/`)
+    .then(res => res.json())
+    .then(user => {
+      document.getElementById("chatAvatar").src =
+        user.avatar || "/media/profile_photos/default-avatar.png";
+
+      document.getElementById("chatName").innerText = user.full_name;
+      document.getElementById("chatRole").innerText = user.role;
+    })
+    .catch(() => {
+      document.getElementById("chatName").innerText = "Unknown user";
+      document.getElementById("chatRole").innerText = "";
+    });
 }
 
-function sendChatMessage(e) {
-  e.preventDefault();
+/* =========================
+   SEND MESSAGE (PLACEHOLDER)
+========================= */
 
+window.sendMessage = function () {
   const input = document.getElementById("chatInput");
-  const message = input.value.trim();
-  if (!message) return;
+  const text = input.value.trim();
+  if (!text || !activeChatUserId) return;
 
-  // TODO: send via WebSocket
+  const bubble = document.createElement("div");
+  bubble.className =
+    "self-end bg-blue-600 text-white px-4 py-2 rounded-lg max-w-[80%]";
+  bubble.innerText = text;
 
+  document.getElementById("chatMessages").appendChild(bubble);
   input.value = "";
-}
+
+  // TODO:
+  // send via WebSocket
+};

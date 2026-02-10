@@ -1,7 +1,13 @@
 let currentRole = "student";
+let selectedUserId = null;
+
+/* =========================
+   SEARCH MODAL CONTROL
+========================= */
 
 function openSearch() {
   document.getElementById("searchModal").classList.remove("hidden");
+  showSearchView();
   document.getElementById("searchInput").value = "";
   document.getElementById("searchResults").innerHTML = "";
   document.getElementById("searchInput").focus();
@@ -9,7 +15,12 @@ function openSearch() {
 
 function closeSearch() {
   document.getElementById("searchModal").classList.add("hidden");
+  selectedUserId = null;
 }
+
+/* =========================
+   ROLE TABS
+========================= */
 
 function setSearchRole(role) {
   currentRole = role;
@@ -27,6 +38,10 @@ function setSearchRole(role) {
   searchUsers();
 }
 
+/* =========================
+   SEARCH USERS
+========================= */
+
 function searchUsers() {
   const q = document.getElementById("searchInput").value.trim();
   const container = document.getElementById("searchResults");
@@ -41,7 +56,7 @@ function searchUsers() {
     .then(data => {
       container.innerHTML = "";
 
-      if (data.results.length === 0) {
+      if (!data.results || data.results.length === 0) {
         container.innerHTML =
           `<p class="text-sm text-gray-400">No results found</p>`;
         return;
@@ -57,13 +72,21 @@ function searchUsers() {
             <div>
               <p class="font-semibold text-sm">${u.name}</p>
               <p class="text-xs text-gray-500">✉ ${u.email}</p>
-              <p class="text-xs text-gray-500">📍 ${u.location}</p>
+              ${u.location ? `<p class="text-xs text-gray-500">📍 ${u.location}</p>` : ""}
             </div>
           </div>
         `);
       });
+    })
+    .catch(() => {
+      container.innerHTML =
+        `<p class="text-sm text-red-400">Search failed</p>`;
     });
 }
+
+/* =========================
+   PROFILE VIEW
+========================= */
 
 function openUserProfile(userId) {
   fetch(`/accounts/profile/${userId}/`)
@@ -72,22 +95,25 @@ function openUserProfile(userId) {
       return res.json();
     })
     .then(data => {
-      // switch views
-      document.getElementById("searchView").classList.add("hidden");
-      document.getElementById("profileView").classList.remove("hidden");
+      selectedUserId = data.id;
 
-      // fill data
+      showProfileView();
+
+      // Basic info
       document.getElementById("profileName").innerText = data.full_name;
       document.getElementById("profileRole").innerText = data.role;
       document.getElementById("profileEmail").innerText = data.email;
-      document.getElementById("profileLocation").innerText = data.location || "—";
+      document.getElementById("profileLocation").innerText =
+        data.location || "—";
       document.getElementById("profileJoined").innerText = data.joined;
-      document.getElementById("profileBio").innerText = data.bio || "";
+      document.getElementById("profileBio").innerText =
+        data.bio || "No bio provided.";
 
       document.getElementById("profileAvatar").src =
-        data.avatar || "/static/img/default-avatar.png";
+        data.avatar || "/media/profile_photos/default-avatar.png";
 
-      if (data.enrolled_courses !== null) {
+      // Student-only stats
+      if (typeof data.enrolled_courses === "number") {
         document.getElementById("profileStats").classList.remove("hidden");
         document.getElementById("profileCourses").innerText =
           data.enrolled_courses;
@@ -98,7 +124,28 @@ function openUserProfile(userId) {
     .catch(() => alert("Unable to load profile"));
 }
 
-function backToSearch() {
-  document.getElementById("profileView").classList.add("hidden");
+function openChatFromProfile() {
+  if (!selectedUserId) {
+    return;
+  }
+  openChatModal(selectedUserId);
+}
+
+/* =========================
+   VIEW SWITCHING
+========================= */
+
+function showSearchView() {
   document.getElementById("searchView").classList.remove("hidden");
+  document.getElementById("profileView").classList.add("hidden");
+}
+
+function showProfileView() {
+  document.getElementById("searchView").classList.add("hidden");
+  document.getElementById("profileView").classList.remove("hidden");
+}
+
+function backToSearch() {
+  selectedUserId = null;
+  showSearchView();
 }

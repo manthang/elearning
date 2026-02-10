@@ -6,7 +6,7 @@
   <!-- Side panel -->
   <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl flex flex-col">
 
-    <!-- ===== SEARCH VIEW ===== -->
+    <!-- ================= SEARCH VIEW ================= -->
     <div id="searchView" class="flex flex-col h-full">
 
       <!-- Header -->
@@ -15,7 +15,7 @@
         <button onclick="closeSearch()" class="text-xl text-gray-400">×</button>
       </div>
 
-      <!-- Tabs -->
+      <!-- Role Tabs -->
       <div class="flex gap-2 px-6 py-3">
         <button id="tabStudent"
                 onclick="setSearchRole('student')"
@@ -29,11 +29,11 @@
         </button>
       </div>
 
-      <!-- Input -->
+      <!-- Search Input -->
       <div class="px-6">
         <input id="searchInput"
               type="text"
-              placeholder="Search..."
+              placeholder="Search by name or email"
               class="w-full border rounded-xl px-4 py-3"
               oninput="searchUsers()" />
       </div>
@@ -42,9 +42,10 @@
       <div id="searchResults"
           class="flex-1 overflow-y-auto px-6 py-4 space-y-3">
       </div>
+        <!-- injected by JS -->
     </div>
 
-    <!-- ===== PROFILE VIEW ===== -->
+    <!-- ================= PROFILE VIEW ================= -->
     <div id="profileView" class="hidden flex flex-col h-full">
 
       <!-- Header -->
@@ -72,19 +73,6 @@
 
           <p id="profileBio" class="text-sm text-gray-600 mt-4"></p>
 
-          <!-- Chat button -->
-          <div class="flex justify-center mt-4">
-            <button onclick="openChatModal({
-              id: '{{ user.id }}',
-              name: '{{ user.full_name }}',
-              role: '{{ user.get_role_display }}',
-              avatar: '{{ user.profile_photo.url|default:'/media/profile_photos/default-avatar.svg' }}'
-            })"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl flex items-center gap-2">
-              💬
-            </button>
-          </div>
-
           <!-- Contact -->
           <div class="mt-6 bg-gray-50 rounded-xl p-4 text-left space-y-2">
             <p><strong>Email:</strong> <span id="profileEmail"></span></p>
@@ -97,6 +85,17 @@
               class="mt-4 bg-blue-50 rounded-xl p-4 hidden text-center">
             <span class="text-2xl font-bold" id="profileCourses"></span><br>
             Enrolled Courses
+          </div>
+
+          <!-- Chat button -->
+          <div class="flex justify-center mt-4">
+            <button
+              id="openChatBtn"
+              onclick="openChatFromProfile()"
+              class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl flex items-center gap-2"
+            >
+              💬
+            </button>
           </div>
         </div>
       </div>

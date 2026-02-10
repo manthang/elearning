@@ -83,7 +83,7 @@ def user_search(request):
             "name": u.full_name or u.username,
             "email": u.email,
             "location": u.location or "",
-            "avatar": u.profile_photo.url if u.profile_photo else "/static/img/default-avatar.png",
+            "avatar": u.profile_photo.url if u.profile_photo else "media/profile_photos/default-avatar.svg",
         })
 
     return JsonResponse({"results": results})
