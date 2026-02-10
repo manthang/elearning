@@ -74,9 +74,14 @@
 
           <!-- Chat button -->
           <div class="flex justify-center mt-4">
-            <button
-              class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl flex items-center gap-2">
-              💬 Chat
+            <button onclick="openChatModal({
+              id: '{{ user.id }}',
+              name: '{{ user.full_name }}',
+              role: '{{ user.get_role_display }}',
+              avatar: '{{ user.profile_photo.url|default:'/media/profile_photos/default-avatar.svg' }}'
+            })"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl flex items-center gap-2">
+              💬
             </button>
           </div>
 
