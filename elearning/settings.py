@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "apps.core.apps.CoreConfig",
     "apps.courses.apps.CoursesConfig",
     "apps.chat.apps.ChatConfig",
+    "apps.status.apps.StatusConfig",
     "apps.api.apps.ApiConfig",
 
     'django.contrib.humanize',

@@ -1,15 +1,15 @@
-from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.http import HttpResponseForbidden
+from django.shortcuts import render, redirect, get_object_or_404
 from django.utils.timezone import now
 
 from .models import *
 from .forms import *
 
-from apps.core.models import StatusUpdate
-from apps.core.forms import StatusUpdateForm
+from apps.status.forms import *
+from apps.status.models import *
 
-from django.contrib import messages
 
 @login_required
 def teacher_home(request):
@@ -48,14 +48,8 @@ def student_home(request):
         return redirect("courses:student_home")
 
     # ================= STATUS UPDATE =================
-    form = StatusUpdateForm()
-    if request.method == "POST" and tab == "status":
-        form = StatusUpdateForm(request.POST)
-        if form.is_valid():
-            status = form.save(commit=False)
-            status.author = user
-            status.save()
-            return redirect("courses:student_home") + "?tab=status"
+    status_form = StatusUpdateForm()
+    status_updates = StatusUpdate.objects.select_related("author")[:20]
 
     # ================= ENROLLMENTS =================
     enrollments = (
@@ -132,8 +126,6 @@ def student_home(request):
 
     deadlines = deadlines.order_by("due_at")[:5]
 
-    updates = StatusUpdate.objects.select_related("author")[:20]
-
     context = {
         "tab": tab,
         "courses": enrolled_courses,      # My Courses
@@ -141,8 +133,8 @@ def student_home(request):
         "enrolled_count": enrolled_count,
         "deadlines": deadlines,
         "show_past": show_past,
-        "updates": updates,
-        "form": form,
+        "updates": status_updates,
+        "form": status_form,
     }
 
     return render(request, "courses/student_home.html", context)

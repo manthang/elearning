@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.db import models
 
-from apps.courses.models import Course
 
 class StatusUpdate(models.Model):
     author = models.ForeignKey(
@@ -21,4 +20,4 @@ class StatusUpdate(models.Model):
         ordering = ["-created_at"]
 
     def __str__(self):
-        return f"{self.author.username}: {self.content[:30]}"
+        return f"{self.author.username}: {self.created_at}"

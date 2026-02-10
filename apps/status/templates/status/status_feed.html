@@ -1,0 +1,48 @@
+<!-- STATUS COMPOSER -->
+<div class="bg-white rounded-xl border p-6 mb-6">
+  <form method="post" action="{% url 'status:post' %}">
+    {% csrf_token %}
+
+    <div class="flex gap-4">
+      <!-- Avatar -->
+      <img
+        src="{{ request.user.avatar_url }}"
+        class="w-12 h-12 rounded-full object-cover"
+        alt="Avatar"
+      />
+
+      <!-- Textarea -->
+      <textarea
+        name="content"
+        rows="3"
+        class="flex-1 resize-none border rounded-xl p-4 text-sm
+               focus:outline-none focus:ring-2 focus:ring-blue-500"
+        placeholder="Share an update… (e.g., 'Finished with the assignment' or 'Really enjoying this course')"
+        required
+      ></textarea>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-end mt-4">
+      <button
+        type="submit"
+        class="inline-flex items-center gap-2 px-6 py-2
+               rounded-xl bg-blue-500 text-white font-medium
+               hover:bg-blue-600 transition"
+      >
+        ✈️ Post Update
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- STATUS FEED -->
+<div class="space-y-6">
+  {% for update in updates %}
+    {% include "status/_status_item.html" %}
+  {% empty %}
+    <p class="text-sm text-gray-400 text-center">
+      No updates yet 👋
+    </p>
+  {% endfor %}
+</div>

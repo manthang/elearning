@@ -2,6 +2,7 @@
 from django import forms
 from .models import *
 
+
 class CourseFeedbackForm(forms.ModelForm):
     rating = forms.IntegerField(
         min_value=1,
