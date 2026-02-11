@@ -3,7 +3,7 @@ let socketReady = false;
 let activeChatUserId = null;
 
 /* =========================
-   OPEN / CLOSE CHAT MODAL
+   OPEN CHAT MODAL
 ========================= */
 
 window.openChatModal = function (userId) {
@@ -18,6 +18,11 @@ window.openChatModal = function (userId) {
   connectWebSocket(userId);
   loadChatHeader(userId);
   loadChatHistory(userId);
+
+  // Delay focus slightly AFTER everything starts
+  setTimeout(() => {
+    focusChatInput();
+  }, 100);
 };
 
 function connectWebSocket(userId) {
@@ -58,20 +63,14 @@ function connectWebSocket(userId) {
   };
 }
 
-function loadChatHistory(userId) {
-  fetch(`/chat/history/${userId}/`)
-    .then(res => res.json())
-    .then(data => {
-      data.messages.forEach(m => {
-        renderMessage(m.content, m.sender === CURRENT_USER_ID, m.time);
-      });
-    });
-}
+function disableSendButton(disabled) {
+  const btn = document.querySelector("#chatForm button");
+  if (!btn) return;
 
-window.closeChatModal = function () {
-  document.getElementById("chatModal").classList.add("hidden");
-  activeChatUserId = null;
-};
+  btn.disabled = disabled;
+  btn.classList.toggle("opacity-50", disabled);
+  btn.classList.toggle("cursor-not-allowed", disabled);
+}
 
 /* =========================
    LOAD CHAT HEADER (TARGET USER)
@@ -94,6 +93,49 @@ function loadChatHeader(userId) {
 }
 
 /* =========================
+   LOAD CHAT HISTORY
+========================= */
+
+function loadChatHistory(userId) {
+  fetch(`/chat/history/${userId}/`)
+    .then(res => res.json())
+    .then(data => {
+      data.messages.forEach(m => {
+        renderMessage(m.content, m.sender === CURRENT_USER_ID, m.time);
+      });
+    });
+}
+
+// Auto-focus chat input
+function focusChatInput() {
+  const input = document.getElementById("chatInput");
+  if (!input) return;
+
+  input.disabled = false;
+
+  input.focus({ preventScroll: true });
+  input.setSelectionRange(input.value.length, input.value.length);
+}
+
+
+/* =========================
+   CLOSE CHAT MODAL
+========================= */
+
+window.closeChatModal = function () {
+  document.getElementById("chatModal").classList.add("hidden");
+
+  if (socket) {
+    socket.close();
+    socket = null;
+  }
+
+  socketReady = false;
+  activeChatUserId = null;
+};
+
+
+/* =========================
    SEND MESSAGE
 ========================= */
 
@@ -113,21 +155,28 @@ window.sendMessage = function (event) {
   input.value = "";
 };
 
-function renderMessage(text, mine, time) {
-  const bubble = document.createElement("div");
-  bubble.className = mine
-    ? "self-end bg-blue-600 text-white px-4 py-2 rounded-xl"
-    : "self-start bg-white border px-4 py-2 rounded-xl";
+function renderMessage(text, isMine, timestamp = "") {
+  const container = document.getElementById("chatMessages");
 
-  bubble.innerHTML = `<p>${text}</p><span class="text-xs opacity-70">${time}</span>`;
-  document.getElementById("chatMessages").appendChild(bubble);
+  const template = document.getElementById(
+    isMine ? "messageTemplateMine" : "messageTemplateOther"
+  );
+
+  const clone = template.content.cloneNode(true);
+
+  clone.querySelector(".message-text").textContent = text;
+  clone.querySelector(".message-time").textContent = timestamp || "";
+
+  container.appendChild(clone);
+
+  scrollToBottom();
 }
 
-function disableSendButton(disabled) {
-  const btn = document.querySelector("#chatForm button");
-  if (!btn) return;
-
-  btn.disabled = disabled;
-  btn.classList.toggle("opacity-50", disabled);
-  btn.classList.toggle("cursor-not-allowed", disabled);
+// Auto-scroll to bottom
+function scrollToBottom() {
+  const container = document.getElementById("chatMessages");
+  container.scrollTo({
+    top: container.scrollHeight,
+    behavior: "smooth"
+  });
 }

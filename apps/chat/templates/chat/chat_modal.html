@@ -30,8 +30,26 @@
     <!-- Messages -->
     <div id="chatMessages"
          class="flex-1 overflow-y-auto px-6 py-4 space-y-4 bg-gray-50">
-      <!-- messages injected here -->
     </div>
+
+    <!-- Message Templates -->
+    <template id="messageTemplateMine">
+      <div class="flex justify-end">
+        <div class="bg-blue-600 text-white px-4 py-2 rounded-2xl rounded-br-sm max-w-[70%] shadow">
+          <p class="message-text text-sm"></p>
+          <p class="message-time text-xs mt-1 text-blue-100 text-right"></p>
+        </div>
+      </div>
+    </template>
+
+    <template id="messageTemplateOther">
+      <div class="flex justify-start">
+        <div class="bg-white border px-4 py-2 rounded-2xl rounded-bl-sm max-w-[70%] shadow">
+          <p class="message-text text-sm"></p>
+          <p class="message-time text-xs mt-1 text-gray-400 text-right"></p>
+        </div>
+      </div>
+    </template>
 
     <!-- Composer -->
     <form id="chatForm"
