@@ -175,8 +175,12 @@ function renderMessage(text, isMine, timestamp = "") {
 // Auto-scroll to bottom
 function scrollToBottom() {
   const container = document.getElementById("chatMessages");
-  container.scrollTo({
-    top: container.scrollHeight,
-    behavior: "smooth"
+  if (!container) return;
+
+  requestAnimationFrame(() => {
+    container.scrollTo({
+      top: container.scrollHeight,
+      behavior: "smooth"
+    });
   });
 }
