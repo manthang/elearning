@@ -10,9 +10,9 @@ urlpatterns = [
     path("", include("apps.core.urls")),
     path("", include("apps.accounts.urls")),
     path("", include("apps.status.urls")),
-    path("courses/", include("apps.courses.urls")),
     path("accounts/", include("apps.accounts.urls")),
-    # path("chat/", include("apps.chat.urls")),
+    path("courses/", include("apps.courses.urls")),
+    path("chat/", include("apps.chat.urls")),
 ]
 
 if settings.DEBUG:

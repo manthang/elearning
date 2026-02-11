@@ -31,12 +31,16 @@ ALLOWED_HOSTS = []
 AUTH_USER_MODEL = "accounts.User"
 
 INSTALLED_APPS = [
+    "daphne",
+    "channels",
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
 
     "apps.accounts.apps.AccountsConfig",
     "apps.core.apps.CoreConfig",
@@ -44,8 +48,6 @@ INSTALLED_APPS = [
     "apps.chat.apps.ChatConfig",
     "apps.status.apps.StatusConfig",
     "apps.api.apps.ApiConfig",
-
-    'django.contrib.humanize',
 ]
 
 MIDDLEWARE = [
@@ -77,7 +79,14 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'elearning.wsgi.application'
+ASGI_APPLICATION = "elearning.routing.application"
 
+# Development (no Redis required)
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    }
+}
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases

@@ -1,7 +1,10 @@
 <div id="chatModal"
-     class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40">
+     class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40"
+     onclick="closeChatModal()">
 
-  <div class="bg-white rounded-xl shadow-xl w-full max-w-3xl h-[80vh] flex flex-col">
+  <!-- Modal card -->
+  <div class="bg-white rounded-xl shadow-xl w-full max-w-3xl h-[80vh] flex flex-col"
+       onclick="event.stopPropagation()">
 
     <!-- Header -->
     <div class="flex items-center justify-between px-6 py-4 border-b">
@@ -9,7 +12,7 @@
         <img id="chatAvatar"
              class="w-10 h-10 rounded-full object-cover"
              src=""
-             alt="" />
+             alt="User avatar" />
 
         <div>
           <p id="chatName" class="font-semibold text-sm"></p>
@@ -17,7 +20,9 @@
         </div>
       </div>
 
-      <button onclick="closeChatModal()" class="text-gray-400 hover:text-gray-600">
+      <button type="button"
+              onclick="closeChatModal()"
+              class="text-gray-400 hover:text-gray-600">
         ✕
       </button>
     </div>
@@ -30,16 +35,18 @@
 
     <!-- Composer -->
     <form id="chatForm"
-          class="border-t px-4 py-3 flex items-center gap-3"
-          onsubmit="sendChatMessage(event)">
-      
+          onsubmit="sendMessage(event)"
+          class="border-t px-4 py-3 flex items-center gap-3">
+
       <input id="chatInput"
              type="text"
              placeholder="Type your message..."
+             autocomplete="off"
              class="flex-1 border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring"
              required />
 
-      <button type="submit"
+      <button type="button"
+              onclick="sendMessage()"
               class="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-4 py-2">
         ➤
       </button>
