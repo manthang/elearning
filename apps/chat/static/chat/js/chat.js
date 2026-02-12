@@ -199,7 +199,9 @@ function disconnectSocket() {
    SEND MESSAGE
 ================================ */
 
-window.sendMessage = function () {
+window.sendMessage = function (event) {
+  if (event) event.preventDefault();   // 🔥 STOP PAGE RELOAD
+
   const input = document.getElementById("chatInput");
   if (!input || !socket || socket.readyState !== WebSocket.OPEN) return;
 
@@ -208,7 +210,10 @@ window.sendMessage = function () {
 
   socket.send(JSON.stringify({ message }));
   input.value = "";
+
+  focusInput();
 };
+
 
 /* ================================
    UI HELPERS

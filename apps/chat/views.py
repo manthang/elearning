@@ -40,27 +40,31 @@ def conversation_list(request):
 
 
 @login_required
-def chat_history(request, user_id):
-    convo = (
-        Conversation.objects
-        .filter(participants=request.user)
-        .filter(participants=user_id)
-        .first()
-    )
+def chat_history(request, conversation_id):
+    try:
+        conversation = Conversation.objects.get(
+            id=conversation_id,
+            participants=request.user
+        )
+    except Conversation.DoesNotExist:
+        return JsonResponse({"error": "Invalid conversation"}, status=403)
 
-    if not convo:
-        return JsonResponse({"messages": []})
+    messages = Message.objects.filter(
+        conversation=conversation
+    ).order_by("created_at")
 
-    messages = [
-        {
-            "sender": m.sender.id,
-            "content": m.content,
-            "time": m.created_at.strftime("%H:%M"),
-        }
-        for m in convo.messages.order_by("created_at")
-    ]
+    data = {
+        "messages": [
+            {
+                "content": msg.content,
+                "sender_id": msg.sender_id,
+                "created_at": msg.created_at.strftime("%H:%M"),
+            }
+            for msg in messages
+        ]
+    }
 
-    return JsonResponse({"messages": messages})
+    return JsonResponse(data)
 
 
 @login_required
