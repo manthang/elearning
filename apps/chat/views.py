@@ -1,6 +1,39 @@
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from .models import Conversation
+from .models import *
+
+
+@login_required
+def conversation_list(request):
+    conversations = (
+        Conversation.objects
+        .filter(participants=request.user)
+        .prefetch_related("participants")
+        .order_by("-updated_at")
+    )
+
+    data = []
+
+    for convo in conversations:
+        other = convo.participants.exclude(id=request.user.id).first()
+        last_message = (
+            Message.objects
+            .filter(conversation=convo)
+            .order_by("-created_at")
+            .first()
+        )
+
+        data.append({
+            "conversation_id": convo.id,
+            "user_id": other.id,
+            "name": other.full_name or other.username,
+            "avatar": other.profile_photo.url if other.profile_photo else "",
+            "last_message": last_message.content if last_message else "",
+            "time": last_message.created_at.strftime("%H:%M") if last_message else "",
+        })
+
+    return JsonResponse({"conversations": data})
+
 
 @login_required
 def chat_history(request, user_id):

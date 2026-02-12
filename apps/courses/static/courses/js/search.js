@@ -124,11 +124,20 @@ function openUserProfile(userId) {
     .catch(() => alert("Unable to load profile"));
 }
 
-function openChatFromProfile() {
-  if (!selectedUserId) {
+function openMessengerWithUser() {
+  if (!selectedUserId) return;
+
+  // Close search drawer first
+  closeSearch();
+
+  // Open unified messenger and auto-select conversation
+  if (!window.openMessenger) {
+    console.error("Messenger not initialized");
     return;
   }
-  openChatModal(selectedUserId);
+
+  window.openMessenger(selectedUserId);
+
 }
 
 /* =========================

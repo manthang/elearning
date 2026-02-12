@@ -7,9 +7,52 @@
       <p class="text-gray-500">Your learning dashboard</p>
     </div>
 
-    <button onclick="openSearch()"
-            class="flex items-center gap-2 px-4 py-2 border rounded-xl
-                  text-gray-500 hover:bg-gray-50">
-      🔍 Search students / teachers
-    </button>
+    <div class="flex items-center gap-3">
+    
+      <!-- Messages -->
+      <button onclick="openMessenger()"
+          class="relative inline-flex items-center gap-2 
+                px-4 py-2
+                bg-white border border-gray-200
+                rounded-lg
+                shadow-sm
+                hover:shadow-md
+                hover:bg-gray-50
+                transition">
+
+          💬
+          <span class="text-sm font-medium">Messages</span>
+
+          <!-- Notification badge -->
+          {% if unread_count %}
+          <span id="unreadBadge"
+                class="absolute -top-2 -right-2
+                       bg-red-500 text-white
+                       text-xs font-semibold
+                       px-1.5 py-0.5
+                       rounded-full">
+              {{ unread_count }}
+          </span>
+          {% endif %}
+      </button>
+
+      <!-- Search -->
+      <button onclick="openSearch()"
+          class="inline-flex items-center gap-2 
+                px-4 py-2
+                bg-white border border-gray-200
+                rounded-lg
+                shadow-sm
+                hover:shadow-md
+                hover:bg-gray-50
+                transition">
+
+          🔍
+          <span class="text-sm text-gray-600">
+              Search students / teachers
+          </span>
+      </button>
+
+    </div>
+
 </div>

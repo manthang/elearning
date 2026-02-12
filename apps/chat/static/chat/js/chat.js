@@ -1,34 +1,85 @@
 let socket = null;
-let socketReady = false;
 let activeChatUserId = null;
+let socketReady = false;
 
 /* =========================
-   OPEN CHAT MODAL
+   OPEN MESSENGER
 ========================= */
 
-window.openChatModal = function (userId) {
-  activeChatUserId = userId;
-  socketReady = false;
+window.openMessenger = function (userId = null) {
+  const panel = document.getElementById("messengerPanel");
+  panel.classList.remove("hidden");
 
-  document.getElementById("chatModal").classList.remove("hidden");
-  document.getElementById("chatMessages").innerHTML = "";
-
-  disableSendButton(true);
-
-  connectWebSocket(userId);
-  loadChatHeader(userId);
-  loadChatHistory(userId);
-
-  // Delay focus slightly AFTER everything starts
-  setTimeout(() => {
-    focusChatInput();
-  }, 100);
+  loadConversations().then(() => {
+    if (userId) {
+      activateChat(userId);
+    }
+  });
 };
 
-function connectWebSocket(userId) {
+window.closeMessenger = function () {
+  document.getElementById("messengerPanel").classList.add("hidden");
   if (socket) {
     socket.close();
+    socket = null;
   }
+  socketReady = false;
+};
+
+/* =========================
+   LOAD CONVERSATIONS
+========================= */
+
+function loadConversations() {
+  return fetch("/chat/conversations/")
+    .then(res => {
+      if (!res.ok) throw new Error("Failed to load conversations");
+      return res.json();
+    })
+    .then(data => {
+      const container = document.getElementById("conversationList");
+      container.innerHTML = "";
+
+      data.conversations.forEach(c => {
+        const div = document.createElement("div");
+        div.className = "p-4 hover:bg-gray-100 cursor-pointer";
+        div.innerHTML = `
+          <p class="font-semibold text-sm">${c.name}</p>
+          <p class="text-xs text-gray-500 truncate">${c.last_message || ""}</p>
+        `;
+        div.onclick = () => activateChat(c.user_id);
+        container.appendChild(div);
+      });
+    })
+    .catch(err => console.error(err));
+}
+
+/* =========================
+   ACTIVATE CHAT
+========================= */
+
+function activateChat(userId) {
+  activeChatUserId = userId;
+
+  const container = document.getElementById("chatMessages");
+  container.innerHTML = "";
+
+  loadChatHeader(userId);
+  loadChatHistory(userId);
+  connectWebSocket(userId);
+
+  requestAnimationFrame(() => {
+    const input = document.getElementById("chatInput");
+    if (input) input.focus();
+  });
+}
+
+/* =========================
+   WEBSOCKET
+========================= */
+
+function connectWebSocket(userId) {
+  if (socket) socket.close();
 
   const protocol = window.location.protocol === "https:" ? "wss" : "ws";
   socket = new WebSocket(
@@ -36,12 +87,10 @@ function connectWebSocket(userId) {
   );
 
   socket.onopen = () => {
-    console.log("✅ WebSocket OPEN");
     socketReady = true;
-    disableSendButton(false);
   };
 
-  socket.onmessage = (e) => {
+  socket.onmessage = e => {
     const data = JSON.parse(e.data);
     renderMessage(
       data.message,
@@ -51,29 +100,16 @@ function connectWebSocket(userId) {
   };
 
   socket.onclose = () => {
-    console.log("⚠️ WebSocket CLOSED");
     socketReady = false;
-    disableSendButton(true);
   };
 
-  socket.onerror = (err) => {
-    console.error("WebSocket error", err);
-    socketReady = false;
-    disableSendButton(true);
+  socket.onerror = err => {
+    console.error("WebSocket error:", err);
   };
-}
-
-function disableSendButton(disabled) {
-  const btn = document.querySelector("#chatForm button");
-  if (!btn) return;
-
-  btn.disabled = disabled;
-  btn.classList.toggle("opacity-50", disabled);
-  btn.classList.toggle("cursor-not-allowed", disabled);
 }
 
 /* =========================
-   LOAD CHAT HEADER (TARGET USER)
+   LOAD HEADER
 ========================= */
 
 function loadChatHeader(userId) {
@@ -81,19 +117,15 @@ function loadChatHeader(userId) {
     .then(res => res.json())
     .then(user => {
       document.getElementById("chatAvatar").src =
-        user.avatar || "/media/profile_photos/default-avatar.png";
-
+        user.avatar || "/media/profile_photos/default-avatar.svg";
       document.getElementById("chatName").innerText = user.full_name;
       document.getElementById("chatRole").innerText = user.role;
     })
-    .catch(() => {
-      document.getElementById("chatName").innerText = "Unknown user";
-      document.getElementById("chatRole").innerText = "";
-    });
+    .catch(err => console.error(err));
 }
 
 /* =========================
-   LOAD CHAT HISTORY
+   LOAD HISTORY
 ========================= */
 
 function loadChatHistory(userId) {
@@ -103,49 +135,17 @@ function loadChatHistory(userId) {
       data.messages.forEach(m => {
         renderMessage(m.content, m.sender === CURRENT_USER_ID, m.time);
       });
-    });
+    })
+    .catch(err => console.error(err));
 }
-
-// Auto-focus chat input
-function focusChatInput() {
-  const input = document.getElementById("chatInput");
-  if (!input) return;
-
-  input.disabled = false;
-
-  input.focus({ preventScroll: true });
-  input.setSelectionRange(input.value.length, input.value.length);
-}
-
-
-/* =========================
-   CLOSE CHAT MODAL
-========================= */
-
-window.closeChatModal = function () {
-  document.getElementById("chatModal").classList.add("hidden");
-
-  if (socket) {
-    socket.close();
-    socket = null;
-  }
-
-  socketReady = false;
-  activeChatUserId = null;
-};
-
 
 /* =========================
    SEND MESSAGE
 ========================= */
 
-window.sendMessage = function (event) {
-  if (event) event.preventDefault();
-
-  if (!socket || !socketReady) {
-    console.warn("WebSocket not ready");
-    return;
-  }
+window.sendMessage = function (e) {
+  if (e) e.preventDefault();
+  if (!socketReady) return;
 
   const input = document.getElementById("chatInput");
   const message = input.value.trim();
@@ -155,27 +155,24 @@ window.sendMessage = function (event) {
   input.value = "";
 };
 
+/* =========================
+   RENDER MESSAGE
+========================= */
+
 function renderMessage(text, isMine, timestamp = "") {
   const container = document.getElementById("chatMessages");
 
   const template = document.getElementById(
-    isMine ? "messageTemplateMine" : "messageTemplateOther"
+    isMine ? "messageMine" : "messageOther"
   );
 
-  const clone = template.content.cloneNode(true);
+  if (!template) return;
 
+  const clone = template.content.cloneNode(true);
   clone.querySelector(".message-text").textContent = text;
-  clone.querySelector(".message-time").textContent = timestamp || "";
+  clone.querySelector(".message-time").textContent = timestamp;
 
   container.appendChild(clone);
-
-  scrollToBottom();
-}
-
-// Auto-scroll to bottom
-function scrollToBottom() {
-  const container = document.getElementById("chatMessages");
-  if (!container) return;
 
   requestAnimationFrame(() => {
     container.scrollTo({
