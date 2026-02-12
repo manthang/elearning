@@ -127,18 +127,17 @@ function openUserProfile(userId) {
 function openMessengerWithUser() {
   if (!selectedUserId) return;
 
-  // Close search drawer first
-  closeSearch();
+  const userId = selectedUserId; // preserve value
 
-  // Open unified messenger and auto-select conversation
-  if (!window.openMessenger) {
-    console.error("Messenger not initialized");
-    return;
-  }
+  closeSearch(); // this resets selectedUserId
 
-  window.openMessenger(selectedUserId);
-
+  fetch(`/chat/start/${userId}/`)
+    .then(res => res.json())
+    .then(data => {
+      window.openMessenger(data.conversation_id);
+    });
 }
+
 
 /* =========================
    VIEW SWITCHING

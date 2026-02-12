@@ -1,153 +1,195 @@
+/* ================================
+   GLOBAL STATE
+================================ */
+let activeConversationId = null;
 let socket = null;
-let activeChatUserId = null;
-let socketReady = false;
 
-/* =========================
-   OPEN MESSENGER
-========================= */
+/* ================================
+   OPEN / CLOSE MESSENGER
+================================ */
 
-window.openMessenger = function (userId = null) {
+window.openMessenger = function (conversationId = null) {
   const panel = document.getElementById("messengerPanel");
+  if (!panel) return;
+
   panel.classList.remove("hidden");
 
   loadConversations().then(() => {
-    if (userId) {
-      activateChat(userId);
+    if (conversationId) {
+      openConversationById(conversationId);
     }
   });
 };
 
 window.closeMessenger = function () {
-  document.getElementById("messengerPanel").classList.add("hidden");
+  const panel = document.getElementById("messengerPanel");
+  if (!panel) return;
+
+  panel.classList.add("hidden");
+
+  disconnectSocket();
+  activeConversationId = null;
+};
+
+/* ================================
+   LOAD CONVERSATIONS
+================================ */
+
+function loadConversations() {
+  return fetch("/chat/conversations/")
+    .then(res => res.json())
+    .then(data => {
+      const list = document.getElementById("conversationList");
+      if (!list) return;
+
+      list.innerHTML = "";
+
+      const conversations = data.conversations || [];
+
+      conversations.forEach(conv => {
+        const div = document.createElement("div");
+        div.className = `
+          px-4 py-3 border-b cursor-pointer hover:bg-gray-100
+          ${conv.id === activeConversationId ? "bg-gray-100" : ""}
+        `;
+
+        div.dataset.id = conv.id;
+
+        div.innerHTML = `
+          <div class="flex items-center gap-3">
+            <img src="${conv.avatar || "/media/profile_photos/default-avatar.svg"}"
+                 class="w-8 h-8 rounded-full object-cover" />
+
+            <div>
+              <div class="font-medium text-sm">${conv.name}</div>
+              <div class="text-xs text-gray-500 truncate">
+                ${conv.last_message || ""}
+              </div>
+            </div>
+          </div>
+        `;
+
+        div.onclick = () => openConversation(conv);
+
+        list.appendChild(div);
+      });
+
+      return conversations;
+    })
+    .catch(err => console.error("Conversation load error:", err));
+}
+
+/* ================================
+   OPEN CONVERSATION
+================================ */
+
+function openConversation(conv) {
+  if (!conv || !conv.id) {
+    console.error("Invalid conversation:", conv);
+    return;
+  }
+
+  activeConversationId = conv.id;
+
+  updateHeader(conv);
+  loadChatHistory(conv.id);
+  connectWebSocket(conv.id);
+  highlightActive();
+}
+
+function openConversationById(conversationId) {
+  fetch("/chat/conversations/")
+    .then(res => res.json())
+    .then(data => {
+      const conv = data.conversations.find(c => c.id == conversationId);
+      if (conv) openConversation(conv);
+    });
+}
+
+/* ================================
+   UPDATE HEADER
+================================ */
+
+function updateHeader(user) {
+  const nameEl = document.getElementById("chatName");
+  const roleEl = document.getElementById("chatRole");
+  const avatarEl = document.getElementById("chatAvatar");
+
+  if (!nameEl || !roleEl || !avatarEl) return;
+
+  nameEl.textContent = user.name;
+  roleEl.textContent = user.role
+    ? user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()
+    : "";
+
+  avatarEl.src = user.avatar ?? "/media/profile_photos/default-avatar.svg";
+}
+
+/* ================================
+   LOAD HISTORY
+================================ */
+
+function loadChatHistory(conversationId) {
+  const container = document.getElementById("chatMessages");
+  if (!container) return;
+
+  container.innerHTML = "<div class='text-gray-400 text-sm'>Loading...</div>";
+
+  fetch(`/chat/history/${conversationId}/`)
+    .then(res => res.json())
+    .then(data => {
+      container.innerHTML = "";
+
+      data.messages.forEach(msg => {
+        renderMessage(msg.content, msg.sender_id === CURRENT_USER_ID);
+      });
+
+      scrollToBottom();
+      focusInput();
+    })
+    .catch(err => console.error("History error:", err));
+}
+
+/* ================================
+   WEBSOCKET
+================================ */
+
+function connectWebSocket(conversationId) {
+  disconnectSocket();
+
+  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+
+  socket = new WebSocket(
+    `${protocol}://${window.location.host}/ws/chat/${conversationId}/`
+  );
+
+  socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+
+    renderMessage(
+      data.message,
+      data.sender_id === CURRENT_USER_ID
+    );
+
+    scrollToBottom();
+  };
+}
+
+function disconnectSocket() {
   if (socket) {
     socket.close();
     socket = null;
   }
-  socketReady = false;
-};
-
-/* =========================
-   LOAD CONVERSATIONS
-========================= */
-
-function loadConversations() {
-  return fetch("/chat/conversations/")
-    .then(res => {
-      if (!res.ok) throw new Error("Failed to load conversations");
-      return res.json();
-    })
-    .then(data => {
-      const container = document.getElementById("conversationList");
-      container.innerHTML = "";
-
-      data.conversations.forEach(c => {
-        const div = document.createElement("div");
-        div.className = "p-4 hover:bg-gray-100 cursor-pointer";
-        div.innerHTML = `
-          <p class="font-semibold text-sm">${c.name}</p>
-          <p class="text-xs text-gray-500 truncate">${c.last_message || ""}</p>
-        `;
-        div.onclick = () => activateChat(c.user_id);
-        container.appendChild(div);
-      });
-    })
-    .catch(err => console.error(err));
 }
 
-/* =========================
-   ACTIVATE CHAT
-========================= */
-
-function activateChat(userId) {
-  activeChatUserId = userId;
-
-  const container = document.getElementById("chatMessages");
-  container.innerHTML = "";
-
-  loadChatHeader(userId);
-  loadChatHistory(userId);
-  connectWebSocket(userId);
-
-  requestAnimationFrame(() => {
-    const input = document.getElementById("chatInput");
-    if (input) input.focus();
-  });
-}
-
-/* =========================
-   WEBSOCKET
-========================= */
-
-function connectWebSocket(userId) {
-  if (socket) socket.close();
-
-  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-  socket = new WebSocket(
-    `${protocol}://${window.location.host}/ws/chat/${userId}/`
-  );
-
-  socket.onopen = () => {
-    socketReady = true;
-  };
-
-  socket.onmessage = e => {
-    const data = JSON.parse(e.data);
-    renderMessage(
-      data.message,
-      data.sender_id === CURRENT_USER_ID,
-      data.timestamp
-    );
-  };
-
-  socket.onclose = () => {
-    socketReady = false;
-  };
-
-  socket.onerror = err => {
-    console.error("WebSocket error:", err);
-  };
-}
-
-/* =========================
-   LOAD HEADER
-========================= */
-
-function loadChatHeader(userId) {
-  fetch(`/accounts/profile/${userId}/`)
-    .then(res => res.json())
-    .then(user => {
-      document.getElementById("chatAvatar").src =
-        user.avatar || "/media/profile_photos/default-avatar.svg";
-      document.getElementById("chatName").innerText = user.full_name;
-      document.getElementById("chatRole").innerText = user.role;
-    })
-    .catch(err => console.error(err));
-}
-
-/* =========================
-   LOAD HISTORY
-========================= */
-
-function loadChatHistory(userId) {
-  fetch(`/chat/history/${userId}/`)
-    .then(res => res.json())
-    .then(data => {
-      data.messages.forEach(m => {
-        renderMessage(m.content, m.sender === CURRENT_USER_ID, m.time);
-      });
-    })
-    .catch(err => console.error(err));
-}
-
-/* =========================
+/* ================================
    SEND MESSAGE
-========================= */
+================================ */
 
-window.sendMessage = function (e) {
-  if (e) e.preventDefault();
-  if (!socketReady) return;
-
+window.sendMessage = function () {
   const input = document.getElementById("chatInput");
+  if (!input || !socket || socket.readyState !== WebSocket.OPEN) return;
+
   const message = input.value.trim();
   if (!message) return;
 
@@ -155,29 +197,53 @@ window.sendMessage = function (e) {
   input.value = "";
 };
 
-/* =========================
-   RENDER MESSAGE
-========================= */
+/* ================================
+   UI HELPERS
+================================ */
 
-function renderMessage(text, isMine, timestamp = "") {
+function renderMessage(message, isMine) {
   const container = document.getElementById("chatMessages");
+  if (!container) return;
 
-  const template = document.getElementById(
-    isMine ? "messageMine" : "messageOther"
-  );
+  const wrapper = document.createElement("div");
+  wrapper.className = `flex ${isMine ? "justify-end" : "justify-start"}`;
 
-  if (!template) return;
+  wrapper.innerHTML = `
+    <div class="
+      max-w-md px-4 py-2 rounded-xl text-sm
+      ${isMine
+        ? "bg-blue-600 text-white rounded-br-none"
+        : "bg-white text-gray-800 border rounded-bl-none"}
+    ">
+      ${message}
+    </div>
+  `;
 
-  const clone = template.content.cloneNode(true);
-  clone.querySelector(".message-text").textContent = text;
-  clone.querySelector(".message-time").textContent = timestamp;
+  container.appendChild(wrapper);
+}
 
-  container.appendChild(clone);
+function scrollToBottom() {
+  const container = document.getElementById("chatMessages");
+  if (!container) return;
 
   requestAnimationFrame(() => {
-    container.scrollTo({
-      top: container.scrollHeight,
-      behavior: "smooth"
-    });
+    container.scrollTop = container.scrollHeight;
   });
+}
+
+function focusInput() {
+  setTimeout(() => {
+    const input = document.getElementById("chatInput");
+    if (input) input.focus();
+  }, 100);
+}
+
+function highlightActive() {
+  document.querySelectorAll("#conversationList > div")
+    .forEach(div => {
+      div.classList.remove("bg-gray-100");
+      if (div.dataset.id == activeConversationId) {
+        div.classList.add("bg-gray-100");
+      }
+    });
 }
