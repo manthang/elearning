@@ -10,9 +10,16 @@ let socket = null;
 
 window.openMessenger = function (conversationId = null) {
   const panel = document.getElementById("messengerPanel");
-  if (!panel) return;
+  const box = document.getElementById("messengerBox");
 
   panel.classList.remove("hidden");
+  panel.classList.add("flex");
+
+  requestAnimationFrame(() => {
+    panel.classList.remove("opacity-0");
+    box.classList.remove("opacity-0", "scale-95");
+    box.classList.add("scale-100", "opacity-100");
+  });
 
   loadConversations().then(() => {
     if (conversationId) {
@@ -21,15 +28,21 @@ window.openMessenger = function (conversationId = null) {
   });
 };
 
+
 window.closeMessenger = function () {
   const panel = document.getElementById("messengerPanel");
-  if (!panel) return;
+  const box = document.getElementById("messengerBox");
 
-  panel.classList.add("hidden");
+  panel.classList.add("opacity-0");
+  box.classList.add("opacity-0", "scale-95");
 
-  disconnectSocket();
-  activeConversationId = null;
+  setTimeout(() => {
+    panel.classList.add("hidden");
+    panel.classList.remove("flex");
+    disconnectSocket();
+  }, 200);
 };
+
 
 /* ================================
    LOAD CONVERSATIONS
@@ -212,8 +225,8 @@ function renderMessage(message, isMine) {
     <div class="
       max-w-md px-4 py-2 rounded-xl text-sm
       ${isMine
-        ? "bg-blue-600 text-white rounded-br-none"
-        : "bg-white text-gray-800 border rounded-bl-none"}
+        ? "bg-blue-600 text-white rounded-2xl rounded-br-sm shadow-sm"
+        : "bg-white border rounded-2xl rounded-bl-sm shadow-sm"}
     ">
       ${message}
     </div>

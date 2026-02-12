@@ -1,84 +1,110 @@
-<!-- ================= CHAT MODAL ================= -->
+<!-- ================= MESSENGER MODAL ================= -->
 <div id="messengerPanel"
-     class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/40"
+     class="fixed inset-0 z-50 hidden items-center justify-center
+            bg-black/40 opacity-0 transition-opacity duration-200"
      onclick="closeMessenger()">
 
-  <div class="bg-white w-full max-w-5xl h-[80vh] rounded-2xl shadow-xl flex overflow-hidden"
+  <!-- Modal Box -->
+  <div id="messengerBox"
+       class="bg-white w-full max-w-5xl h-[80vh]
+              rounded-2xl shadow-2xl flex overflow-hidden
+              transform scale-95 opacity-0
+              transition-all duration-200"
        onclick="event.stopPropagation()">
 
-    <!-- ================= LEFT: CONVERSATIONS ================= -->
-    <div class="w-1/3 border-r flex flex-col bg-white">
+    <!-- ================= LEFT: CONVERSATION LIST ================= -->
+    <div class="w-1/3 border-r bg-gray-50 flex flex-col">
 
       <!-- Header -->
-      <div class="flex items-center justify-between px-6 py-4 border-b">
-        <h2 class="font-semibold text-lg">Messages</h2>
-        <button onclick="closeMessenger()"
-                class="text-gray-400 hover:text-gray-600 text-xl">
-          ✕
-        </button>
+      <div class="px-6 py-5 border-b bg-gray-100">
+        <h2 class="font-semibold text-lg tracking-tight">
+          Messages
+        </h2>
       </div>
 
       <!-- Conversations -->
       <div id="conversationList"
            class="flex-1 overflow-y-auto divide-y">
+        <!-- Conversations injected by JS -->
       </div>
     </div>
 
     <!-- ================= RIGHT: ACTIVE CHAT ================= -->
-    <div class="flex-1 flex flex-col bg-gray-50">
+    <div class="flex-1 flex flex-col bg-gradient-to-b from-gray-50 to-gray-100">
 
       <!-- Chat Header -->
-      <div class="border-b px-6 py-4 flex items-center gap-3 bg-white">
+      <div class="border-b px-6 py-4 flex items-center gap-4 bg-white shadow-sm">
+
+        <!-- Avatar -->
         <img id="chatAvatar"
-             class="w-10 h-10 rounded-full object-cover"
              src="/media/profile_photos/default-avatar.svg"
-             alt="" />
-        <div>
-          <p id="chatName" class="font-semibold text-sm"></p>
-          <p id="chatRole" class="text-xs text-gray-500"></p>
+             class="w-11 h-11 rounded-full object-cover"
+             alt="Avatar" />
+
+        <!-- User Info -->
+        <div class="flex flex-col">
+          <span id="chatName"
+                class="font-semibold text-gray-800 text-sm">
+            Select a conversation
+          </span>
+
+          <span id="chatRole"
+                class="text-xs text-gray-400 uppercase tracking-wide">
+          </span>
         </div>
       </div>
 
-      <!-- Messages -->
+      <!-- Messages Area -->
       <div id="chatMessages"
-           class="flex-1 overflow-y-auto p-6 space-y-4">
+           class="flex-1 overflow-y-auto p-6 space-y-4 bg-gradient-to-b from-gray-50 to-gray-100">
+        <!-- Messages injected by JS -->
       </div>
 
       <!-- Composer -->
       <form id="chatForm"
-            onsubmit="sendMessage()"
+            onsubmit="sendMessage(event)"
             class="border-t px-6 py-4 flex items-center gap-3 bg-white">
 
         <input id="chatInput"
                type="text"
                placeholder="Type your message..."
                autocomplete="off"
-               class="flex-1 border rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring focus:ring-blue-100"
+               class="flex-1 border rounded-xl px-4 py-2 text-sm
+                      focus:outline-none focus:ring focus:ring-blue-100"
                required />
 
         <button type="submit"
-                class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl transition">
+                class="bg-blue-600 hover:bg-blue-700
+                       text-white px-5 py-2 rounded-xl
+                       transition duration-150">
           ➤
         </button>
       </form>
-
     </div>
+
   </div>
 </div>
 
 <!-- ================= MESSAGE TEMPLATES ================= -->
+
+<!-- My Message -->
 <template id="messageMine">
   <div class="flex justify-end">
-    <div class="bg-blue-600 text-white px-4 py-2 rounded-2xl max-w-[70%]">
+    <div class="bg-blue-600 text-white
+                px-4 py-2 rounded-2xl rounded-br-sm
+                max-w-[70%] shadow-sm">
       <p class="text-sm message-text"></p>
       <p class="text-xs mt-1 text-blue-100 text-right message-time"></p>
     </div>
   </div>
 </template>
 
+<!-- Other Message -->
 <template id="messageOther">
   <div class="flex justify-start">
-    <div class="bg-white border px-4 py-2 rounded-2xl max-w-[70%]">
+    <div class="bg-white border
+                px-4 py-2 rounded-2xl rounded-bl-sm
+                max-w-[70%] shadow-sm">
       <p class="text-sm message-text"></p>
       <p class="text-xs mt-1 text-gray-400 text-right message-time"></p>
     </div>
