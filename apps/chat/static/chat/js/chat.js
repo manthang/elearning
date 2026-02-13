@@ -2,6 +2,7 @@
    GLOBAL STATE
 ================================ */
 let activeConversationId = null;
+let conversationsCache = [];
 let socket = null;
 
 /* ================================
@@ -57,39 +58,45 @@ function loadConversations() {
 
       list.innerHTML = "";
 
-      const conversations = data.conversations || [];
+      conversationsCache = data.conversations || [];
 
-      conversations.forEach(conv => {
-        const div = document.createElement("div");
-        div.className = `
-          px-4 py-3 border-b cursor-pointer hover:bg-gray-100
-          ${conv.id === activeConversationId ? "bg-gray-100" : ""}
-        `;
-
-        div.dataset.id = conv.id;
-
-        div.innerHTML = `
-          <div class="flex items-center gap-3">
-            <img src="${conv.avatar || "/media/profile_photos/default-avatar.svg"}"
-                 class="w-8 h-8 rounded-full object-cover" />
-
-            <div>
-              <div class="font-medium text-sm">${conv.name}</div>
-              <div class="text-xs text-gray-500 truncate">
-                ${conv.last_message || ""}
-              </div>
-            </div>
-          </div>
-        `;
-
-        div.onclick = () => openConversation(conv);
-
+      conversationsCache.forEach(conv => {
+        const div = createConversationItem(conv);
         list.appendChild(div);
       });
 
-      return conversations;
+      return conversationsCache;
     })
     .catch(err => console.error("Conversation load error:", err));
+}
+
+function createConversationItem(conv) {
+  const div = document.createElement("div");
+
+  div.className = `
+    px-4 py-3 border-b cursor-pointer hover:bg-gray-100
+    ${conv.id === activeConversationId ? "bg-gray-100" : ""}
+  `;
+
+  div.dataset.id = conv.id;
+
+  div.innerHTML = `
+    <div class="flex items-center gap-3">
+      <img src="${conv.avatar || "/media/profile_photos/default-avatar.svg"}"
+           class="w-8 h-8 rounded-full object-cover" />
+
+      <div class="flex-1 min-w-0">
+        <div class="font-medium text-sm">${conv.name}</div>
+        <div class="text-xs text-gray-500 truncate last-message">
+          ${conv.last_message || ""}
+        </div>
+      </div>
+    </div>
+  `;
+
+  div.onclick = () => openConversation(conv);
+
+  return div;
 }
 
 /* ================================
@@ -211,9 +218,44 @@ window.sendMessage = function (event) {
   socket.send(JSON.stringify({ message }));
   input.value = "";
 
+  // 🔥 Update UI immediately
+  updateConversationPreview(message);
+  moveConversationToTop(activeConversationId);
+
   focusInput();
 };
 
+function updateConversationPreview(message) {
+  const item = document.querySelector(
+    `#conversationList > div[data-id="${activeConversationId}"]`
+  );
+
+  if (!item) return;
+
+  const preview = item.querySelector(".last-message");
+  if (preview) {
+    preview.textContent = message;
+  }
+
+  // Also update cache
+  const conv = conversationsCache.find(c => c.id == activeConversationId);
+  if (conv) {
+    conv.last_message = message;
+  }
+}
+
+function moveConversationToTop(conversationId) {
+  const list = document.getElementById("conversationList");
+  const item = document.querySelector(
+    `#conversationList > div[data-id="${conversationId}"]`
+  );
+
+  if (!list || !item) return;
+
+  list.prepend(item);
+
+  highlightActive();
+}
 
 /* ================================
    UI HELPERS
