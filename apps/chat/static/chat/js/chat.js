@@ -66,6 +66,9 @@ function loadConversations() {
         list.appendChild(div);
       });
 
+      // Ensure active highlight stays correct after reload
+      highlightActive();
+
       return conversationsCache;
     })
     .catch(err => console.error("Conversation load error:", err));
@@ -75,26 +78,27 @@ function createConversationItem(conv) {
   const div = document.createElement("div");
 
   const isMine = String(conv.sender_id) === String(CURRENT_USER_ID);
-
   const previewText = conv.last_message
     ? (isMine ? `You: ${conv.last_message}` : conv.last_message)
     : "";
 
-  div.className = `
-    px-4 py-3 border-b cursor-pointer hover:bg-gray-100
-    ${conv.id === activeConversationId ? "bg-gray-100" : ""}
-  `;
-
   div.dataset.id = conv.id;
 
+  // Card-like item, modern hover and active styles.
+  // Unread styles applied in renderUnreadBadge().
+  div.className = buildConversationItemClass(conv.id);
+
   div.innerHTML = `
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 px-3 py-3">
       <img src="${conv.avatar || "/media/profile_photos/default-avatar.svg"}"
-          class="w-8 h-8 rounded-full object-cover" />
+          class="w-9 h-9 rounded-full object-cover bg-white"
+          alt="avatar" />
 
       <div class="flex-1 min-w-0">
         <div class="flex items-center justify-between gap-2">
-          <div class="font-medium text-sm truncate">${conv.name}</div>
+          <div class="font-semibold text-sm text-gray-900 truncate">
+            ${escapeHtml(conv.name || "")}
+          </div>
 
           <span class="unread-badge hidden text-[10px] leading-none px-2 py-1 rounded-full bg-blue-600 text-white">
             0
@@ -102,7 +106,7 @@ function createConversationItem(conv) {
         </div>
 
         <div class="text-xs text-gray-500 truncate last-message">
-          ${previewText}
+          ${escapeHtml(previewText)}
         </div>
       </div>
     </div>
@@ -110,10 +114,29 @@ function createConversationItem(conv) {
 
   div.onclick = () => openConversation(conv);
 
-  // Apply any existing unread state
+  // Apply existing unread state
   renderUnreadBadge(conv.id);
 
   return div;
+}
+
+function buildConversationItemClass(conversationId) {
+  const isActive = String(conversationId) === String(activeConversationId);
+
+  // base card
+  let cls = `
+    rounded-2xl bg-white/70 backdrop-blur-sm
+    cursor-pointer select-none
+    transition-all duration-150
+    hover:bg-white hover:shadow-sm
+  `;
+
+  // active state
+  if (isActive) {
+    cls += ` ring-2 ring-blue-200 bg-white shadow-sm `;
+  }
+
+  return cls;
 }
 
 /* ================================
@@ -130,11 +153,12 @@ function openConversation(conv) {
 
   updateHeader(conv);
   loadChatHistory(conv.id);
-  highlightActive();
 
   // Clear unread when opening
   unreadCounts.set(String(conv.id), 0);
   renderUnreadBadge(conv.id);
+
+  highlightActive();
 }
 
 function openConversationById(conversationId) {
@@ -153,7 +177,7 @@ function updateHeader(user) {
 
   if (!nameEl || !roleEl || !avatarEl) return;
 
-  nameEl.textContent = user.name;
+  nameEl.textContent = user.name || "Conversation";
   roleEl.textContent = user.role
     ? user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()
     : "";
@@ -177,7 +201,6 @@ function loadChatHistory(conversationId) {
       container.innerHTML = "";
 
       (data.messages || []).forEach(msg => {
-        // Dedup if we already rendered it live
         if (msg.id) seenMessageIds.add(String(msg.id));
         renderMessage(msg.content, msg.sender_id === CURRENT_USER_ID);
       });
@@ -233,7 +256,7 @@ function connectInboxSocket() {
   };
 
   inboxSocket.onclose = () => {
-    // keep it simple; reconnect next time modal opens
+    // reconnect next time modal opens
   };
 }
 
@@ -268,13 +291,8 @@ window.sendMessage = function (event) {
 
   input.value = "";
 
-  // Optimistic UI updates (server will echo back with message_id too)
-  updateConversationPreview(
-    String(activeConversationId),
-    message,
-    CURRENT_USER_ID
-  );
-  
+  // Optimistic UI updates
+  updateConversationPreview(String(activeConversationId), message, CURRENT_USER_ID);
   moveConversationToTop(String(activeConversationId));
 
   focusInput();
@@ -296,10 +314,11 @@ function updateConversationPreview(conversationId, message, senderId = null) {
   const isMine = String(senderId) === String(CURRENT_USER_ID);
   preview.textContent = isMine ? `You: ${message}` : message;
 
-  const conv = conversationsCache.find(
-    c => String(c.id) === String(conversationId)
-  );
-  if (conv) conv.last_message = message;
+  const conv = conversationsCache.find(c => String(c.id) === String(conversationId));
+  if (conv) {
+    conv.last_message = message;
+    conv.sender_id = senderId;
+  }
 }
 
 function moveConversationToTop(conversationId) {
@@ -319,10 +338,17 @@ function renderUnreadBadge(conversationId) {
   if (!badge) return;
 
   const count = unreadCounts.get(String(conversationId)) || 0;
+  const isActive = String(activeConversationId) === String(conversationId);
 
-  if (count > 0 && String(activeConversationId) !== String(conversationId)) {
+  // Reset base class to keep active style correct, then overlay unread style
+  item.className = buildConversationItemClass(conversationId);
+
+  if (count > 0 && !isActive) {
     badge.classList.remove("hidden");
     badge.textContent = String(count);
+
+    // Soft unread glow
+    item.className += ` ring-2 ring-blue-100 `;
   } else {
     badge.classList.add("hidden");
     badge.textContent = "0";
@@ -340,12 +366,15 @@ function renderMessage(message, isMine) {
   const wrapper = document.createElement("div");
   wrapper.className = `flex ${isMine ? "justify-end" : "justify-start"}`;
 
+  // Match the updated template vibe:
+  // - Mine: gradient bubble
+  // - Other: soft white bubble
   wrapper.innerHTML = `
     <div class="
-      max-w-md px-4 py-2 rounded-xl text-sm
+      max-w-md px-4 py-2 text-sm
       ${isMine
-        ? "bg-blue-600 text-white rounded-2xl rounded-br-sm shadow-sm"
-        : "bg-white border rounded-2xl rounded-bl-sm shadow-sm"}
+        ? "bg-gradient-to-br from-blue-600 to-blue-500 text-white rounded-2xl rounded-br-sm shadow-md"
+        : "bg-white/90 backdrop-blur-sm text-gray-900 rounded-2xl rounded-bl-sm shadow-sm"}
     ">
       ${escapeHtml(message)}
     </div>
@@ -371,13 +400,17 @@ function focusInput() {
 }
 
 function highlightActive() {
-  document.querySelectorAll("#conversationList > div")
-    .forEach(div => {
-      div.classList.remove("bg-gray-100");
-      if (div.dataset.id == activeConversationId) {
-        div.classList.add("bg-gray-100");
-      }
-    });
+  document.querySelectorAll("#conversationList > div").forEach(div => {
+    const id = div.dataset.id;
+    div.className = buildConversationItemClass(id);
+
+    // Reapply unread visual if needed
+    const count = unreadCounts.get(String(id)) || 0;
+    const isActive = String(activeConversationId) === String(id);
+    if (count > 0 && !isActive) {
+      div.className += ` ring-2 ring-blue-100 `;
+    }
+  });
 }
 
 function escapeHtml(str) {
