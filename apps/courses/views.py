@@ -17,11 +17,12 @@ def teacher_home(request):
     if user.role != user.Role.TEACHER:
         return HttpResponseForbidden("Teachers only")
 
-    # courses = Course.objects.filter(
-    #     sections__teaching__teacher=user
-    # ).distinct()
-
     return render(request, "courses/teacher_home.html")
+
+@login_required
+def create_course(request):
+    # TODO: replace with your real create form later
+    return render(request, "courses/create_course.html")
 
 @login_required
 def student_home(request):
