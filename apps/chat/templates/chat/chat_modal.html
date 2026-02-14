@@ -1,49 +1,49 @@
-<!-- ================= MESSENGER MODAL (WhatsApp-like) ================= -->
+<!-- ================= MESSENGER MODAL (WhatsApp-like LIGHT) ================= -->
 <div id="messengerPanel"
      class="fixed inset-0 z-50 hidden items-center justify-center
-            bg-black/60 backdrop-blur-sm opacity-0 transition-opacity duration-200"
+            bg-black/40 backdrop-blur-sm opacity-0 transition-opacity duration-200"
      onclick="closeMessenger()">
 
   <div id="messengerBox"
        class="w-full max-w-6xl h-[84vh]
               rounded-2xl overflow-hidden
-              shadow-[0_24px_80px_rgba(0,0,0,0.55)]
-              flex transform scale-95 opacity-0 transition-all duration-200"
+              shadow-[0_24px_80px_rgba(0,0,0,0.25)]
+              flex transform scale-95 opacity-0 transition-all duration-200 bg-white"
        onclick="event.stopPropagation()">
 
     <!-- ================= LEFT (Sidebar) ================= -->
-    <aside class="w-[380px] flex flex-col bg-[#111b21] text-white border-r border-white/5">
+    <aside class="w-[380px] flex flex-col bg-white border-r border-gray-100">
 
       <!-- Sidebar header -->
-      <div class="px-4 py-3 flex items-center justify-between border-b border-white/5 bg-[#202c33]">
+      <div class="px-4 py-3 flex items-center justify-between bg-white">
         <div class="flex items-center gap-3">
-          <div class="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white/80" viewBox="0 0 20 20" fill="currentColor">
+          <div class="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
               <path d="M10 10a4 4 0 100-8 4 4 0 000 8zM3 18a7 7 0 0114 0H3z"/>
             </svg>
           </div>
-          <div class="font-semibold">Chats</div>
+          <div class="font-semibold text-gray-900">Chats</div>
         </div>
 
         <button type="button"
-                class="h-9 w-9 rounded-full hover:bg-white/10 transition flex items-center justify-center"
+                class="h-9 w-9 rounded-full hover:bg-gray-100 transition flex items-center justify-center"
                 aria-label="New chat">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white/80" viewBox="0 0 20 20" fill="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
             <path d="M17 3a1 1 0 011 1v11a2 2 0 01-2 2H7l-4 3v-3H4a2 2 0 01-2-2V4a1 1 0 011-1h14z"/>
           </svg>
         </button>
       </div>
 
-      <!-- Search -->
-      <div class="px-3 py-2 border-b border-white/5 bg-[#111b21]">
-        <div class="flex items-center gap-2 bg-[#202c33] rounded-lg px-3 py-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white/60" viewBox="0 0 20 20" fill="currentColor">
+      <!-- Search (NO border-top line under Chats) -->
+      <div class="px-3 pb-2 bg-white">
+        <div class="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M12.9 14.32a8 8 0 111.414-1.414l3.387 3.387a1 1 0 01-1.414 1.414l-3.387-3.387zM14 8a6 6 0 11-12 0 6 6 0 0112 0z" clip-rule="evenodd"/>
           </svg>
           <input id="chatSearch"
                  type="text"
                  placeholder="Search"
-                 class="w-full bg-transparent outline-none text-sm text-white/90 placeholder:text-white/50"
+                 class="w-full bg-transparent outline-none text-sm text-gray-700 placeholder:text-gray-400"
                  autocomplete="off"/>
         </div>
       </div>
@@ -54,48 +54,50 @@
         <!-- injected by JS -->
       </div>
 
-      <div class="px-4 py-2 text-[11px] text-white/40 border-t border-white/5">
-        Your messages are private.
-      </div>
+      <!-- ✅ removed: "Your messages are private." footer -->
     </aside>
 
     <!-- ================= RIGHT (Chat) ================= -->
-    <main class="flex-1 flex flex-col bg-[#0b141a] text-white">
+    <main class="flex-1 flex flex-col bg-white">
 
-      <!-- Header: hidden until a conversation selected -->
+      <!-- Header -->
       <div id="chatHeader"
-           class="hidden px-4 py-3 flex items-center gap-3 bg-[#202c33] border-b border-white/5">
+           class="hidden px-4 py-3 flex items-center gap-3 bg-white border-b border-gray-100">
         <img id="chatAvatar"
              class="w-10 h-10 rounded-full object-cover"
              alt="Avatar" />
 
         <div class="min-w-0">
-          <div id="chatName" class="font-semibold text-sm truncate"></div>
-          <div id="chatRole" class="text-[11px] text-white/60 truncate"></div>
+          <div id="chatName" class="font-semibold text-sm text-gray-900 truncate"></div>
+          <div id="chatRole" class="text-[11px] text-gray-500 uppercase tracking-wide truncate"></div>
         </div>
 
         <div class="ml-auto flex items-center gap-1">
-          <button type="button" class="h-9 w-9 rounded-full hover:bg-white/10 transition flex items-center justify-center" aria-label="Search">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white/70" viewBox="0 0 20 20" fill="currentColor">
+          <button type="button"
+                  class="h-9 w-9 rounded-full hover:bg-gray-100 transition flex items-center justify-center"
+                  aria-label="Search">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M12.9 14.32a8 8 0 111.414-1.414l3.387 3.387a1 1 0 01-1.414 1.414l-3.387-3.387zM14 8a6 6 0 11-12 0 6 6 0 0112 0z" clip-rule="evenodd"/>
             </svg>
           </button>
-          <button type="button" class="h-9 w-9 rounded-full hover:bg-white/10 transition flex items-center justify-center" aria-label="Menu">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white/70" viewBox="0 0 20 20" fill="currentColor">
+          <button type="button"
+                  class="h-9 w-9 rounded-full hover:bg-gray-100 transition flex items-center justify-center"
+                  aria-label="Menu">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
               <path d="M6 10a2 2 0 114 0 2 2 0 01-4 0zm6 0a2 2 0 114 0 2 2 0 01-4 0z"/>
             </svg>
           </button>
         </div>
       </div>
 
-      <!-- Messages wrapper with subtle pattern -->
-      <div class="relative flex-1 overflow-hidden">
+      <!-- Messages wrapper with subtle light pattern -->
+      <div class="relative flex-1 overflow-hidden bg-[#efeae2]">
         <div class="absolute inset-0 opacity-[0.08]"
              style="
                background-image:
-                 radial-gradient(circle at 20% 30%, #ffffff 0 1px, transparent 1px),
-                 radial-gradient(circle at 70% 60%, #ffffff 0 1px, transparent 1px);
-               background-size: 60px 60px;
+                 radial-gradient(circle at 20% 30%, #000 0 1px, transparent 1px),
+                 radial-gradient(circle at 70% 60%, #000 0 1px, transparent 1px);
+               background-size: 70px 70px;
              "></div>
 
         <div id="chatMessages"
@@ -106,14 +108,14 @@
         <!-- Empty state -->
         <div id="chatEmptyState"
              class="absolute inset-0 flex items-center justify-center p-8">
-          <div class="max-w-sm text-center text-white/80">
-            <div class="mx-auto mb-4 h-14 w-14 rounded-full bg-white/10 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-white/70" viewBox="0 0 20 20" fill="currentColor">
+          <div class="max-w-sm text-center text-gray-700">
+            <div class="mx-auto mb-4 h-14 w-14 rounded-full bg-white/70 shadow-sm flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M2 5a3 3 0 013-3h10a3 3 0 013 3v6a3 3 0 01-3 3H9l-4 3v-3H5a3 3 0 01-3-3V5z" />
               </svg>
             </div>
             <div class="font-semibold">Choose a chat</div>
-            <div class="mt-1 text-xs text-white/60">Pick a conversation on the left to start messaging.</div>
+            <div class="mt-1 text-xs text-gray-500">Pick a conversation on the left to start messaging.</div>
           </div>
         </div>
       </div>
@@ -121,12 +123,12 @@
       <!-- Composer -->
       <form id="chatForm"
             onsubmit="sendMessage(event)"
-            class="px-4 py-3 bg-[#202c33] border-t border-white/5 flex items-center gap-3">
+            class="px-4 py-3 bg-white border-t border-gray-100 flex items-center gap-3">
 
         <button type="button"
-                class="h-10 w-10 rounded-full hover:bg-white/10 transition flex items-center justify-center"
+                class="h-10 w-10 rounded-full hover:bg-gray-100 transition flex items-center justify-center"
                 aria-label="Emoji">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white/70" viewBox="0 0 20 20" fill="currentColor">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
             <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm-3-7a1 1 0 100-2 1 1 0 000 2zm6 0a1 1 0 100-2 1 1 0 000 2zm-6.293 2.293a1 1 0 011.414 0A2.99 2.99 0 0010 14a2.99 2.99 0 002.121-.707 1 1 0 111.414 1.414A4.99 4.99 0 0110 16a4.99 4.99 0 01-3.535-1.293 1 1 0 010-1.414z"/>
           </svg>
         </button>
@@ -135,8 +137,8 @@
                type="text"
                placeholder="Select a conversation to start typing…"
                autocomplete="off"
-               class="flex-1 bg-[#2a3942] rounded-lg px-4 py-2 text-sm
-                      outline-none text-white placeholder:text-white/50
+               class="flex-1 bg-gray-100 rounded-lg px-4 py-2 text-sm
+                      outline-none text-gray-800 placeholder:text-gray-400
                       disabled:opacity-60"
                disabled
                required />

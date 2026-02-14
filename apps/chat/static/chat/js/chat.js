@@ -76,27 +76,27 @@ function createConversationItem(conv) {
   div.className = buildConversationItemClass(conv.id);
 
   div.innerHTML = `
-    <div class="px-3 py-3 flex items-center gap-3">
+    <div class="px-2 py-3 flex items-center gap-3 border-b border-gray-100">
       <img src="${conv.avatar || "/media/profile_photos/default-avatar.svg"}"
-           class="w-12 h-12 rounded-full object-cover bg-white/10"
+           class="w-12 h-12 rounded-full object-cover bg-gray-100"
            alt="avatar"/>
 
       <div class="flex-1 min-w-0">
         <div class="flex items-center justify-between gap-2">
-          <div class="text-[15px] font-semibold text-white/90 truncate">
+          <div class="text-[15px] font-semibold text-gray-900 truncate">
             ${escapeHtml(conv.name || "")}
           </div>
-          <div class="text-[11px] text-white/40 convo-time">
+          <div class="text-[11px] text-gray-400 convo-time">
             ${escapeHtml(conv.time || "")}
           </div>
         </div>
 
         <div class="flex items-center justify-between gap-2 mt-0.5">
-          <div class="text-[13px] text-white/60 truncate last-message">
+          <div class="text-[13px] text-gray-600 truncate last-message">
             ${escapeHtml(previewText)}
           </div>
 
-          <span class="unread-badge hidden text-[11px] leading-none px-2 py-1 rounded-full bg-[#00a884] text-black/90 font-semibold">
+          <span class="unread-badge hidden text-[11px] leading-none px-2 py-1 rounded-full bg-[#00a884] text-white font-semibold">
             0
           </span>
         </div>
@@ -115,11 +115,13 @@ function buildConversationItemClass(conversationId) {
 
   let cls = `
     cursor-pointer select-none
-    border-b border-white/5
-    hover:bg-white/5 transition
+    px-2
+    transition
   `;
 
-  if (isActive) cls += ` bg-white/10 `;
+  // WhatsApp-like row feel
+  cls += isActive ? " bg-gray-100 " : " hover:bg-gray-50 ";
+
   return cls;
 }
 
@@ -306,19 +308,16 @@ function renderMessage(message, isMine, timeStr = "") {
   const wrapper = document.createElement("div");
   wrapper.className = `flex ${isMine ? "justify-end" : "justify-start"}`;
 
-  // WhatsApp-like bubbles:
-  // - Mine: green bubble
-  // - Other: dark bubble
   const bubbleClass = isMine
-    ? "bg-[#005c4b] text-white rounded-lg rounded-tr-sm"
-    : "bg-[#202c33] text-white/90 rounded-lg rounded-tl-sm";
+    ? "bg-[#d9fdd3] text-gray-900 rounded-lg rounded-tr-sm"
+    : "bg-white text-gray-900 rounded-lg rounded-tl-sm border border-black/5";
 
   const timeHtml = timeStr
-    ? `<span class="ml-2 text-[10px] text-white/60">${escapeHtml(timeStr)}</span>`
+    ? `<span class="ml-2 text-[10px] text-gray-500 whitespace-nowrap">${escapeHtml(timeStr)}</span>`
     : "";
 
   wrapper.innerHTML = `
-    <div class="max-w-[72%] px-3 py-2 text-[14px] leading-snug shadow-[0_1px_0_rgba(0,0,0,0.35)] ${bubbleClass}">
+    <div class="max-w-[72%] px-3 py-2 text-[14px] leading-snug shadow-[0_1px_0_rgba(0,0,0,0.08)] ${bubbleClass}">
       <span>${escapeHtml(message)}</span>
       ${timeHtml}
     </div>
