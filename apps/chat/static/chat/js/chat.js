@@ -1,17 +1,9 @@
-/* ================================
-   GLOBAL STATE
-================================ */
 let activeConversationId = null;
 let conversationsCache = [];
 let inboxSocket = null;
 
-// Track unread counts + dedupe
-const unreadCounts = new Map();                 // conversationId -> count
-const seenMessageIds = new Set();               // message_id global (good enough for MVP)
-
-/* ================================
-   OPEN / CLOSE MESSENGER
-================================ */
+const unreadCounts = new Map();
+const seenMessageIds = new Set();
 
 window.openMessenger = function (conversationId = null) {
   const panel = document.getElementById("messengerPanel");
@@ -23,12 +15,19 @@ window.openMessenger = function (conversationId = null) {
   requestAnimationFrame(() => {
     panel.classList.remove("opacity-0");
     box.classList.remove("opacity-0", "scale-95");
-    box.classList.add("scale-100", "opacity-100");
+    box.classList.add("opacity-100", "scale-100");
   });
+
+  // Reset UI
+  activeConversationId = null;
+  document.getElementById("chatHeader")?.classList.add("hidden");
+  setEmptyState(true);
+  setComposerEnabled(false);
 
   connectInboxSocket();
 
   loadConversations().then(() => {
+    wireSearch();
     if (conversationId) openConversationById(conversationId);
   });
 };
@@ -47,10 +46,6 @@ window.closeMessenger = function () {
   }, 200);
 };
 
-/* ================================
-   LOAD CONVERSATIONS
-================================ */
-
 function loadConversations() {
   return fetch("/chat/conversations/")
     .then(res => res.json())
@@ -61,12 +56,7 @@ function loadConversations() {
       list.innerHTML = "";
       conversationsCache = data.conversations || [];
 
-      conversationsCache.forEach(conv => {
-        const div = createConversationItem(conv);
-        list.appendChild(div);
-      });
-
-      // Ensure active highlight stays correct after reload
+      conversationsCache.forEach(conv => list.appendChild(createConversationItem(conv)));
       highlightActive();
 
       return conversationsCache;
@@ -76,45 +66,45 @@ function loadConversations() {
 
 function createConversationItem(conv) {
   const div = document.createElement("div");
+  div.dataset.id = conv.id;
 
   const isMine = String(conv.sender_id) === String(CURRENT_USER_ID);
   const previewText = conv.last_message
     ? (isMine ? `You: ${conv.last_message}` : conv.last_message)
     : "";
 
-  div.dataset.id = conv.id;
-
-  // Card-like item, modern hover and active styles.
-  // Unread styles applied in renderUnreadBadge().
   div.className = buildConversationItemClass(conv.id);
 
   div.innerHTML = `
-    <div class="flex items-center gap-3 px-3 py-3">
+    <div class="px-3 py-3 flex items-center gap-3">
       <img src="${conv.avatar || "/media/profile_photos/default-avatar.svg"}"
-          class="w-9 h-9 rounded-full object-cover bg-white"
-          alt="avatar" />
+           class="w-12 h-12 rounded-full object-cover bg-white/10"
+           alt="avatar"/>
 
       <div class="flex-1 min-w-0">
         <div class="flex items-center justify-between gap-2">
-          <div class="font-semibold text-sm text-gray-900 truncate">
+          <div class="text-[15px] font-semibold text-white/90 truncate">
             ${escapeHtml(conv.name || "")}
           </div>
-
-          <span class="unread-badge hidden text-[10px] leading-none px-2 py-1 rounded-full bg-blue-600 text-white">
-            0
-          </span>
+          <div class="text-[11px] text-white/40 convo-time">
+            ${escapeHtml(conv.time || "")}
+          </div>
         </div>
 
-        <div class="text-xs text-gray-500 truncate last-message">
-          ${escapeHtml(previewText)}
+        <div class="flex items-center justify-between gap-2 mt-0.5">
+          <div class="text-[13px] text-white/60 truncate last-message">
+            ${escapeHtml(previewText)}
+          </div>
+
+          <span class="unread-badge hidden text-[11px] leading-none px-2 py-1 rounded-full bg-[#00a884] text-black/90 font-semibold">
+            0
+          </span>
         </div>
       </div>
     </div>
   `;
 
   div.onclick = () => openConversation(conv);
-
-  // Apply existing unread state
   renderUnreadBadge(conv.id);
 
   return div;
@@ -123,41 +113,31 @@ function createConversationItem(conv) {
 function buildConversationItemClass(conversationId) {
   const isActive = String(conversationId) === String(activeConversationId);
 
-  // base card
   let cls = `
-    rounded-2xl bg-white/70 backdrop-blur-sm
     cursor-pointer select-none
-    transition-all duration-150
-    hover:bg-white hover:shadow-sm
+    border-b border-white/5
+    hover:bg-white/5 transition
   `;
 
-  // active state
-  if (isActive) {
-    cls += ` ring-2 ring-blue-200 bg-white shadow-sm `;
-  }
-
+  if (isActive) cls += ` bg-white/10 `;
   return cls;
 }
 
-/* ================================
-   OPEN CONVERSATION
-================================ */
-
 function openConversation(conv) {
-  if (!conv || !conv.id) {
-    console.error("Invalid conversation:", conv);
-    return;
-  }
+  if (!conv || !conv.id) return;
 
   activeConversationId = conv.id;
 
   updateHeader(conv);
+  document.getElementById("chatHeader")?.classList.remove("hidden");
+
+  setEmptyState(false);
+  setComposerEnabled(true);
+
   loadChatHistory(conv.id);
 
-  // Clear unread when opening
   unreadCounts.set(String(conv.id), 0);
   renderUnreadBadge(conv.id);
-
   highlightActive();
 }
 
@@ -166,10 +146,6 @@ function openConversationById(conversationId) {
   if (conv) openConversation(conv);
 }
 
-/* ================================
-   UPDATE HEADER
-================================ */
-
 function updateHeader(user) {
   const nameEl = document.getElementById("chatName");
   const roleEl = document.getElementById("chatRole");
@@ -177,43 +153,30 @@ function updateHeader(user) {
 
   if (!nameEl || !roleEl || !avatarEl) return;
 
-  nameEl.textContent = user.name || "Conversation";
-  roleEl.textContent = user.role
-    ? user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase()
-    : "";
-
+  nameEl.textContent = user.name || "";
+  roleEl.textContent = user.role ? user.role : "";
   avatarEl.src = user.avatar ?? "/media/profile_photos/default-avatar.svg";
 }
-
-/* ================================
-   LOAD HISTORY
-================================ */
 
 function loadChatHistory(conversationId) {
   const container = document.getElementById("chatMessages");
   if (!container) return;
 
-  container.innerHTML = "<div class='text-gray-400 text-sm'>Loading...</div>";
+  container.innerHTML = "<div class='text-white/40 text-sm'>Loading...</div>";
 
   fetch(`/chat/history/${conversationId}/`)
     .then(res => res.json())
     .then(data => {
       container.innerHTML = "";
-
       (data.messages || []).forEach(msg => {
         if (msg.id) seenMessageIds.add(String(msg.id));
-        renderMessage(msg.content, msg.sender_id === CURRENT_USER_ID);
+        renderMessage(msg.content, msg.sender_id === CURRENT_USER_ID, msg.created_at);
       });
-
       scrollToBottom();
       focusInput();
     })
     .catch(err => console.error("History error:", err));
 }
-
-/* ================================
-   INBOX WEBSOCKET (ONE SOCKET FOR ALL CONVERSATIONS)
-================================ */
 
 function connectInboxSocket() {
   if (inboxSocket && inboxSocket.readyState === WebSocket.OPEN) return;
@@ -223,40 +186,28 @@ function connectInboxSocket() {
 
   inboxSocket.onmessage = (event) => {
     let data;
-    try {
-      data = JSON.parse(event.data);
-    } catch (e) {
-      return;
-    }
+    try { data = JSON.parse(event.data); } catch { return; }
 
     const conversationId = String(data.conversation_id);
     const messageId = data.message_id ? String(data.message_id) : null;
 
-    // Dedup
     if (messageId && seenMessageIds.has(messageId)) return;
     if (messageId) seenMessageIds.add(messageId);
 
-    // Update preview + reorder list
     if (data.message) {
-      updateConversationPreview(conversationId, data.message, data.sender_id);
+      updateConversationPreview(conversationId, data.message, data.sender_id, data.created_at);
       moveConversationToTop(conversationId);
     }
 
-    // If it's the active conversation, render it into the message area
     if (String(activeConversationId) === conversationId) {
-      renderMessage(data.message, data.sender_id === CURRENT_USER_ID);
+      renderMessage(data.message, data.sender_id === CURRENT_USER_ID, data.created_at);
       scrollToBottom();
       return;
     }
 
-    // Otherwise increment unread and show badge
     const prev = unreadCounts.get(conversationId) || 0;
     unreadCounts.set(conversationId, prev + 1);
     renderUnreadBadge(conversationId);
-  };
-
-  inboxSocket.onclose = () => {
-    // reconnect next time modal opens
   };
 }
 
@@ -266,10 +217,6 @@ function disconnectInboxSocket() {
     inboxSocket = null;
   }
 }
-
-/* ================================
-   SEND MESSAGE (via inbox socket)
-================================ */
 
 window.sendMessage = function (event) {
   if (event) event.preventDefault();
@@ -291,33 +238,30 @@ window.sendMessage = function (event) {
 
   input.value = "";
 
-  // Optimistic UI updates
-  updateConversationPreview(String(activeConversationId), message, CURRENT_USER_ID);
+  // Optimistic preview (time optional)
+  updateConversationPreview(String(activeConversationId), message, CURRENT_USER_ID, "");
   moveConversationToTop(String(activeConversationId));
-
   focusInput();
 };
 
-/* ================================
-   CONVERSATION LIST UPDATES
-================================ */
-
-function updateConversationPreview(conversationId, message, senderId = null) {
-  const item = document.querySelector(
-    `#conversationList > div[data-id="${conversationId}"]`
-  );
+function updateConversationPreview(conversationId, message, senderId = null, timeStr = "") {
+  const item = document.querySelector(`#conversationList > div[data-id="${conversationId}"]`);
   if (!item) return;
 
   const preview = item.querySelector(".last-message");
-  if (!preview) return;
+  const timeEl = item.querySelector(".convo-time");
 
-  const isMine = String(senderId) === String(CURRENT_USER_ID);
-  preview.textContent = isMine ? `You: ${message}` : message;
+  if (preview) {
+    const isMine = String(senderId) === String(CURRENT_USER_ID);
+    preview.textContent = isMine ? `You: ${message}` : message;
+  }
+  if (timeEl && timeStr) timeEl.textContent = timeStr;
 
   const conv = conversationsCache.find(c => String(c.id) === String(conversationId));
   if (conv) {
     conv.last_message = message;
     conv.sender_id = senderId;
+    if (timeStr) conv.time = timeStr;
   }
 }
 
@@ -325,7 +269,6 @@ function moveConversationToTop(conversationId) {
   const list = document.getElementById("conversationList");
   const item = document.querySelector(`#conversationList > div[data-id="${conversationId}"]`);
   if (!list || !item) return;
-
   list.prepend(item);
   highlightActive();
 }
@@ -340,43 +283,44 @@ function renderUnreadBadge(conversationId) {
   const count = unreadCounts.get(String(conversationId)) || 0;
   const isActive = String(activeConversationId) === String(conversationId);
 
-  // Reset base class to keep active style correct, then overlay unread style
-  item.className = buildConversationItemClass(conversationId);
-
   if (count > 0 && !isActive) {
     badge.classList.remove("hidden");
     badge.textContent = String(count);
-
-    // Soft unread glow
-    item.className += ` ring-2 ring-blue-100 `;
   } else {
     badge.classList.add("hidden");
     badge.textContent = "0";
   }
 }
 
-/* ================================
-   UI HELPERS
-================================ */
+function highlightActive() {
+  document.querySelectorAll("#conversationList > div").forEach(div => {
+    const id = div.dataset.id;
+    div.className = buildConversationItemClass(id);
+  });
+}
 
-function renderMessage(message, isMine) {
+function renderMessage(message, isMine, timeStr = "") {
   const container = document.getElementById("chatMessages");
   if (!container) return;
 
   const wrapper = document.createElement("div");
   wrapper.className = `flex ${isMine ? "justify-end" : "justify-start"}`;
 
-  // Match the updated template vibe:
-  // - Mine: gradient bubble
-  // - Other: soft white bubble
+  // WhatsApp-like bubbles:
+  // - Mine: green bubble
+  // - Other: dark bubble
+  const bubbleClass = isMine
+    ? "bg-[#005c4b] text-white rounded-lg rounded-tr-sm"
+    : "bg-[#202c33] text-white/90 rounded-lg rounded-tl-sm";
+
+  const timeHtml = timeStr
+    ? `<span class="ml-2 text-[10px] text-white/60">${escapeHtml(timeStr)}</span>`
+    : "";
+
   wrapper.innerHTML = `
-    <div class="
-      max-w-md px-4 py-2 text-sm
-      ${isMine
-        ? "bg-gradient-to-br from-blue-600 to-blue-500 text-white rounded-2xl rounded-br-sm shadow-md"
-        : "bg-white/90 backdrop-blur-sm text-gray-900 rounded-2xl rounded-bl-sm shadow-sm"}
-    ">
-      ${escapeHtml(message)}
+    <div class="max-w-[72%] px-3 py-2 text-[14px] leading-snug shadow-[0_1px_0_rgba(0,0,0,0.35)] ${bubbleClass}">
+      <span>${escapeHtml(message)}</span>
+      ${timeHtml}
     </div>
   `;
 
@@ -386,30 +330,53 @@ function renderMessage(message, isMine) {
 function scrollToBottom() {
   const container = document.getElementById("chatMessages");
   if (!container) return;
-
-  requestAnimationFrame(() => {
-    container.scrollTop = container.scrollHeight;
-  });
+  requestAnimationFrame(() => { container.scrollTop = container.scrollHeight; });
 }
 
 function focusInput() {
   setTimeout(() => {
     const input = document.getElementById("chatInput");
-    if (input) input.focus();
+    if (input && !input.disabled) input.focus();
   }, 100);
 }
 
-function highlightActive() {
-  document.querySelectorAll("#conversationList > div").forEach(div => {
-    const id = div.dataset.id;
-    div.className = buildConversationItemClass(id);
+function setEmptyState(isEmpty) {
+  const empty = document.getElementById("chatEmptyState");
+  if (!empty) return;
+  empty.classList.toggle("hidden", !isEmpty);
+}
 
-    // Reapply unread visual if needed
-    const count = unreadCounts.get(String(id)) || 0;
-    const isActive = String(activeConversationId) === String(id);
-    if (count > 0 && !isActive) {
-      div.className += ` ring-2 ring-blue-100 `;
-    }
+function setComposerEnabled(enabled) {
+  const input = document.getElementById("chatInput");
+  const btn = document.getElementById("chatSendBtn");
+  if (!input || !btn) return;
+
+  input.disabled = !enabled;
+  btn.disabled = !enabled;
+
+  input.placeholder = enabled ? "Type a message" : "Select a conversation to start typing…";
+}
+
+function wireSearch() {
+  const search = document.getElementById("chatSearch");
+  if (!search || search.dataset.wired === "1") return;
+  search.dataset.wired = "1";
+
+  search.addEventListener("input", () => {
+    const q = (search.value || "").trim().toLowerCase();
+    const list = document.getElementById("conversationList");
+    if (!list) return;
+
+    list.innerHTML = "";
+    const filtered = !q
+      ? conversationsCache
+      : conversationsCache.filter(c =>
+          (c.name || "").toLowerCase().includes(q) ||
+          (c.last_message || "").toLowerCase().includes(q)
+        );
+
+    filtered.forEach(conv => list.appendChild(createConversationItem(conv)));
+    highlightActive();
   });
 }
 
