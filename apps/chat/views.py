@@ -35,6 +35,7 @@ def conversation_list(request):
             "role": getattr(other, "role", ""),
             "avatar": other.profile_photo.url if getattr(other, "profile_photo", None) else "",
             "last_message": last_message.content if last_message else "",
+            "sender_id": last_message.sender_id if last_message else None,  # ADD THIS
             "time": last_message.created_at.strftime("%H:%M") if last_message else "",
         })
 

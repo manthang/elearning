@@ -74,6 +74,12 @@ function loadConversations() {
 function createConversationItem(conv) {
   const div = document.createElement("div");
 
+  const isMine = String(conv.sender_id) === String(CURRENT_USER_ID);
+
+  const previewText = conv.last_message
+    ? (isMine ? `You: ${conv.last_message}` : conv.last_message)
+    : "";
+
   div.className = `
     px-4 py-3 border-b cursor-pointer hover:bg-gray-100
     ${conv.id === activeConversationId ? "bg-gray-100" : ""}
@@ -84,7 +90,7 @@ function createConversationItem(conv) {
   div.innerHTML = `
     <div class="flex items-center gap-3">
       <img src="${conv.avatar || "/media/profile_photos/default-avatar.svg"}"
-           class="w-8 h-8 rounded-full object-cover" />
+          class="w-8 h-8 rounded-full object-cover" />
 
       <div class="flex-1 min-w-0">
         <div class="flex items-center justify-between gap-2">
@@ -96,7 +102,7 @@ function createConversationItem(conv) {
         </div>
 
         <div class="text-xs text-gray-500 truncate last-message">
-          ${conv.last_message || ""}
+          ${previewText}
         </div>
       </div>
     </div>
@@ -209,7 +215,7 @@ function connectInboxSocket() {
 
     // Update preview + reorder list
     if (data.message) {
-      updateConversationPreview(conversationId, data.message);
+      updateConversationPreview(conversationId, data.message, data.sender_id);
       moveConversationToTop(conversationId);
     }
 
@@ -263,7 +269,12 @@ window.sendMessage = function (event) {
   input.value = "";
 
   // Optimistic UI updates (server will echo back with message_id too)
-  updateConversationPreview(String(activeConversationId), message);
+  updateConversationPreview(
+    String(activeConversationId),
+    message,
+    CURRENT_USER_ID
+  );
+  
   moveConversationToTop(String(activeConversationId));
 
   focusInput();
@@ -273,14 +284,21 @@ window.sendMessage = function (event) {
    CONVERSATION LIST UPDATES
 ================================ */
 
-function updateConversationPreview(conversationId, message) {
-  const item = document.querySelector(`#conversationList > div[data-id="${conversationId}"]`);
+function updateConversationPreview(conversationId, message, senderId = null) {
+  const item = document.querySelector(
+    `#conversationList > div[data-id="${conversationId}"]`
+  );
   if (!item) return;
 
   const preview = item.querySelector(".last-message");
-  if (preview) preview.textContent = message;
+  if (!preview) return;
 
-  const conv = conversationsCache.find(c => String(c.id) === String(conversationId));
+  const isMine = String(senderId) === String(CURRENT_USER_ID);
+  preview.textContent = isMine ? `You: ${message}` : message;
+
+  const conv = conversationsCache.find(
+    c => String(c.id) === String(conversationId)
+  );
   if (conv) conv.last_message = message;
 }
 
