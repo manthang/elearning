@@ -1,0 +1,38 @@
+<div class="bg-white rounded-xl shadow p-6">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h2 class="text-lg font-semibold text-gray-900">Teaching Overview</h2>
+      <p class="text-sm text-gray-500 mt-1">
+        Quick snapshot of your courses and workload today.
+      </p>
+    </div>
+
+    <button type="button"
+            onclick="openCreateCourseModal()"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+      Create Course
+    </button>
+  </div>
+
+  <div class="grid grid-cols-4 gap-4 mt-5">
+    <div class="rounded-xl bg-gray-50 p-4 border border-gray-100">
+      <div class="text-xs text-gray-500">Active Courses</div>
+      <div class="text-2xl font-bold text-gray-900 mt-1">{{ active_courses|default:0 }}</div>
+    </div>
+
+    <div class="rounded-xl bg-gray-50 p-4 border border-gray-100">
+      <div class="text-xs text-gray-500">Total Students</div>
+      <div class="text-2xl font-bold text-gray-900 mt-1">{{ total_students|default:0 }}</div>
+    </div>
+
+    <div class="rounded-xl bg-gray-50 p-4 border border-gray-100">
+      <div class="text-xs text-gray-500">Pending Reviews</div>
+      <div class="text-2xl font-bold text-gray-900 mt-1">{{ pending_reviews_total|default:0 }}</div>
+    </div>
+
+    <div class="rounded-xl bg-gray-50 p-4 border border-gray-100">
+      <div class="text-xs text-gray-500">Upcoming Deadlines</div>
+      <div class="text-2xl font-bold text-gray-900 mt-1">{{ upcoming_deadlines_count|default:0 }}</div>
+    </div>
+  </div>
+</div>

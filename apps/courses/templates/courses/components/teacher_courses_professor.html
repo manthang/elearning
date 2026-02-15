@@ -1,0 +1,75 @@
+<div class="bg-white rounded-xl shadow">
+  <div class="px-6 py-5 border-b border-gray-100">
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-semibold text-gray-900">My Courses</h2>
+        <p class="text-sm text-gray-500 mt-1">
+          Manage course content, students, and assessments.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="p-6 space-y-4">
+    {% for c in my_courses %}
+      <div class="border border-gray-200 rounded-xl p-5 hover:shadow-sm transition bg-white">
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0">
+            <div class="flex items-center gap-2">
+              <h3 class="font-semibold text-gray-900 truncate">{{ c.title }}</h3>
+
+              {% if c.pending_reviews %}
+                <span class="text-xs font-semibold px-2 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-100">
+                  {{ c.pending_reviews }} pending reviews
+                </span>
+              {% endif %}
+            </div>
+
+            <div class="mt-2 grid grid-cols-3 gap-3 text-sm text-gray-600">
+              <div class="flex items-center gap-2">
+                <span class="text-gray-400">👥</span>
+                <span>{{ c.student_count }} students</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-gray-400">📚</span>
+                <span>{{ c.category|default:"General" }}</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-gray-400">🕒</span>
+                <span>{{ c.duration|default:"—" }}</span>
+              </div>
+            </div>
+
+            {% if c.subtitle %}
+              <div class="mt-3 text-sm text-gray-500">
+                {{ c.subtitle }}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- optional status badge -->
+          <div class="shrink-0">
+            <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">
+              Active
+            </span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 mt-5">
+          <a href="{% url 'courses:detail' c.id %}"
+             class="border border-gray-200 rounded-lg py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
+            View
+          </a>
+          <a href="{% url 'courses:manage' c.id %}"
+             class="border border-gray-200 rounded-lg py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
+            Manage
+          </a>
+        </div>
+      </div>
+    {% empty %}
+      <div class="text-sm text-gray-500">
+        You haven’t created any courses yet.
+      </div>
+    {% endfor %}
+  </div>
+</div>
