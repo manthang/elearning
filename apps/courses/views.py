@@ -237,108 +237,87 @@ def course_detail(request, course_id: int):
 
 
 @login_required
-def course_manage(request, course_id: int):
-    """
-    Manage a course (teacher-only):
-    - Update course fields (including optional course_id)
-    - Upload new materials
-    - Delete materials
-    """
-    user = request.user
-    if user.role != user.Role.TEACHER:
-        return HttpResponseForbidden("Teachers only")
-
+def course_manage(request, course_id):
     course = get_object_or_404(Course, id=course_id)
 
-    # Only the teacher who teaches this course can manage it
-    if not Teaching.objects.filter(course=course, teacher=user).exists():
-        return HttpResponseForbidden("You don't have access to manage this course.")
-
-    COURSE_ID_RE = re.compile(r"^[A-Z0-9_-]+$")
+    # You can tighten this check to your app’s teacher logic
+    # is_teacher_view = (getattr(course, "teacher", None) == request.user) or request.user.is_staff
+    # if not is_teacher_view:
+    #     messages.error(request, "You do not have permission to manage this course.")
+    #     return redirect("courses:detail", course_id=course.id)
 
     if request.method == "POST":
-        # ===== Delete a material (optional) =====
-        delete_material_id = (request.POST.get("delete_material_id") or "").strip()
-        if delete_material_id:
-            mat = CourseMaterial.objects.filter(id=delete_material_id, course=course).first()
-            if mat:
-                mat.delete()
-                messages.success(request, "Material removed.")
+        action = (request.POST.get("action") or "").strip()
+
+        # 1) Save course info
+        if action == "save_info":
+            course.title = (request.POST.get("title") or "").strip()
+            course.description = (request.POST.get("description") or "").strip()
+            course.category = (request.POST.get("category") or "").strip() or None
+            course.duration = (request.POST.get("duration") or "").strip() or None
+
+            max_students_raw = (request.POST.get("max_students") or "").strip()
+            course.max_students = int(max_students_raw) if max_students_raw.isdigit() else None
+
+            course.save()
+            messages.success(request, "Course info updated.")
             return redirect("courses:manage", course_id=course.id)
 
-        # ===== Update course fields =====
-        title = (request.POST.get("title") or "").strip()
-        description = (request.POST.get("description") or "").strip()
-        category = (request.POST.get("category") or Course.CATEGORY_GENERAL).strip()
-        duration = (request.POST.get("duration") or "").strip()
-
-        max_students_raw = (request.POST.get("max_students") or "").strip()
-        max_students = None
-        if max_students_raw:
-            try:
-                max_students = int(max_students_raw)
-                if max_students <= 0:
-                    max_students = None
-            except ValueError:
-                max_students = None
-
-        course_id_input = (request.POST.get("course_id") or "").strip().upper()
-
-        if not title:
-            messages.error(request, "Course title is required.")
+        # 2) Remove student (by enrollment id)
+        if action == "remove_student":
+            enrollment_id = (request.POST.get("enrollment_id") or "").strip()
+            Enrollment.objects.filter(id=enrollment_id, course=course).delete()
+            messages.success(request, "Student removed from the course.")
             return redirect("courses:manage", course_id=course.id)
 
-        valid_categories = {c[0] for c in Course.CATEGORY_CHOICES}
-        if category not in valid_categories:
-            category = Course.CATEGORY_GENERAL
-
-        # Validate optional course_id
-        if course_id_input:
-            if len(course_id_input) > 20:
-                messages.error(request, "Course ID must be 20 characters or fewer.")
+        # 3) Upload material
+        if action == "upload_material":
+            f = request.FILES.get("material")
+            if not f:
+                messages.error(request, "Please choose a file to upload.")
                 return redirect("courses:manage", course_id=course.id)
 
-            if not COURSE_ID_RE.match(course_id_input):
-                messages.error(request, "Course ID can only contain A–Z, 0–9, hyphen (-), underscore (_).")
-                return redirect("courses:manage", course_id=course.id)
-
-            # Unique check excluding this course
-            if Course.objects.filter(course_id=course_id_input).exclude(id=course.id).exists():
-                messages.error(request, f"Course ID '{course_id_input}' is already in use.")
-                return redirect("courses:manage", course_id=course.id)
-
-        # Save changes
-        course.title = title
-        course.description = description
-        course.category = category
-        course.duration = duration
-        course.max_students = max_students
-        course.course_id = course_id_input or None
-        course.save()
-
-        # ===== Upload materials =====
-        files = request.FILES.getlist("materials")
-        for f in files:
             CourseMaterial.objects.create(
                 course=course,
                 file=f,
-                uploaded_by=user
+                original_name=getattr(f, "name", None) or "",
             )
+            messages.success(request, "Material uploaded.")
+            return redirect("courses:manage", course_id=course.id)
 
-        messages.success(request, "Course updated successfully.")
-        return redirect("courses:manage", course_id=course.id)
+        # 4) Delete material
+        if action == "delete_material":
+            material_id = (request.POST.get("material_id") or "").strip()
+            CourseMaterial.objects.filter(id=material_id, course=course).delete()
+            messages.success(request, "Material deleted.")
+            return redirect("courses:manage", course_id=course.id)
 
-    # GET
-    materials = CourseMaterial.objects.filter(course=course).order_by("-uploaded_at")
-    enrollment_count = Enrollment.objects.filter(course=course).count()
+    enrollments = (
+        Enrollment.objects
+        .filter(course=course)
+        .select_related("student")
+        .order_by("-created_at", "-id")
+    )
 
-    context = {
+    materials = (
+        CourseMaterial.objects
+        .filter(course=course)
+        .order_by("-uploaded_at", "-id")
+    )
+
+    # Simple summary values
+    enrollment_count = enrollments.count()
+    materials_count = materials.count()
+
+    return render(request, "courses/course_manage.html", {
         "course": course,
-        "materials": materials,
+        "is_teacher_view": True,
+        "enrollments": enrollments,
         "enrollment_count": enrollment_count,
-        "category_choices": Course.CATEGORY_CHOICES,
-    }
-    return render(request, "courses/course_manage.html", context)
+        "materials": materials,
+        "materials_count": materials_count,
+    })
+
 
 
 @login_required
