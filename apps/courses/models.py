@@ -1,5 +1,4 @@
 from datetime import timedelta
-
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
@@ -7,8 +6,11 @@ from django.utils import timezone
 User = settings.AUTH_USER_MODEL
 
 
+# =========================
+# Course
+# =========================
 class Course(models.Model):
-    # --- Category choices (adjust as you like) ---
+
     CATEGORY_WEB = "WEB"
     CATEGORY_DS = "DS"
     CATEGORY_ML = "ML"
@@ -17,7 +19,7 @@ class Course(models.Model):
 
     CATEGORY_CHOICES = [
         (CATEGORY_WEB, "Web Development"),
-        (CATEGORY_DS, "Data Structures & Algorithms"),
+        (CATEGORY_DS, "Data Structures"),
         (CATEGORY_ML, "Machine Learning"),
         (CATEGORY_DESIGN, "Design"),
         (CATEGORY_GENERAL, "General"),
@@ -30,20 +32,21 @@ class Course(models.Model):
     category = models.CharField(
         max_length=30,
         choices=CATEGORY_CHOICES,
-        default=CATEGORY_GENERAL
+        default=CATEGORY_GENERAL,
     )
+
     duration = models.CharField(
         max_length=50,
         blank=True,
         help_text="e.g., 12 weeks"
     )
+
     max_students = models.PositiveIntegerField(
-        blank=True,
         null=True,
+        blank=True,
         help_text="Optional enrollment cap"
     )
 
-    # Optional but very useful for ordering + UI
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -53,11 +56,22 @@ class Course(models.Model):
     def __str__(self):
         return f"{self.course_id} - {self.title}"
 
+    # Helper property for dashboard
+    @property
+    def student_count(self):
+        return self.enrollments.count()
 
+    @property
+    def is_full(self):
+        if self.max_students:
+            return self.student_count >= self.max_students
+        return False
+
+
+# =========================
+# Course Materials
+# =========================
 class CourseMaterial(models.Model):
-    """
-    One course can have multiple materials/files.
-    """
     course = models.ForeignKey(
         Course,
         on_delete=models.CASCADE,
@@ -70,7 +84,7 @@ class CourseMaterial(models.Model):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="uploaded_course_materials"
+        related_name="uploaded_materials"
     )
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
@@ -78,18 +92,17 @@ class CourseMaterial(models.Model):
         ordering = ["-uploaded_at"]
 
     def save(self, *args, **kwargs):
-        # store original filename for display in UI
         if self.file and not self.original_name:
-            try:
-                self.original_name = self.file.name.rsplit("/", 1)[-1]
-            except Exception:
-                self.original_name = str(self.file.name)
+            self.original_name = self.file.name.split("/")[-1]
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.course.title}: {self.original_name or 'material'}"
+        return f"{self.course.title} - {self.original_name}"
 
 
+# =========================
+# Teaching
+# =========================
 class Teaching(models.Model):
     teacher = models.ForeignKey(
         User,
@@ -110,6 +123,9 @@ class Teaching(models.Model):
         return f"{self.teacher} teaches {self.course}"
 
 
+# =========================
+# Enrollment
+# =========================
 class Enrollment(models.Model):
     student = models.ForeignKey(
         User,
@@ -132,6 +148,9 @@ class Enrollment(models.Model):
         return f"{self.student} enrolled in {self.course}"
 
 
+# =========================
+# Course Feedback
+# =========================
 class CourseFeedback(models.Model):
     student = models.ForeignKey(
         User,
@@ -157,6 +176,9 @@ class CourseFeedback(models.Model):
         return f"Feedback by {self.student} for {self.course}"
 
 
+# =========================
+# Deadline
+# =========================
 class Deadline(models.Model):
     course = models.ForeignKey(
         Course,
@@ -166,7 +188,6 @@ class Deadline(models.Model):
 
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-
     due_at = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
 
