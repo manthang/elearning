@@ -1,10 +1,12 @@
 <div class="bg-white rounded-xl shadow p-6">
   <div class="flex items-center justify-between mb-4">
     <h2 class="text-lg font-semibold">My Courses</h2>
-    <a href="{% url 'courses:create_course' %}"
-       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
-      Create New Course
-    </a>
+    <button type="button"
+            onclick="openCreateCourseModal()"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+    Create New Course
+    </button>
+
   </div>
 
   <div class="space-y-4">
