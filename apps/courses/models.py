@@ -25,7 +25,12 @@ class Course(models.Model):
         (CATEGORY_GENERAL, "General"),
     ]
 
-    course_id = models.CharField(max_length=20, unique=True)
+    course_id = models.CharField(
+        max_length=20,
+        unique=True,
+        blank=True,
+        null=True
+    )
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
 
@@ -138,6 +143,9 @@ class Enrollment(models.Model):
         on_delete=models.CASCADE,
         related_name="enrollments"
     )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    
     progress = models.PositiveIntegerField(default=0)
     grade = models.CharField(max_length=2, blank=True, null=True)
 

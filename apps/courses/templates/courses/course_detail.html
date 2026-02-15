@@ -1,0 +1,358 @@
+{% extends "core/layout.html" %}
+{% load static %}
+
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen p-6">
+  <div class="max-w-6xl mx-auto space-y-6">
+
+    <!-- Back -->
+    <div>
+      <a href="{% url 'courses:teacher_home' %}"
+         class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900">
+        <span class="text-lg">←</span>
+        Back to Dashboard
+      </a>
+    </div>
+
+    <!-- Top summary card -->
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+      <div class="flex items-start justify-between gap-4">
+        <div class="min-w-0">
+          <h1 class="text-3xl font-bold text-gray-900 leading-tight">
+            {{ course.title }}
+          </h1>
+
+          <div class="mt-2 text-gray-600">
+            Instructor:
+            <span class="font-semibold text-gray-900">
+              {% if instructor_user %}
+                {{ instructor_user.full_name|default:instructor_user.username }}
+              {% else %}
+                —
+              {% endif %}
+            </span>
+          </div>
+
+          <div class="mt-4 grid grid-cols-3 gap-4 text-gray-700">
+            <div class="flex items-center gap-2">
+              <span class="text-gray-400">🕒</span>
+              <span>{% if course.duration %}{{ course.duration }}{% else %}—{% endif %}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-gray-400">👥</span>
+              <span>{{ enrollment_count }} students enrolled</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-gray-400">📄</span>
+              <span>{{ materials_count }} materials</span>
+            </div>
+          </div>
+        </div>
+
+        {% if is_teacher_view %}
+          <a href="{% url 'courses:manage' course.id %}"
+             class="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
+            ✎ Edit Course
+          </a>
+        {% endif %}
+      </div>
+
+      <!-- Average Progress -->
+      <div class="mt-6">
+        <div class="flex items-center justify-between text-sm font-semibold text-gray-800">
+          <span>Average Student Progress</span>
+          <span>{{ avg_progress }}%</span>
+        </div>
+        <div class="mt-2 h-3 rounded-full bg-gray-200 overflow-hidden">
+          <div class="h-full bg-blue-600 rounded-full"
+               style="width: {{ avg_progress }}%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Description card -->
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+      <h2 class="text-xl font-bold text-gray-900">Course Description</h2>
+      <p class="mt-3 text-gray-700 leading-relaxed">
+        {% if course.description %}{{ course.description }}{% else %}—{% endif %}
+      </p>
+
+      <!-- Optional: Learning objectives (static UI placeholder) -->
+      <div class="mt-8">
+        <h3 class="text-lg font-bold text-gray-900">Learning Objectives</h3>
+        <ul class="mt-3 space-y-3">
+          <li class="flex items-start gap-3 text-gray-700">
+            <span class="text-green-600 text-lg">✔</span>
+            Understand fundamental programming concepts
+          </li>
+          <li class="flex items-start gap-3 text-gray-700">
+            <span class="text-green-600 text-lg">✔</span>
+            Learn problem-solving techniques
+          </li>
+          <li class="flex items-start gap-3 text-gray-700">
+            <span class="text-green-600 text-lg">✔</span>
+            Master basic algorithms and data structures
+          </li>
+          <li class="flex items-start gap-3 text-gray-700">
+            <span class="text-green-600 text-lg">✔</span>
+            Develop computational thinking skills
+          </li>
+          <li class="flex items-start gap-3 text-gray-700">
+            <span class="text-green-600 text-lg">✔</span>
+            Build simple programs from scratch
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Enrolled students -->
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+      <h2 class="text-xl font-bold text-gray-900">Enrolled Students</h2>
+
+      <div class="mt-5 space-y-4">
+        {% for e in enrollments %}
+          <div class="border border-gray-200 rounded-2xl p-5">
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex items-center gap-4 min-w-0">
+                <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center font-bold text-blue-700">
+                  {% with name=e.student.full_name|default:e.student.username %}
+                    {{ name|slice:":1"|upper }}{{ name|slice:"1:2"|upper }}
+                  {% endwith %}
+                </div>
+
+                <div class="min-w-0">
+                  <div class="font-bold text-gray-900 truncate">
+                    {{ e.student.full_name|default:e.student.username }}
+                  </div>
+                  <div class="text-sm text-gray-500 truncate">
+                    {{ e.student.email|default:"—" }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <div class="text-sm text-gray-500">
+                    Enrolled:
+                    {% if e.created_at %}{{ e.created_at|date:"M j, Y" }}{% else %}—{% endif %}
+                </div>
+
+                {% if is_teacher_view %}
+                    <button type="button"
+                            class="group relative ml-2 w-10 h-10 rounded-xl border border-gray-200 bg-white
+                                    flex items-center justify-center
+                                    text-gray-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50
+                                    transition-all"
+                            aria-label="Remove student"
+                            onclick="openRemoveStudentModal('{{ e.id }}', '{{ e.student.full_name|default:e.student.username|escapejs }}')">
+
+                        <!-- Tooltip -->
+                        <span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2
+                                    whitespace-nowrap rounded-lg bg-gray-900 px-3 py-1 text-xs text-white
+                                    opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0
+                                    transition">
+                        Remove
+                        </span>
+
+                        <!-- Nice trash icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6l-2 14H7L5 6"/>
+                        <path d="M10 11v6"/>
+                        <path d="M14 11v6"/>
+                        <path d="M9 6V4h6v2"/>
+                        </svg>
+                    </button>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+            <div class="mt-4">
+              <div class="flex items-center justify-between text-sm text-gray-700">
+                <span>Progress: {{ e.progress }}%</span>
+              </div>
+              <div class="mt-2 h-3 rounded-full bg-gray-200 overflow-hidden">
+                <div class="h-full bg-green-600 rounded-full"
+                     style="width: {{ e.progress }}%;"></div>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="text-sm text-gray-500">No students enrolled yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Materials -->
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+      <div class="flex items-center justify-between gap-4">
+        <h2 class="text-xl font-bold text-gray-900">Course Materials</h2>
+
+        {% if is_teacher_view %}
+          <a href="{% url 'courses:manage' course.id %}"
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
+            ⬆ Upload Material
+          </a>
+        {% endif %}
+      </div>
+
+      <div class="mt-5 space-y-4">
+        {% for m in materials %}
+          <div class="border border-gray-200 rounded-2xl p-5 flex items-center justify-between gap-4">
+            <div class="flex items-start gap-4 min-w-0">
+              <div class="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-500">
+                📄
+              </div>
+
+              <div class="min-w-0">
+                <div class="font-bold text-gray-900 truncate">
+                  {{ m.original_name|default:"Material" }}
+                </div>
+                <div class="mt-1 text-sm text-gray-500 flex flex-wrap items-center gap-3">
+                  <span class="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-xs font-semibold">
+                    FILE
+                  </span>
+                  <span>Uploaded {{ m.uploaded_at|date:"M d, Y" }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 shrink-0">
+              {% if m.file %}
+                <a href="{{ m.file.url }}"
+                   class="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition"
+                   aria-label="Download">
+                  ⬇
+                </a>
+              {% endif %}
+
+              {% if is_teacher_view %}
+                <form method="post" action="{% url 'courses:manage' course.id %}">
+                  {% csrf_token %}
+                  <input type="hidden" name="delete_material_id" value="{{ m.id }}">
+                  <button type="submit"
+                          class="w-10 h-10 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 flex items-center justify-center transition"
+                          aria-label="Delete">
+                    🗑
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+          </div>
+        {% empty %}
+          <div class="text-sm text-gray-500">No materials uploaded yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+{% if is_teacher_view %}
+<div id="removeStudentModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm"
+     onclick="closeRemoveStudentModal()">
+
+  <div class="w-full max-w-md rounded-2xl bg-white shadow-[0_30px_90px_rgba(0,0,0,0.25)] overflow-hidden"
+       onclick="event.stopPropagation()">
+
+    <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+          <!-- warning icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l6.518 11.59c.75 1.334-.214 3.01-1.742 3.01H3.48c-1.528 0-2.492-1.676-1.742-3.01L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-8a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+
+        <div>
+          <div class="text-base font-semibold text-gray-900">Remove student</div>
+          <div class="text-sm text-gray-500">This will unenroll them from the course.</div>
+        </div>
+      </div>
+
+      <button type="button"
+              class="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition"
+              aria-label="Close"
+              onclick="closeRemoveStudentModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="px-6 py-5">
+      <p class="text-sm text-gray-700">
+        Are you sure you want to remove
+        <span id="removeStudentName" class="font-semibold text-gray-900">this student</span>?
+      </p>
+      <p class="mt-2 text-xs text-gray-500">
+        They can re-enroll later if the course is still available.
+      </p>
+    </div>
+
+    <div class="px-6 py-5 border-t border-gray-100 bg-white flex items-center justify-end gap-3">
+      <button type="button"
+              class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition"
+              onclick="closeRemoveStudentModal()">
+        Cancel
+      </button>
+
+      <form id="removeStudentForm" method="post" action="{% url 'courses:manage' course.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="remove_enrollment_id" id="removeEnrollmentId" value="">
+        <button type="submit"
+                class="px-5 py-2.5 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition">
+          Remove
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function openRemoveStudentModal(enrollmentId, studentName) {
+    const modal = document.getElementById("removeStudentModal");
+    const nameEl = document.getElementById("removeStudentName");
+    const idEl = document.getElementById("removeEnrollmentId");
+
+    if (!modal || !nameEl || !idEl) return;
+
+    nameEl.textContent = studentName || "this student";
+    idEl.value = enrollmentId;
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+
+    // allow Esc to close
+    document.addEventListener("keydown", escCloseRemoveModal);
+  }
+
+  function closeRemoveStudentModal() {
+    const modal = document.getElementById("removeStudentModal");
+    if (!modal) return;
+
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+
+    document.removeEventListener("keydown", escCloseRemoveModal);
+  }
+
+  function escCloseRemoveModal(e) {
+    if (e.key === "Escape") closeRemoveStudentModal();
+  }
+</script>
+{% endif %}
+
+{% endblock %}

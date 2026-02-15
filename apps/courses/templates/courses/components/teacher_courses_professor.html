@@ -4,7 +4,7 @@
       <div>
         <h2 class="text-lg font-semibold text-gray-900">My Courses</h2>
         <p class="text-sm text-gray-500 mt-1">
-          Manage course content, students, and assessments.
+          Courses you’ve created. Manage content, students, and materials.
         </p>
       </div>
     </div>
@@ -14,41 +14,66 @@
     {% for c in my_courses %}
       <div class="border border-gray-200 rounded-xl p-5 hover:shadow-sm transition bg-white">
         <div class="flex items-start justify-between gap-4">
-          <div class="min-w-0">
-            <div class="flex items-center gap-2">
-              <h3 class="font-semibold text-gray-900 truncate">{{ c.title }}</h3>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="font-semibold text-gray-900 truncate max-w-[520px]">
+                {{ c.title }}
+              </h3>
 
-              {% if c.pending_reviews %}
-                <span class="text-xs font-semibold px-2 py-1 rounded-full bg-orange-50 text-orange-700 border border-orange-100">
-                  {{ c.pending_reviews }} pending reviews
+              {% if c.course_id %}
+                <span class="text-xs font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
+                  ID: {{ c.course_id }}
+                </span>
+              {% endif %}
+
+              {% if c.max_students and c.students_total >= c.max_students %}
+                <span class="text-xs font-semibold px-2 py-1 rounded-full bg-red-50 text-red-700 border border-red-100">
+                  Full
                 </span>
               {% endif %}
             </div>
 
-            <div class="mt-2 grid grid-cols-3 gap-3 text-sm text-gray-600">
+            <div class="mt-3 grid grid-cols-2 gap-3 text-sm text-gray-600">
               <div class="flex items-center gap-2">
                 <span class="text-gray-400">👥</span>
-                <span>{{ c.student_count }} students</span>
+                <span>
+                  {{ c.student_count|default:0 }}
+                  {% if c.max_students %}
+                    / {{ c.max_students }}
+                  {% endif %}
+                  students
+                </span>
               </div>
+
               <div class="flex items-center gap-2">
                 <span class="text-gray-400">📚</span>
-                <span>{{ c.category|default:"General" }}</span>
+                <span>{{ c.get_category_display|default:"General" }}</span>
               </div>
+
               <div class="flex items-center gap-2">
                 <span class="text-gray-400">🕒</span>
-                <span>{{ c.duration|default:"—" }}</span>
+                <span>{% if c.duration %}{{ c.duration }}{% else %}—{% endif %}</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="text-gray-400">📎</span>
+                <span>
+                  {{ c.materials_total|default:0 }} materials
+                </span>
               </div>
             </div>
 
-            {% if c.subtitle %}
-              <div class="mt-3 text-sm text-gray-500">
-                {{ c.subtitle }}
-              </div>
-            {% endif %}
+            <div class="mt-3 text-xs text-gray-500">
+              Updated:
+              {% if c.updated_at %}
+                {{ c.updated_at|date:"M d, Y • h:i A" }}
+              {% else %}
+                —
+              {% endif %}
+            </div>
           </div>
 
-          <!-- optional status badge -->
-          <div class="shrink-0">
+          <div class="shrink-0 text-right">
             <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">
               Active
             </span>

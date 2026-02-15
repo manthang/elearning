@@ -3,7 +3,7 @@
     <div>
       <h2 class="text-lg font-semibold text-gray-900">Teaching Overview</h2>
       <p class="text-sm text-gray-500 mt-1">
-        Quick snapshot of your courses and workload today.
+        Snapshot of the courses you’ve created and current activity.
       </p>
     </div>
 
@@ -15,24 +15,36 @@
   </div>
 
   <div class="grid grid-cols-4 gap-4 mt-5">
+    <!-- Courses -->
     <div class="rounded-xl bg-gray-50 p-4 border border-gray-100">
-      <div class="text-xs text-gray-500">Active Courses</div>
-      <div class="text-2xl font-bold text-gray-900 mt-1">{{ active_courses|default:0 }}</div>
+      <div class="text-xs text-gray-500">Courses Created</div>
+      <div class="text-2xl font-bold text-gray-900 mt-1">{{ courses_created|default:0 }}</div>
+      <div class="text-xs text-gray-500 mt-1">Active: {{ active_courses|default:0 }}</div>
     </div>
 
+    <!-- Students -->
     <div class="rounded-xl bg-gray-50 p-4 border border-gray-100">
       <div class="text-xs text-gray-500">Total Students</div>
       <div class="text-2xl font-bold text-gray-900 mt-1">{{ total_students|default:0 }}</div>
+      <div class="text-xs text-gray-500 mt-1">Across your courses</div>
     </div>
 
+    <!-- Materials -->
     <div class="rounded-xl bg-gray-50 p-4 border border-gray-100">
-      <div class="text-xs text-gray-500">Pending Reviews</div>
-      <div class="text-2xl font-bold text-gray-900 mt-1">{{ pending_reviews_total|default:0 }}</div>
+      <div class="text-xs text-gray-500">Materials Uploaded</div>
+      <div class="text-2xl font-bold text-gray-900 mt-1">{{ total_materials|default:0 }}</div>
+      <div class="text-xs text-gray-500 mt-1">Files in courses</div>
     </div>
 
+    <!-- Capacity -->
     <div class="rounded-xl bg-gray-50 p-4 border border-gray-100">
-      <div class="text-xs text-gray-500">Upcoming Deadlines</div>
-      <div class="text-2xl font-bold text-gray-900 mt-1">{{ upcoming_deadlines_count|default:0 }}</div>
+      <div class="text-xs text-gray-500">Capacity Used</div>
+      <div class="text-2xl font-bold text-gray-900 mt-1">
+        {{ capacity_used_pct|default:"—" }}{% if capacity_used_pct %}%{% endif %}
+      </div>
+      <div class="text-xs text-gray-500 mt-1">
+        {{ total_enrolled|default:0 }} enrolled
+      </div>
     </div>
   </div>
 </div>
