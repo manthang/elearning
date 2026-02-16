@@ -1,42 +1,100 @@
-<div class="bg-white rounded-xl shadow p-6">
-  <div class="flex items-center justify-between mb-4">
-    <h2 class="text-lg font-semibold">My Courses</h2>
-    <button type="button"
-            onclick="openCreateCourseModal()"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
-    Create New Course
-    </button>
-
+<div class="bg-white rounded-xl shadow">
+  <div class="px-6 py-5 border-b border-gray-100">
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <h2 class="text-lg font-semibold text-gray-900">My Courses</h2>
+        <p class="text-sm text-gray-500 mt-1">
+          Courses you’ve created. Manage content, students, and materials.
+        </p>
+      </div>
+    </div>
   </div>
 
-  <div class="space-y-4">
+  <div class="p-6 space-y-4">
     {% for c in my_courses %}
-      <div class="border rounded-xl p-4">
+      <div class="border border-gray-200 rounded-xl p-5 hover:shadow-sm transition bg-white">
         <div class="flex items-start justify-between gap-4">
-          <div>
-            <div class="font-semibold text-gray-900">{{ c.title }}</div>
-            <div class="mt-1 text-sm text-gray-600 flex items-center gap-4">
-              <span>👤 {{ c.student_count }} students</span>
-              {% if c.pending_reviews %}
-                <span class="text-orange-600">🗓️ {{ c.pending_reviews }} pending reviews</span>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h3 class="font-semibold text-gray-900 truncate max-w-[520px]">
+                {{ c.title }}
+              </h3>
+
+              {% if c.course_id %}
+                <span class="text-xs font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
+                  ID: {{ c.course_id }}
+                </span>
+              {% endif %}
+
+              {% if c.max_students and c.students_total >= c.max_students %}
+                <span class="text-xs font-semibold px-2 py-1 rounded-full bg-red-50 text-red-700 border border-red-100">
+                  Full
+                </span>
+              {% endif %}
+            </div>
+
+            <div class="mt-3 grid grid-cols-2 gap-3 text-sm text-gray-600">
+              <div class="flex items-center gap-2">
+                <span class="text-gray-400">👥</span>
+                <span>
+                  {{ c.student_count|default:0 }}
+                  {% if c.max_students %}
+                    / {{ c.max_students }}
+                  {% endif %}
+                  students
+                </span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="text-gray-400">📚</span>
+                <span>{{ c.get_category_display|default:"General" }}</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="text-gray-400">🕒</span>
+                <span>{% if c.duration %}{{ c.duration }}{% else %}—{% endif %}</span>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="text-gray-400">📎</span>
+                <span>
+                  {{ c.materials_total|default:0 }} materials
+                </span>
+              </div>
+            </div>
+
+            <div class="mt-3 text-xs text-gray-500">
+              Updated:
+              {% if c.updated_at %}
+                {{ c.updated_at|date:"M d, Y • h:i A" }}
+              {% else %}
+                —
               {% endif %}
             </div>
           </div>
+
+          <div class="shrink-0 text-right">
+            <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">
+              Active
+            </span>
+          </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 mt-4">
+        <div class="grid grid-cols-2 gap-3 mt-5">
           <a href="{% url 'courses:detail' c.id %}"
-             class="border rounded-lg py-2 text-center text-sm font-medium hover:bg-gray-50">
+             class="border border-gray-200 rounded-lg py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
             View
           </a>
           <a href="{% url 'courses:manage' c.id %}"
-             class="border rounded-lg py-2 text-center text-sm font-medium hover:bg-gray-50">
+             class="border border-gray-200 rounded-lg py-2 text-center text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
             Manage
           </a>
         </div>
       </div>
     {% empty %}
-      <p class="text-sm text-gray-500">You haven’t created any courses yet.</p>
+      <div class="text-sm text-gray-500">
+        You haven’t created any courses yet.
+      </div>
     {% endfor %}
   </div>
 </div>
