@@ -3,94 +3,89 @@
      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm"
      onclick="closeCreateCourseModal()">
 
-  <div class="w-full max-w-3xl bg-white rounded-2xl shadow-[0_30px_90px_rgba(0,0,0,0.25)]
-              overflow-hidden"
-       onclick="event.stopPropagation()">
+  <div class="w-[92%] max-w-3xl" onclick="event.stopPropagation()">
+    <div class="bg-white rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.25)] overflow-hidden border border-slate-100 max-h-[90vh] flex flex-col">
 
-    <!-- Header -->
-    <div class="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-      <div class="flex items-center gap-4">
-        <div class="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center">
-          <!-- book icon -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/>
+      <!-- Header -->
+      <div class="px-6 py-5 flex items-start justify-between border-b border-slate-100">
+        <div class="flex items-start gap-4">
+          <div class="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
+            <!-- book icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
+              <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
+            </svg>
+          </div>
+
+          <div>
+            <div class="text-2xl font-extrabold text-slate-900 leading-tight">Create Course</div>
+            <div class="text-sm text-slate-500">Set up course details. You can add materials now or later.</div>
+          </div>
+        </div>
+
+        <button type="button"
+                onclick="closeCreateCourseModal()"
+                class="p-2 rounded-xl hover:bg-slate-100 text-slate-500"
+                aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
           </svg>
-        </div>
-
-        <div>
-          <h2 class="text-xl font-semibold text-gray-900">Create New Course</h2>
-          <p class="text-sm text-gray-500">Set up the course details. You can add materials now or later.</p>
-        </div>
+        </button>
       </div>
 
-      <button type="button"
-              class="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition"
-              aria-label="Close"
-              onclick="closeCreateCourseModal()">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-        </svg>
-      </button>
-    </div>
+      <!-- Body (scrollable) -->
+      <form id="createCourseForm"
+            method="post"
+            action="{% url 'courses:course_create' %}"
+            enctype="multipart/form-data"
+            class="px-6 py-5 space-y-5 overflow-y-auto">
+        {% csrf_token %}
 
-    <!-- Body -->
-    <form id="createCourseForm"
-          method="post"
-          action="{% url 'courses:course_create' %}"
-          enctype="multipart/form-data"
-          class="max-h-[72vh] overflow-y-auto">
-      {% csrf_token %}
-
-      <div class="px-6 py-6 space-y-6">
-
-        <!-- Course ID (Optional) -->
+        <!-- Course ID -->
         <div>
-          <label class="block text-sm font-medium text-gray-900">
-            Course ID
+          <label class="block text-sm font-semibold text-slate-800 mb-2">
+            Course ID <span class="text-red-500">*</span>
           </label>
 
           <input name="course_id"
                  oninput="this.value = this.value.toUpperCase();"
-                 class="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm
-                        placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-300"
+                 class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400
+                        focus:outline-none focus:ring-2 focus:ring-blue-200"
                  placeholder="e.g., WEBDEV101 (A–Z, 0–9, - , _ )" />
-
-          <p class="mt-2 text-xs text-gray-500">
-            Leave blank if you don’t want an ID.
-          </p>
         </div>
 
         <!-- Course Title -->
         <div>
-          <label class="block text-sm font-medium text-gray-900">
+          <label class="block text-sm font-semibold text-slate-800 mb-2">
             Course Title <span class="text-red-500">*</span>
           </label>
           <input name="title" required
-                 class="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm
-                        placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-300"
+                 class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400
+                        focus:outline-none focus:ring-2 focus:ring-blue-200"
                  placeholder="e.g., Advanced Web Development" />
         </div>
 
         <!-- Course Description -->
         <div>
-          <label class="block text-sm font-medium text-gray-900">
+          <label class="block text-sm font-semibold text-slate-800 mb-2">
             Course Description <span class="text-red-500">*</span>
           </label>
-          <textarea name="description" required rows="4"
-                    class="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm
-                           placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-300"
+          <textarea name="description" required rows="5"
+                    class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400
+                           focus:outline-none focus:ring-2 focus:ring-blue-200"
                     placeholder="Describe what students will learn in this course..."></textarea>
         </div>
 
         <!-- Category -->
         <div>
-          <label class="block text-sm font-medium text-gray-900">
+          <label class="block text-sm font-semibold text-slate-800 mb-2">
             Category <span class="text-red-500">*</span>
           </label>
           <select name="category" required
-                  class="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm
-                         focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-300">
+                  class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm bg-white text-slate-900
+                         focus:outline-none focus:ring-2 focus:ring-blue-200">
             <option value="" selected disabled>Select a category</option>
             <!-- ✅ values must match Course.CATEGORY_CHOICES keys -->
             <option value="WEB">Web Development</option>
@@ -101,27 +96,28 @@
           </select>
         </div>
 
-        <!-- Duration + Max Students -->
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Duration -->
           <div>
-            <label class="flex items-center gap-2 text-sm font-medium text-gray-900">
+            <label class="flex items-center gap-2 text-sm font-semibold text-slate-800 mb-2">
               <!-- calendar icon -->
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-500" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v2h16V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1z"/>
                 <path d="M18 10H2v6a2 2 0 002 2h12a2 2 0 002-2v-6z"/>
               </svg>
               Duration
             </label>
             <input name="duration"
-                   class="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm
-                          placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-300"
+                   class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400
+                          focus:outline-none focus:ring-2 focus:ring-blue-200"
                    placeholder="e.g., 12 weeks" />
           </div>
 
+          <!-- Max Students -->
           <div>
-            <label class="flex items-center gap-2 text-sm font-medium text-gray-900">
+            <label class="flex items-center gap-2 text-sm font-semibold text-slate-800 mb-2">
               <!-- users icon -->
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-500" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M13 7a3 3 0 11-6 0 3 3 0 016 0z"/>
                 <path fill-rule="evenodd" d="M5 14a4 4 0 118 0v1H5v-1z" clip-rule="evenodd"/>
                 <path d="M15 8a2 2 0 11-4 0 2 2 0 014 0z"/>
@@ -130,24 +126,25 @@
               Max Students
             </label>
             <input name="max_students" type="number" min="1"
-                   class="mt-2 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm
-                          placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-300"
+                   class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400
+                          focus:outline-none focus:ring-2 focus:ring-blue-200"
                    placeholder="e.g., 50" />
-            <p class="mt-2 text-xs text-gray-500">Leave blank for unlimited.</p>
+            <div class="mt-1 text-xs text-slate-500">Leave blank for unlimited.</div>
           </div>
         </div>
 
-        <hr class="border-gray-200">
+        <hr class="border-slate-100">
 
         <!-- Course Materials -->
         <div>
-          <div class="flex items-center justify-between">
-            <div class="text-sm font-semibold text-gray-900">
-              Course Materials
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <div class="text-sm font-semibold text-slate-900">Course Materials</div>
+              <div class="text-xs text-slate-500 mt-0.5">Optional — upload now or later.</div>
             </div>
 
-            <label class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-blue-50 text-blue-700
-                          font-medium text-sm cursor-pointer hover:bg-blue-100 transition">
+            <label class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold
+                          hover:bg-blue-700 transition shadow-sm cursor-pointer">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M3 16a2 2 0 002 2h10a2 2 0 002-2v-5h-2v5H5v-5H3v5z"/>
                 <path d="M7 8l3-3 3 3H11v6H9V8H7z"/>
@@ -163,65 +160,66 @@
           </div>
 
           <!-- Dropzone -->
-          <div class="mt-3 rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 p-8 text-center">
-
-            <!-- EMPTY STATE (hide when files selected) -->
+          <div class="mt-3 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-8 text-center">
+            <!-- EMPTY STATE -->
             <div id="materialsEmptyState">
-              <div class="mx-auto w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+              <div class="mx-auto w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm border border-slate-100">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-500" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M3 16a2 2 0 002 2h10a2 2 0 002-2v-5h-2v5H5v-5H3v5z"/>
                   <path d="M7 8l3-3 3 3H11v6H9V8H7z"/>
                 </svg>
               </div>
-              <div class="mt-3 font-semibold text-gray-800">No materials uploaded yet</div>
-              <div class="mt-1 text-sm text-gray-500">You can add materials now or later</div>
+              <div class="mt-3 font-semibold text-slate-800">No materials selected</div>
+              <div class="mt-1 text-sm text-slate-500">Use “Upload Material” to attach files</div>
             </div>
 
-            <!-- FILE LIST (show when files selected) -->
+            <!-- FILE LIST -->
             <div id="materialsListWrap" class="mt-6 hidden text-left">
-              <div class="text-sm font-semibold text-gray-800 mb-3">Selected files</div>
+              <div class="text-sm font-semibold text-slate-800 mb-3">Selected files</div>
               <div id="materialsList" class="space-y-2"></div>
             </div>
           </div>
         </div>
 
-        <!-- Info callout -->
-        <div class="rounded-2xl border border-blue-100 bg-blue-50 p-5">
-          <div class="flex items-start gap-3">
-            <div class="w-9 h-9 rounded-xl bg-white flex items-center justify-center shadow-sm">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-8-4a1 1 0 100 2 1 1 0 000-2zm1 9a1 1 0 10-2 0V9a1 1 0 102 0v6z" clip-rule="evenodd"/>
-              </svg>
-            </div>
-
-            <div>
-              <div class="font-semibold text-blue-900">After creating the course:</div>
-              <ul class="mt-2 space-y-1 text-sm text-blue-800 list-disc pl-5">
-                <li>You can upload course materials and files</li>
-                <li>Students can enroll and you’ll see enrollments</li>
-                <li>You can manage deadlines and assessments</li>
-              </ul>
-            </div>
+        <!-- Info callout (match Edit modal style) -->
+        <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4 flex gap-3">
+          <div class="h-10 w-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M13 16h-1v-4h-1"/><path d="M12 8h.01"/>
+              <path d="M12 22a10 10 0 1 0-10-10 10 10 0 0 0 10 10Z"/>
+            </svg>
+          </div>
+          <div>
+            <div class="font-semibold text-amber-900">After creating the course:</div>
+            <ul class="mt-2 space-y-1 text-sm text-amber-900/90 list-disc pl-5">
+              <li>You can upload course materials and files</li>
+              <li>Students can enroll and you’ll see enrollments</li>
+              <li>You can manage deadlines and assessments</li>
+            </ul>
           </div>
         </div>
 
+        <div class="h-2"></div>
+      </form>
+
+      <!-- Footer Actions (always visible) -->
+      <div class="px-6 py-5 border-t border-slate-100 bg-white">
+        <div class="grid grid-cols-2 gap-4">
+          <button type="button"
+                  onclick="closeCreateCourseModal()"
+                  class="w-full rounded-2xl border border-slate-200 px-4 py-3.5 font-semibold text-slate-700 hover:bg-slate-50">
+            Cancel
+          </button>
+          <button type="submit" form="createCourseForm"
+                  class="w-full rounded-2xl bg-blue-600 px-4 py-3.5 font-semibold text-white hover:bg-blue-700
+                         shadow-[0_12px_30px_rgba(37,99,235,0.25)]">
+            Create Course
+          </button>
+        </div>
       </div>
 
-      <!-- Footer -->
-      <div class="px-6 py-5 border-t border-gray-100 bg-white flex items-center justify-end gap-3">
-        <button type="button"
-                onclick="closeCreateCourseModal()"
-                class="px-6 py-3 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition">
-          Cancel
-        </button>
-
-        <button type="submit"
-                class="px-8 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition shadow-sm">
-          Create Course
-        </button>
-      </div>
-    </form>
-
+    </div>
   </div>
 </div>
 
@@ -231,6 +229,7 @@
     if (!m) return;
     m.classList.remove("hidden");
     m.classList.add("flex");
+    document.addEventListener("keydown", escCloseCreateCourseModal);
   }
 
   function closeCreateCourseModal() {
@@ -238,6 +237,11 @@
     if (!m) return;
     m.classList.add("hidden");
     m.classList.remove("flex");
+    document.removeEventListener("keydown", escCloseCreateCourseModal);
+  }
+
+  function escCloseCreateCourseModal(e) {
+    if (e.key === "Escape") closeCreateCourseModal();
   }
 
   function renderMaterialsList() {
@@ -249,33 +253,30 @@
 
     const files = Array.from(input.files || []);
     if (!files.length) {
-      // Show empty state, hide list
       emptyState.classList.remove("hidden");
       wrap.classList.add("hidden");
       list.innerHTML = "";
       return;
     }
 
-    // Hide empty state, show list
     emptyState.classList.add("hidden");
     wrap.classList.remove("hidden");
 
     list.innerHTML = files.map((f, idx) => `
-      <div class="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-gray-100">
+      <div class="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-slate-100">
         <div class="min-w-0">
-          <div class="text-sm text-gray-800 truncate">${escapeHtml(f.name)}</div>
-          <div class="text-xs text-gray-400 mt-1">${formatBytes(f.size)}</div>
+          <div class="text-sm text-slate-800 truncate">${escapeHtml(f.name)}</div>
+          <div class="text-xs text-slate-400 mt-1">${formatBytes(f.size)}</div>
         </div>
 
         <button type="button"
-                class="ml-4 w-9 h-9 rounded-full border border-gray-200 bg-white
+                class="ml-4 w-9 h-9 rounded-full border border-slate-200 bg-white
                       flex items-center justify-center
-                      text-gray-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50
+                      text-slate-400 hover:text-red-500 hover:border-red-200 hover:bg-red-50
                       transition-all duration-200"
                 aria-label="Remove file"
                 onclick="removeMaterialFile(${idx})">
 
-          <!-- Trash Icon -->
           <svg xmlns="http://www.w3.org/2000/svg"
               class="h-4 w-4"
               viewBox="0 0 24 24"
@@ -302,7 +303,6 @@
     const files = Array.from(input.files || []);
     if (index < 0 || index >= files.length) return;
 
-    // Rebuild FileList excluding the removed file
     const dt = new DataTransfer();
     files.forEach((f, i) => {
       if (i !== index) dt.items.add(f);
@@ -318,15 +318,6 @@
     if (kb < 1024) return `${Math.max(1, Math.round(kb))} KB`;
     const mb = kb / 1024;
     return `${mb.toFixed(2)} MB`;
-  }
-
-  function escapeHtml(str) {
-    return String(str)
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
   }
 
   function escapeHtml(str) {
