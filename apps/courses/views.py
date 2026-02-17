@@ -309,7 +309,7 @@ def course_manage(request, course_id):
     enrollment_count = enrollments.count()
     materials_count = materials.count()
 
-    return render(request, "courses/course_manage.html", {
+    return render(request, "courses/course_detail.html", {
         "course": course,
         "is_teacher_view": True,
         "enrollments": enrollments,

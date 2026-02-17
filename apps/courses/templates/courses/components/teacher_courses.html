@@ -14,52 +14,78 @@
     {% for c in my_courses %}
       <div class="border border-gray-200 rounded-xl p-5 hover:shadow-sm transition bg-white">
         <div class="flex items-start justify-between gap-4">
+
+          <!-- LEFT CONTENT -->
           <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2 flex-wrap min-w-0">
-              <h3 class="font-semibold text-gray-900 truncate max-w-[480px] sm:max-w-[520px]"
-                  title="{{ c.title }}"
-              >
-                {{ c.title }}
-              </h3>
+
+            <!-- ===== TITLE (OWN LINE) ===== -->
+            <h3 class="font-semibold text-gray-900 text-lg truncate"
+                title="{{ c.title }}">
+              {{ c.title }}
+            </h3>
+
+            <!-- ===== BADGES (OWN DEDICATED LINE) ===== -->
+            <div class="mt-2 flex flex-wrap items-center gap-2">
 
               {% if c.course_id %}
-                <span class="text-xs font-semibold px-2 py-1 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
+                <span class="text-xs font-semibold px-2 py-1 rounded-full 
+                             bg-gray-100 text-gray-700 border border-gray-200">
                   ID: {{ c.course_id }}
                 </span>
               {% endif %}
 
-              <span class="text-xs font-semibold px-2 py-1 rounded-full bg-gray-50 text-gray-700 border border-gray-200">
+              <span class="text-xs font-semibold px-2 py-1 rounded-full 
+                           bg-gray-50 text-gray-700 border border-gray-200">
                 {{ c.get_category_display|default:"General" }}
               </span>
 
               {% if c.max_students and c.student_count >= c.max_students %}
-                <span class="text-xs font-semibold px-2 py-1 rounded-full bg-red-50 text-red-700 border border-red-100">
+                <span class="text-xs font-semibold px-2 py-1 rounded-full 
+                             bg-red-50 text-red-700 border border-red-100">
                   Full
                 </span>
               {% endif %}
             </div>
 
-            <div class="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm text-gray-700">
+            <!-- ===== STATS ROW ===== -->
+            <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-700">
+
               <!-- Duration -->
               <div class="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-5 w-5 text-gray-400"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10"></circle>
                   <path d="M12 6v6l4 2"></path>
                 </svg>
-                <span class="font-semibold text-gray-900">{% if c.duration %}{{ c.duration }}{% else %}—{% endif %}</span>
+
+                <span class="font-semibold text-gray-900">
+                  {% if c.duration %}{{ c.duration }}{% else %}—{% endif %}
+                </span>
                 <span class="text-gray-600">weeks</span>
               </div>
 
               <!-- Students -->
               <div class="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-5 w-5 text-gray-400"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
                   <circle cx="9" cy="7" r="4"/>
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
                   <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
+                </svg>
+
                 <span class="font-semibold text-gray-900">
                   {{ c.student_count|default:0 }}
                   {% if c.max_students %}/ {{ c.max_students }}{% endif %}
@@ -69,16 +95,26 @@
 
               <!-- Materials -->
               <div class="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg"
+                     class="h-5 w-5 text-gray-400"
+                     viewBox="0 0 24 24"
+                     fill="none"
+                     stroke="currentColor"
+                     stroke-width="2"
+                     stroke-linecap="round"
+                     stroke-linejoin="round">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
                   <path d="M14 2v6h6"></path>
                 </svg>
-                <span class="font-semibold text-gray-900">{{ c.materials_total|default:0 }}</span>
+
+                <span class="font-semibold text-gray-900">
+                  {{ c.materials_total|default:0 }}
+                </span>
                 <span class="text-gray-600">materials</span>
               </div>
             </div>
 
+            <!-- Updated -->
             <div class="mt-3 text-xs text-gray-500">
               Updated:
               {% if c.updated_at %}
@@ -87,23 +123,36 @@
                 —
               {% endif %}
             </div>
+
           </div>
 
+          <!-- ===== RIGHT SIDE ===== -->
           <div class="shrink-0 flex items-center gap-2">
-            <span class="text-xs font-semibold px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">
+
+            <span class="text-xs font-semibold px-2 py-1 rounded-full 
+                         bg-green-50 text-green-700 border border-green-100">
               Active
             </span>
 
-            <!-- Open (combined view+manage page) -->
-            <a href="{% url 'courses:manage' c.id %}"
-               class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
+            <a href="{% url 'courses:detail' c.id %}"
+               class="inline-flex items-center gap-2 px-3 py-1.5 
+                      rounded-lg border border-gray-200 
+                      text-sm font-semibold text-gray-700 
+                      hover:bg-gray-50 transition">
               <span>Manage</span>
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
-                   stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <svg xmlns="http://www.w3.org/2000/svg"
+                   class="h-4 w-4"
+                   viewBox="0 0 24 24"
+                   fill="none"
+                   stroke="currentColor"
+                   stroke-width="2"
+                   stroke-linecap="round"
+                   stroke-linejoin="round">
                 <path d="M9 18l6-6-6-6"></path>
               </svg>
             </a>
           </div>
+
         </div>
       </div>
     {% empty %}

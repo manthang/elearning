@@ -9,7 +9,7 @@
 
     <!-- Back -->
     <div>
-      <a href="{% url 'courses:teacher_home' %}"
+      <a href="javascript:history.back()"
          class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900">
         <span class="text-lg">←</span>
         Back to Dashboard
@@ -339,7 +339,113 @@
       </div>
     </div>
 
-  </div>
+  </di
+    <!-- Deadlines -->
+    <div class="mt-8 rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
+        <div>
+          <h2 class="text-xl font-extrabold text-slate-900">Deadlines</h2>
+          <p class="mt-1 text-sm text-slate-500">Assignments, exams, and key dates for this course.</p>
+        </div>
+        {% if is_teacher_view %}
+          <div class="hidden sm:flex items-center gap-2 text-xs text-slate-500">
+            <span class="inline-flex h-2 w-2 rounded-full bg-blue-500"></span>
+            Manage deadlines
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="px-6 py-6">
+        {% if is_teacher_view %}
+          <form method="post" action="{% url 'courses:manage' course.id %}" class="mb-6">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_deadline"/>
+
+            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label class="block text-sm font-semibold text-slate-800">
+                  Title <span class="text-red-500">*</span>
+                </label>
+                <input name="deadline_title" required
+                       class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-blue-100"
+                       placeholder="e.g., Midterm Exam" />
+              </div>
+
+              <div>
+                <label class="block text-sm font-semibold text-slate-800">
+                  Due at <span class="text-red-500">*</span>
+                </label>
+                <input type="datetime-local" name="deadline_due_at" required
+                       class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-blue-100" />
+              </div>
+
+              <div class="md:col-span-2">
+                <label class="block text-sm font-semibold text-slate-800">Description (optional)</label>
+                <textarea name="deadline_description" rows="3"
+                          class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-blue-100"
+                          placeholder="Optional details..."></textarea>
+              </div>
+            </div>
+
+            <div class="mt-4 flex justify-end">
+              <button type="submit"
+                      class="inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 5v14" />
+                  <path d="M5 12h14" />
+                </svg>
+                Add Deadline
+              </button>
+            </div>
+          </form>
+        {% endif %}
+
+        <div class="space-y-4">
+          {% if deadlines %}
+            {% for d in deadlines %}
+              <div class="flex items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4">
+                <div class="min-w-0">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <h3 class="truncate text-base font-bold text-slate-900">{{ d.title }}</h3>
+                    <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+                      {{ d.due_at|date:"M j, Y • P" }}
+                    </span>
+                  </div>
+                  {% if d.description %}
+                    <p class="mt-2 text-sm text-slate-600">{{ d.description }}</p>
+                  {% endif %}
+                </div>
+
+                {% if is_teacher_view %}
+                  <form method="post" action="{% url 'courses:manage' course.id %}" class="shrink-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_deadline"/>
+                    <input type="hidden" name="deadline_id" value="{{ d.id }}"/>
+                    <button type="submit"
+                            class="inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 p-2 text-red-600 hover:bg-red-100"
+                            title="Remove deadline">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
+                           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 6h18"/>
+                        <path d="M8 6V4h8v2"/>
+                        <path d="M19 6l-1 14H6L5 6"/>
+                        <path d="M10 11v6"/>
+                        <path d="M14 11v6"/>
+                      </svg>
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-6 text-sm text-slate-500">
+              No deadlines yet.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
 </div>
 
 {% if is_teacher_view %}
