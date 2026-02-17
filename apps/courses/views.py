@@ -8,7 +8,8 @@ from django.db.models import Count, Sum, Avg, Q, F
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
-
+from django.urls import reverse
+from django.views.decorators.http import require_POST
 
 from .models import *
 from .forms import *
@@ -182,6 +183,58 @@ def course_create(request):
 
 
 @login_required
+@require_POST
+def course_edit(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+
+    # Only the teacher who owns this course can update
+    is_teacher = Teaching.objects.filter(course=course, teacher=request.user).exists()
+    if not is_teacher:
+        messages.error(request, "You don't have permission to edit this course.")
+        return redirect("courses:detail", course_id=course.id)
+
+    # Required fields in your modal
+    new_course_id = (request.POST.get("course_id") or "").strip()
+    title = (request.POST.get("title") or "").strip()
+    description = (request.POST.get("description") or "").strip()
+
+    if not new_course_id:
+        messages.error(request, "Course ID is required.")
+        return redirect("courses:detail", course_id=course.id)
+
+    if not title:
+        messages.error(request, "Course title is required.")
+        return redirect("courses:detail", course_id=course.id)
+
+    # Update core fields
+    course.course_id = new_course_id
+    course.title = title
+    course.description = description
+
+    # Optional fields (won't crash if your Course model doesn't have them)
+    if hasattr(course, "category"):
+        val = (request.POST.get("category") or "").strip()
+        if val:
+            course.category = val
+
+    if hasattr(course, "duration_weeks"):
+        val = (request.POST.get("duration_weeks") or "").strip()
+        course.duration_weeks = int(val) if val.isdigit() else None
+
+    if hasattr(course, "max_students"):
+        val = (request.POST.get("max_students") or "").strip()
+        course.max_students = int(val) if val.isdigit() else None
+
+    try:
+        course.save()
+        messages.success(request, "Course updated.")
+    except IntegrityError:
+        # most likely duplicate course_id
+        messages.error(request, "That Course ID is already used. Please choose another one.")
+
+    return redirect("courses:detail", course_id=course.id)
+
+@login_required
 def course_detail(request, course_id: int):
     course = get_object_or_404(Course, id=course_id)
     user = request.user
@@ -192,8 +245,10 @@ def course_detail(request, course_id: int):
     can_view = False
     if is_teacher:
         can_view = Teaching.objects.filter(course=course, teacher=user).exists()
+        back_url = reverse("courses:teacher_home")
     elif is_student:
         can_view = Enrollment.objects.filter(course=course, student=user).exists()
+        back_url = reverse("courses:student_home")
 
     if not can_view:
         return HttpResponseForbidden("You don't have access to this course.")
@@ -232,6 +287,7 @@ def course_detail(request, course_id: int):
         "materials": materials,
         "materials_count": materials.count(),
         "is_teacher_view": is_teacher and Teaching.objects.filter(course=course, teacher=user).exists(),
+        "back_url": back_url,
     }
     return render(request, "courses/course_detail.html", context)
 
