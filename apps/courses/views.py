@@ -217,8 +217,8 @@ def course_edit(request, course_id):
         if val:
             course.category = val
 
-    if hasattr(course, "duration_weeks"):
-        val = (request.POST.get("duration_weeks") or "").strip()
+    if hasattr(course, "duration"):
+        val = (request.POST.get("duration") or "").strip()
         course.duration_weeks = int(val) if val.isdigit() else None
 
     if hasattr(course, "max_students"):
