@@ -18,6 +18,9 @@ from apps.status.forms import *
 from apps.status.models import *
 
 
+# =========================
+# Teacher Home Page
+# =========================
 @login_required
 def teacher_home(request):
     user = request.user
@@ -85,6 +88,9 @@ def teacher_home(request):
 
     context = {
         "my_courses": my_courses,
+        
+        # for Create / Edit Course modal dropdown
+        "category_choices": Course.CATEGORY_CHOICES,
 
         # stats used by teacher_overview_strip.html
         "courses_created": courses_created,
@@ -101,6 +107,9 @@ def teacher_home(request):
     return render(request, "courses/teacher_home.html", context)
 
 
+# =========================
+# Create New Course
+# =========================
 @login_required
 def course_create(request):
 
@@ -114,27 +123,33 @@ def course_create(request):
         description = (request.POST.get("description") or "").strip()
         course_id_input = (request.POST.get("course_id") or "").strip().upper()
 
-        category = (request.POST.get("category") or Course.CATEGORY_GENERAL).strip()
+        category = (request.POST.get("category") or "").strip()
         duration = (request.POST.get("duration") or "").strip()
 
+        # Validate max_students properly
         max_students_raw = (request.POST.get("max_students") or "").strip()
         max_students = None
         if max_students_raw:
             try:
                 max_students = int(max_students_raw)
                 if max_students <= 0:
-                    max_students = None
+                    messages.error(request, "Max students must be a positive number.")
+                    return redirect("courses:teacher_home")
             except ValueError:
-                max_students = None
+                messages.error(request, "Max students must be a number.")
+                return redirect("courses:teacher_home")
 
         if not title:
             messages.error(request, "Course title is required.")
             return redirect("courses:teacher_home")
 
-        # Validate category
+        # ✅ Validate category strictly
         valid_categories = {c[0] for c in Course.CATEGORY_CHOICES}
-        if category not in valid_categories:
+        if not category:
             category = Course.CATEGORY_GENERAL
+        elif category not in valid_categories:
+            messages.error(request, "Invalid category selected.")
+            return redirect("courses:teacher_home")
 
         # Validate course_id ONLY if provided
         if course_id_input:
@@ -154,7 +169,7 @@ def course_create(request):
 
         with transaction.atomic():
             course = Course.objects.create(
-                course_id=course_id_input or None,  # ✅ None if empty
+                course_id=course_id_input or None,
                 title=title,
                 description=description,
                 category=category,
@@ -171,29 +186,32 @@ def course_create(request):
                 CourseMaterial.objects.create(
                     course=course,
                     file=f,
+                    original_name=getattr(f, "name", "") or "",
                     uploaded_by=request.user
                 )
 
         messages.success(request, "Course created successfully.")
         return redirect("courses:teacher_home")
 
+    # If someone visits /course_create directly, still provide choices
     return render(request, "courses/course_create.html", {
         "category_choices": Course.CATEGORY_CHOICES
     })
 
 
+# =========================
+# Edit Course
+# =========================
 @login_required
 @require_POST
 def course_edit(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
 
-    # Only the teacher who owns this course can update
     is_teacher = Teaching.objects.filter(course=course, teacher=request.user).exists()
     if not is_teacher:
         messages.error(request, "You don't have permission to edit this course.")
         return redirect("courses:detail", course_id=course.id)
 
-    # Required fields in your modal
     new_course_id = (request.POST.get("course_id") or "").strip()
     title = (request.POST.get("title") or "").strip()
     description = (request.POST.get("description") or "").strip()
@@ -206,33 +224,34 @@ def course_edit(request, course_id):
         messages.error(request, "Course title is required.")
         return redirect("courses:detail", course_id=course.id)
 
-    # Update core fields
+    # Core fields
     course.course_id = new_course_id
     course.title = title
     course.description = description
 
-    # Optional fields (won't crash if your Course model doesn't have them)
-    if hasattr(course, "category"):
-        val = (request.POST.get("category") or "").strip()
-        if val:
-            course.category = val
+     # ✅ Category: validate against choices
+    category = (request.POST.get("category") or "").strip()
+    valid_categories = {k for k, _ in Course.CATEGORY_CHOICES}
+    if category not in valid_categories:
+        messages.error(request, "Invalid category selected.")
+        return redirect("courses:detail", course_id=course.id)
+    course.category = category
 
-    if hasattr(course, "duration"):
-        val = (request.POST.get("duration") or "").strip()
-        course.duration_weeks = int(val) if val.isdigit() else None
+    # ✅ Duration: your model field is `duration`, not `duration_weeks`
+    course.duration = (request.POST.get("duration") or "").strip() or None
 
-    if hasattr(course, "max_students"):
-        val = (request.POST.get("max_students") or "").strip()
-        course.max_students = int(val) if val.isdigit() else None
+    # Max students
+    max_students_raw = (request.POST.get("max_students") or "").strip()
+    course.max_students = int(max_students_raw) if max_students_raw.isdigit() else None
 
     try:
         course.save()
         messages.success(request, "Course updated.")
     except IntegrityError:
-        # most likely duplicate course_id
         messages.error(request, "That Course ID is already used. Please choose another one.")
 
     return redirect("courses:detail", course_id=course.id)
+
 
 @login_required
 def course_detail(request, course_id: int):
@@ -288,6 +307,7 @@ def course_detail(request, course_id: int):
         "materials_count": materials.count(),
         "is_teacher_view": is_teacher and Teaching.objects.filter(course=course, teacher=user).exists(),
         "back_url": back_url,
+        "category_choices": Course.CATEGORY_CHOICES,
     }
     return render(request, "courses/course_detail.html", context)
 

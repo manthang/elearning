@@ -84,15 +84,14 @@
             Category <span class="text-red-500">*</span>
           </label>
           <select name="category" required
-                  class="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm bg-white text-slate-900
-                         focus:outline-none focus:ring-2 focus:ring-blue-200">
+                  class="w-full rounded-2xl border border-slate-200 px-4 py-3 bg-white text-slate-900
+                        focus:outline-none focus:ring-2 focus:ring-blue-200">
             <option value="" selected disabled>Select a category</option>
-            <!-- ✅ values must match Course.CATEGORY_CHOICES keys -->
-            <option value="WEB">Web Development</option>
-            <option value="DS">Data Structures</option>
-            <option value="ML">Machine Learning</option>
-            <option value="DESIGN">Design</option>
-            <option value="GENERAL">General</option>
+            {% if category_choices %}
+              {% for v, lbl in category_choices %}
+                <option value="{{ v }}">{{ lbl }}</option>
+              {% endfor %}
+            {% endif %}
           </select>
         </div>
 
