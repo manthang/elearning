@@ -314,112 +314,345 @@
 
   </di
     <!-- Deadlines -->
-    <div class="mt-8 rounded-3xl border border-slate-200 bg-white shadow-sm">
-      <div class="flex items-start justify-between gap-4 border-b border-slate-100 px-6 py-5">
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mt-8">
+      <div class="flex items-center justify-between gap-4">
         <div>
-          <h2 class="text-xl font-extrabold text-slate-900">Deadlines</h2>
-          <p class="mt-1 text-sm text-slate-500">Assignments, exams, and key dates for this course.</p>
+          <h2 class="text-xl font-bold text-gray-900">Deadlines</h2>
+          <p class="mt-1 text-sm text-gray-500">Assignments, exams, and key course dates.</p>
         </div>
+
         {% if is_teacher_view %}
-          <div class="hidden sm:flex items-center gap-2 text-xs text-slate-500">
-            <span class="inline-flex h-2 w-2 rounded-full bg-blue-500"></span>
-            Manage deadlines
+          <button type="button"
+                  onclick="openAddDeadlineModal()"
+                  class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition shadow-sm">
+            <!-- plus icon -->
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 class="h-4 w-4"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2">
+              <path d="M12 5v14"/>
+              <path d="M5 12h14"/>
+            </svg>
+            Add Deadline
+          </button>
+        {% endif %}
+      </div>
+
+      <div class="mt-5 space-y-4">
+        {% now "U" as now_ts %}
+
+        {% if deadlines %}
+          {% for d in deadlines|dictsort:"due_at" %}
+            {% with d_ts=d.due_at|date:"U" %}
+              <div class="rounded-2xl border p-5 {% if d_ts < now_ts %}border-red-200 bg-red-50{% else %}border-gray-200 bg-white{% endif %}">
+                <div class="flex items-start justify-between gap-4">
+
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <h3 class="text-base font-semibold text-gray-900">
+                        {{ d.title }}
+                      </h3>
+
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold border
+                                  {% if d_ts < now_ts %}bg-red-50 text-red-700 border-red-200{% else %}bg-blue-50 text-blue-700 border-blue-100{% endif %}">
+                        {{ d.due_at|date:"M j, Y • P" }}
+                      </span>
+
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold
+                                  {% if d_ts < now_ts %}bg-red-100 text-red-700{% else %}bg-gray-100 text-gray-700{% endif %}">
+                        {% if d_ts < now_ts %}Overdue{% else %}Upcoming{% endif %}
+                      </span>
+                    </div>
+
+                    {% if d.description %}
+                      <p class="mt-2 text-sm text-gray-600">
+                        {{ d.description }}
+                      </p>
+                    {% endif %}
+                  </div>
+
+                  {% if is_teacher_view %}
+                    <div class="flex items-center gap-2 shrink-0">
+                      <!-- Edit -->
+                      <button type="button"
+                              class="w-11 h-11 rounded-xl border border-gray-200 bg-gray-50
+                                     flex items-center justify-center text-gray-600
+                                     hover:bg-gray-100 transition"
+                              aria-label="Edit deadline"
+                              onclick="openEditDeadlineModal('{{ d.id }}', '{{ d.title|escapejs }}', '{{ d.due_at|date:"Y-m-d\\TH:i" }}', '{{ d.description|default_if_none:""|escapejs }}')">
+                        <!-- pencil icon -->
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="h-5 w-5"
+                             viewBox="0 0 24 24"
+                             fill="none"
+                             stroke="currentColor"
+                             stroke-width="2">
+                          <path d="M12 20h9"/>
+                          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+                        </svg>
+                      </button>
+
+                      <!-- Delete -->
+                      <form method="post" action="{% url 'courses:manage' course.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete_deadline"/>
+                        <input type="hidden" name="deadline_id" value="{{ d.id }}"/>
+
+                        <button type="submit"
+                                class="w-11 h-11 rounded-xl border border-red-200 bg-red-50
+                                       flex items-center justify-center text-red-600
+                                       hover:bg-red-100 transition"
+                                aria-label="Delete deadline">
+                          <!-- trash icon -->
+                          <svg xmlns="http://www.w3.org/2000/svg"
+                               class="h-5 w-5"
+                               viewBox="0 0 24 24"
+                               fill="none"
+                               stroke="currentColor"
+                               stroke-width="2">
+                            <path d="M3 6h18"/>
+                            <path d="M8 6V4h8v2"/>
+                            <path d="M19 6l-1 14H6L5 6"/>
+                            <path d="M10 11v6"/>
+                            <path d="M14 11v6"/>
+                          </svg>
+                        </button>
+                      </form>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            {% endwith %}
+          {% endfor %}
+        {% else %}
+          <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-sm text-gray-500">
+            No deadlines yet.
           </div>
         {% endif %}
       </div>
-
-      <div class="px-6 py-6">
-        {% if is_teacher_view %}
-          <form method="post" action="{% url 'courses:manage' course.id %}" class="mb-6">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="add_deadline"/>
-
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-              <div>
-                <label class="block text-sm font-semibold text-slate-800">
-                  Title <span class="text-red-500">*</span>
-                </label>
-                <input name="deadline_title" required
-                       class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-blue-100"
-                       placeholder="e.g., Midterm Exam" />
-              </div>
-
-              <div>
-                <label class="block text-sm font-semibold text-slate-800">
-                  Due at <span class="text-red-500">*</span>
-                </label>
-                <input type="datetime-local" name="deadline_due_at" required
-                       class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-blue-100" />
-              </div>
-
-              <div class="md:col-span-2">
-                <label class="block text-sm font-semibold text-slate-800">Description (optional)</label>
-                <textarea name="deadline_description" rows="3"
-                          class="mt-2 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:ring-4 focus:ring-blue-100"
-                          placeholder="Optional details..."></textarea>
-              </div>
-            </div>
-
-            <div class="mt-4 flex justify-end">
-              <button type="submit"
-                      class="inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M12 5v14" />
-                  <path d="M5 12h14" />
-                </svg>
-                Add Deadline
-              </button>
-            </div>
-          </form>
-        {% endif %}
-
-        <div class="space-y-4">
-          {% if deadlines %}
-            {% for d in deadlines %}
-              <div class="flex items-start justify-between gap-4 rounded-2xl border border-slate-200 bg-white px-5 py-4">
-                <div class="min-w-0">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <h3 class="truncate text-base font-bold text-slate-900">{{ d.title }}</h3>
-                    <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
-                      {{ d.due_at|date:"M j, Y • P" }}
-                    </span>
-                  </div>
-                  {% if d.description %}
-                    <p class="mt-2 text-sm text-slate-600">{{ d.description }}</p>
-                  {% endif %}
-                </div>
-
-                {% if is_teacher_view %}
-                  <form method="post" action="{% url 'courses:manage' course.id %}" class="shrink-0">
-                    {% csrf_token %}
-                    <input type="hidden" name="action" value="delete_deadline"/>
-                    <input type="hidden" name="deadline_id" value="{{ d.id }}"/>
-                    <button type="submit"
-                            class="inline-flex items-center justify-center rounded-xl border border-red-200 bg-red-50 p-2 text-red-600 hover:bg-red-100"
-                            title="Remove deadline">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
-                           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M3 6h18"/>
-                        <path d="M8 6V4h8v2"/>
-                        <path d="M19 6l-1 14H6L5 6"/>
-                        <path d="M10 11v6"/>
-                        <path d="M14 11v6"/>
-                      </svg>
-                    </button>
-                  </form>
-                {% endif %}
-              </div>
-            {% endfor %}
-          {% else %}
-            <div class="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-6 text-sm text-slate-500">
-              No deadlines yet.
-            </div>
-          {% endif %}
-        </div>
-      </div>
     </div>
+
+{% if is_teacher_view %}
+<!-- Add Deadline Modal -->
+<div id="addDeadlineModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm"
+     onclick="closeAddDeadlineModal()">
+
+  <div class="w-full max-w-lg"
+       onclick="event.stopPropagation()">
+
+    <div class="bg-white rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.25)] overflow-hidden border border-slate-100">
+
+      <!-- Header -->
+      <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+        <div>
+          <div class="text-lg font-bold text-gray-900">Add Deadline</div>
+          <div class="text-sm text-gray-500">Create a new course deadline.</div>
+        </div>
+
+        <button type="button"
+                onclick="closeAddDeadlineModal()"
+                class="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition"
+                aria-label="Close">
+          ✕
+        </button>
+      </div>
+
+      <!-- Body -->
+      <form method="post"
+            action="{% url 'courses:manage' course.id %}"
+            class="px-6 py-5 space-y-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_deadline"/>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-800 mb-2">
+            Title <span class="text-red-500">*</span>
+          </label>
+          <input name="deadline_title"
+                 required
+                 class="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                 placeholder="e.g., Midterm Exam" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-800 mb-2">
+            Due at <span class="text-red-500">*</span>
+          </label>
+          <input type="datetime-local"
+                 name="deadline_due_at"
+                 required
+                 class="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-800 mb-2">
+            Description
+          </label>
+          <textarea name="deadline_description"
+                    rows="3"
+                    class="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    placeholder="Optional details..."></textarea>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-3">
+          <button type="button"
+                  onclick="closeAddDeadlineModal()"
+                  class="px-5 py-2.5 rounded-xl border border-gray-200 font-semibold text-gray-700 hover:bg-gray-50 transition">
+            Cancel
+          </button>
+
+          <button type="submit"
+                  class="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
+            Add Deadline
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
 </div>
+
+<!-- Edit Deadline Modal -->
+<div id="editDeadlineModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm"
+     onclick="closeEditDeadlineModal()">
+
+  <div class="w-full max-w-lg"
+       onclick="event.stopPropagation()">
+
+    <div class="bg-white rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.25)] overflow-hidden border border-slate-100">
+
+      <!-- Header -->
+      <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+        <div>
+          <div class="text-lg font-bold text-gray-900">Edit Deadline</div>
+          <div class="text-sm text-gray-500">Update the title, due date, or description.</div>
+        </div>
+
+        <button type="button"
+                onclick="closeEditDeadlineModal()"
+                class="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition"
+                aria-label="Close">
+          ✕
+        </button>
+      </div>
+
+      <!-- Body -->
+      <form method="post"
+            action="{% url 'courses:manage' course.id %}"
+            class="px-6 py-5 space-y-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_deadline"/>
+        <input type="hidden" name="deadline_id" id="editDeadlineId" value=""/>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-800 mb-2">
+            Title <span class="text-red-500">*</span>
+          </label>
+          <input name="deadline_title"
+                 id="editDeadlineTitle"
+                 required
+                 class="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-800 mb-2">
+            Due at <span class="text-red-500">*</span>
+          </label>
+          <input type="datetime-local"
+                 name="deadline_due_at"
+                 id="editDeadlineDueAt"
+                 required
+                 class="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-800 mb-2">
+            Description
+          </label>
+          <textarea name="deadline_description"
+                    id="editDeadlineDescription"
+                    rows="3"
+                    class="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    placeholder="Optional details..."></textarea>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-3">
+          <button type="button"
+                  onclick="closeEditDeadlineModal()"
+                  class="px-5 py-2.5 rounded-xl border border-gray-200 font-semibold text-gray-700 hover:bg-gray-50 transition">
+            Cancel
+          </button>
+
+          <button type="submit"
+                  class="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
+            Save Changes
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // Add Deadline modal
+  function openAddDeadlineModal() {
+    const modal = document.getElementById("addDeadlineModal");
+    if (!modal) return;
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    document.addEventListener("keydown", escCloseAddDeadlineModal);
+  }
+
+  function closeAddDeadlineModal() {
+    const modal = document.getElementById("addDeadlineModal");
+    if (!modal) return;
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    document.removeEventListener("keydown", escCloseAddDeadlineModal);
+  }
+
+  function escCloseAddDeadlineModal(e) {
+    if (e.key === "Escape") closeAddDeadlineModal();
+  }
+
+  // Edit Deadline modal
+  function openEditDeadlineModal(id, title, dueAt, description) {
+    const modal = document.getElementById("editDeadlineModal");
+    if (!modal) return;
+
+    const idEl = document.getElementById("editDeadlineId");
+    const titleEl = document.getElementById("editDeadlineTitle");
+    const dueEl = document.getElementById("editDeadlineDueAt");
+    const descEl = document.getElementById("editDeadlineDescription");
+
+    if (idEl) idEl.value = id || "";
+    if (titleEl) titleEl.value = title || "";
+    if (dueEl) dueEl.value = dueAt || "";
+    if (descEl) descEl.value = description || "";
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    document.addEventListener("keydown", escCloseEditDeadlineModal);
+  }
+
+  function closeEditDeadlineModal() {
+    const modal = document.getElementById("editDeadlineModal");
+    if (!modal) return;
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    document.removeEventListener("keydown", escCloseEditDeadlineModal);
+  }
+
+  function escCloseEditDeadlineModal(e) {
+    if (e.key === "Escape") closeEditDeadlineModal();
+  }
+</script>
+{% endif %}
 
 {% if is_teacher_view %}
 <!-- Edit Course Info Modal -->
