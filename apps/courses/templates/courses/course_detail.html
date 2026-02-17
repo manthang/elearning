@@ -859,7 +859,8 @@
 
       <form id="removeStudentForm" method="post" action="{% url 'courses:manage' course.id %}">
         {% csrf_token %}
-        <input type="hidden" name="remove_enrollment_id" id="removeEnrollmentId" value="">
+        <input type="hidden" name="action" value="remove_student">
+        <input type="hidden" name="enrollment_id" id="removeEnrollmentId" value="">
         <button type="submit"
                 class="px-5 py-2.5 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition">
           Remove
@@ -917,7 +918,8 @@
             method="post"
             action="{% url 'courses:manage' course.id %}">
         {% csrf_token %}
-        <input type="hidden" name="delete_material_id" id="deleteMaterialId">
+        <input type="hidden" name="action" value="delete_material">
+        <input type="hidden" name="material_id" id="deleteMaterialId">
         <button type="submit"
                 class="px-5 py-2.5 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition">
           Delete
@@ -975,7 +977,8 @@
             method="post"
             action="{% url 'courses:manage' course.id %}">
         {% csrf_token %}
-        <input type="hidden" name="delete_material_id" id="deleteMaterialId">
+        <input type="hidden" name="action" value="delete_material">
+        <input type="hidden" name="material_id" id="deleteMaterialId">
         <button type="submit"
                 class="px-5 py-2.5 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition">
           Delete
