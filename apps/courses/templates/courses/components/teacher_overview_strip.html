@@ -18,32 +18,44 @@
     <!-- Courses -->
     <div class="rounded-xl bg-gray-50 p-4 border border-gray-100">
       <div class="text-xs text-gray-500">Courses Created</div>
-      <div class="text-2xl font-bold text-gray-900 mt-1">{{ courses_created|default:0 }}</div>
-      <div class="text-xs text-gray-500 mt-1">Active: {{ active_courses|default:0 }}</div>
+      <div class="text-2xl font-bold text-gray-900 mt-1">
+        {{ courses_created|default:0 }}
+      </div>
+      <div class="text-xs text-gray-500 mt-1">
+        Active: {{ active_courses|default:0 }}
+      </div>
     </div>
 
     <!-- Students -->
     <div class="rounded-xl bg-gray-50 p-4 border border-gray-100">
       <div class="text-xs text-gray-500">Total Students</div>
-      <div class="text-2xl font-bold text-gray-900 mt-1">{{ total_students|default:0 }}</div>
-      <div class="text-xs text-gray-500 mt-1">Across your courses</div>
+      <div class="text-2xl font-bold text-gray-900 mt-1">
+        {{ total_students|default:0 }}
+      </div>
+      <div class="text-xs text-gray-500 mt-1">
+        Across your courses
+      </div>
     </div>
 
     <!-- Materials -->
     <div class="rounded-xl bg-gray-50 p-4 border border-gray-100">
       <div class="text-xs text-gray-500">Materials Uploaded</div>
-      <div class="text-2xl font-bold text-gray-900 mt-1">{{ total_materials|default:0 }}</div>
-      <div class="text-xs text-gray-500 mt-1">Files in courses</div>
-    </div>
-
-    <!-- Capacity -->
-    <div class="rounded-xl bg-gray-50 p-4 border border-gray-100">
-      <div class="text-xs text-gray-500">Capacity Used</div>
       <div class="text-2xl font-bold text-gray-900 mt-1">
-        {{ capacity_used_pct|default:"—" }}{% if capacity_used_pct %}%{% endif %}
+        {{ total_materials|default:0 }}
       </div>
       <div class="text-xs text-gray-500 mt-1">
-        {{ total_enrolled|default:0 }} enrolled
+        Files in courses
+      </div>
+    </div>
+
+    <!-- Upcoming Deadlines -->
+    <div class="rounded-xl bg-gray-50 p-4 border border-gray-100">
+      <div class="text-xs text-gray-500">Upcoming Deadlines</div>
+      <div class="text-2xl font-bold text-gray-900 mt-1">
+        {{ upcoming_deadlines_count|default:0 }}
+      </div>
+      <div class="text-xs text-gray-500 mt-1">
+        Not yet due
       </div>
     </div>
   </div>
