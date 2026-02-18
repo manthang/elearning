@@ -1,6 +1,7 @@
 #macOS stuff
 .DS_Store
 media/course_materials
+media/profile_photos
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

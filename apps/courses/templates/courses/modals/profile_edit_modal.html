@@ -10,7 +10,7 @@
         <div class="min-w-0">
           <div class="text-2xl font-extrabold text-gray-900 leading-tight">Personal Details</div>
           <div class="mt-1 text-sm text-gray-500">
-            Update your profile information as it appears in the app.
+            Update your profile information as it appears in our website.
           </div>
         </div>
 
@@ -26,7 +26,10 @@
       </div>
 
       <!-- Body -->
-      <form id="profileEditForm" method="post" enctype="multipart/form-data"
+      <form id="profileEditForm" 
+            method="post" 
+            action="{% url 'courses:profile_update' %}"
+            enctype="multipart/form-data"
             class="px-6 py-5 space-y-5 overflow-y-auto">
         {% csrf_token %}
 
@@ -78,7 +81,6 @@
                        onchange="previewProfilePhoto(event)"
                        class="hidden" />
 
-                <!-- If you implement server-side “remove photo”, keep this. -->
                 <input type="hidden" name="remove_photo" id="removePhotoFlag" value="0">
               </div>
 
@@ -214,7 +216,7 @@
     if (input) input.value = "";
     if (removeFlag) removeFlag.value = "1";
 
-    // Optional: visually reset preview to initial letter (simple)
+    // Visually reset preview to initial letter
     const existing = document.getElementById("profilePhotoPreview");
     if (existing) {
       const letter = "{{ request.user.full_name|default:request.user.username|first }}";
