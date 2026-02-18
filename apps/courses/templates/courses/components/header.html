@@ -1,58 +1,81 @@
 <div class="flex justify-between items-center mb-8">
-    <div>
-      <h1 class="text-2xl font-bold">
-        Welcome back,
-        {{ request.user.full_name|default:request.user.username }}
-      </h1>
-      <p class="text-gray-500">Your learning dashboard</p>
-    </div>
 
-    <div class="flex items-center gap-3">
-    
-      <!-- Messages -->
-      <button onclick="openMessenger()"
-          class="relative inline-flex items-center gap-2 
-                px-4 py-2
-                bg-white border border-gray-200
-                rounded-lg
-                shadow-sm
-                hover:shadow-md
-                hover:bg-gray-50
-                transition">
+  <!-- Left: Greeting -->
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-900 leading-tight">
+      Welcome back
+    </h1>
 
-          💬
-          <span class="text-sm font-medium">Messages</span>
+    <p class="mt-1 text-sm text-gray-500">
+      {% if request.user.role == request.user.Role.TEACHER %}
+        Manage your courses and students
+      {% else %}
+        Track your progress and upcoming deadlines
+      {% endif %}
+    </p>
+  </div>
 
-          <!-- Notification badge -->
-          {% if unread_count %}
-          <span id="unreadBadge"
-                class="absolute -top-2 -right-2
-                       bg-red-500 text-white
-                       text-xs font-semibold
-                       px-1.5 py-0.5
-                       rounded-full">
-              {{ unread_count }}
-          </span>
-          {% endif %}
-      </button>
+  <!-- Right: Actions -->
+  <div class="flex items-center gap-3">
 
-      <!-- Search -->
-      <button onclick="openSearch()"
-          class="inline-flex items-center gap-2 
-                px-4 py-2
-                bg-white border border-gray-200
-                rounded-lg
-                shadow-sm
-                hover:shadow-md
-                hover:bg-gray-50
-                transition">
+    <!-- Messages -->
+    <button onclick="openMessenger()"
+            class="relative inline-flex items-center gap-2 
+                   px-4 py-2 rounded-xl
+                   bg-white border border-gray-200
+                   text-sm font-medium text-gray-700
+                   shadow-sm hover:bg-gray-50 hover:border-gray-300
+                   transition">
 
-          🔍
-          <span class="text-sm text-gray-600">
-              Search students / teachers
-          </span>
-      </button>
+      <!-- Chat Icon -->
+      <svg xmlns="http://www.w3.org/2000/svg"
+           class="h-4 w-4 text-gray-500"
+           viewBox="0 0 24 24"
+           fill="none"
+           stroke="currentColor"
+           stroke-width="2">
+        <path d="M21 15a4 4 0 0 1-4 4H7l-4 4V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/>
+      </svg>
 
-    </div>
+      Messages
 
+      {% if unread_count %}
+      <span id="unreadBadge"
+            class="absolute -top-2 -right-2
+                   bg-red-500 text-white
+                   text-xs font-semibold
+                   px-1.5 py-0.5 rounded-full">
+        {{ unread_count }}
+      </span>
+      {% endif %}
+    </button>
+
+    <!-- Search -->
+    <button onclick="openSearch()"
+            class="inline-flex items-center gap-2
+                   px-4 py-2 rounded-xl
+                   bg-white border border-gray-200
+                   text-sm text-gray-600
+                   shadow-sm hover:bg-gray-50 hover:border-gray-300
+                   transition">
+
+      <!-- Search Icon -->
+      <svg xmlns="http://www.w3.org/2000/svg"
+           class="h-4 w-4 text-gray-500"
+           viewBox="0 0 24 24"
+           fill="none"
+           stroke="currentColor"
+           stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+
+      {% if request.user.role == request.user.Role.TEACHER %}
+        Search students
+      {% else %}
+        Search teachers
+      {% endif %}
+    </button>
+
+  </div>
 </div>

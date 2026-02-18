@@ -8,6 +8,8 @@ from django.contrib import messages
 def profile_update(request):
     user = request.user
 
+    next_url = request.POST.get("next")
+
     full_name = (request.POST.get("full_name") or "").strip()
     location = (request.POST.get("location") or "").strip()
     bio = (request.POST.get("bio") or "").strip()
@@ -35,4 +37,7 @@ def profile_update(request):
     user.save()
     messages.success(request, "Profile updated successfully!")
 
-    return redirect(request.META.get("HTTP_REFERER", "courses:student_home"))
+    if not next_url:
+        return redirect("/")  # dashboard root
+
+    return redirect(next_url)
