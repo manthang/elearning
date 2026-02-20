@@ -284,6 +284,10 @@ def course_detail(request, course_id: int):
     )
     instructor_user = instructor.teacher if instructor else None
 
+    is_enrolled = False
+    if request.user.is_authenticated and request.user.role == request.user.Role.STUDENT:
+        is_enrolled = Enrollment.objects.filter(student=request.user, course=course).exists()
+
     enrollments = (
         Enrollment.objects
         .filter(course=course)
@@ -309,6 +313,7 @@ def course_detail(request, course_id: int):
 
     context = {
         "course": course,
+        "is_enrolled": is_enrolled,
         "instructor_user": instructor_user,
         "enrollments": enrollments,
         "enrollment_count": enrollment_count,
@@ -551,6 +556,8 @@ def student_home(request):
         "tab": tab,
         "courses": enrolled_courses,      # My Courses
         "all_courses": all_courses,        # All Courses
+        "enrolled_courses": enrolled_courses, # add (template-friendly)
+        "enrolled_course_ids": enrolled_course_ids,  # add (for badges/logic)
         "enrolled_count": enrolled_count,
         "deadlines": deadlines,
         "show_past": show_past,
