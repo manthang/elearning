@@ -88,6 +88,27 @@
             </svg>
             <span>Edit Course</span>
           </button>
+        {% else %}
+          <div class="shrink-0 flex flex-col items-end gap-3">
+            {% if is_enrolled %}
+              <span class="inline-flex items-center px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-sm font-semibold">
+                Enrolled
+              </span>
+              <a href="#feedback"
+                 class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white
+                        text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition">
+                Leave feedback
+              </a>
+            {% else %}
+              <form method="post" action="{% url 'courses:course_enroll' course.id %}">
+                {% csrf_token %}
+                <button type="submit"
+                        class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition shadow-sm">
+                  Enroll
+                </button>
+              </form>
+            {% endif %}
+          </div>
         {% endif %}
 
       </div>
@@ -113,7 +134,54 @@
       </p>
     </div>
 
-    <!-- Enrolled students -->
+    
+    {% if not is_teacher_view and is_enrolled %}
+    <!-- Feedback -->
+    <div id="feedback" class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-gray-900">Your Feedback</h2>
+          <p class="mt-1 text-sm text-gray-500">Help improve this course by sharing your experience.</p>
+        </div>
+
+        <button type="button"
+                onclick="document.getElementById('feedbackForm')?.scrollIntoView({ behavior: 'smooth', block: 'start' });"
+                class="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white
+                       text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition">
+          Leave feedback
+        </button>
+      </div>
+
+      <div id="feedbackForm" class="mt-5 grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div class="md:col-span-2">
+          <label class="block text-sm font-semibold text-gray-800 mb-2">Rating</label>
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-500">1</span>
+            <input type="range" min="1" max="5" value="{{ feedback_rating|default:3 }}"
+                   class="w-full"
+                   disabled>
+            <span class="text-sm text-gray-500">5</span>
+          </div>
+          <div class="mt-2 text-xs text-gray-500">
+            (UI placeholder) Wire this up to your feedback save endpoint when ready.
+          </div>
+        </div>
+
+        <div class="md:col-span-3">
+          <label class="block text-sm font-semibold text-gray-800 mb-2">Comment</label>
+          <div class="rounded-2xl border border-gray-200 bg-gray-50 p-4 text-sm text-gray-600">
+            {% if feedback_comment %}
+              {{ feedback_comment }}
+            {% else %}
+              No feedback submitted yet.
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+<!-- Enrolled students -->
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
       <h2 class="text-xl font-bold text-gray-900">Enrolled Students</h2>
 
@@ -215,28 +283,15 @@
         </div>
 
         {% if is_teacher_view %}
-          <form method="post"
-                action="{% url 'courses:manage' course.id %}"
-                enctype="multipart/form-data"
-                class="inline-flex items-center">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="upload_material">
-            <input id="materialsUploadInput"
-                   type="file"
-                   name="materials"
-                   multiple
-                   class="hidden"
-                   onchange="this.form.submit()">
-            <label for="materialsUploadInput"
-                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition shadow-sm cursor-pointer">
-              <!-- upload icon -->
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M3 16a2 2 0 002 2h10a2 2 0 002-2v-5h-2v5H5v-5H3v5z"/>
-                <path d="M7 8l3-3 3 3H11v6H9V8H7z"/>
-              </svg>
-              Upload Material
-            </label>
-          </form>
+          <a href="{% url 'courses:manage' course.id %}"
+             class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition shadow-sm">
+            <!-- upload icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M3 16a2 2 0 002 2h10a2 2 0 002-2v-5h-2v5H5v-5H3v5z"/>
+              <path d="M7 8l3-3 3 3H11v6H9V8H7z"/>
+            </svg>
+            Upload Material
+          </a>
         {% endif %}
       </div>
 
@@ -325,7 +380,7 @@
       </div>
     </div>
 
-  </di
+  </div>
     <!-- Deadlines -->
     <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mt-8">
       <div class="flex items-center justify-between gap-4">
@@ -408,26 +463,31 @@
                       </button>
 
                       <!-- Delete -->
-                      <button type="button"
-                              class="w-11 h-11 rounded-xl border border-red-200 bg-red-50
-                                     flex items-center justify-center text-red-600
-                                     hover:bg-red-100 transition"
-                              aria-label="Delete deadline"
-                              onclick="openDeleteDeadlineModal('{{ d.id }}', '{{ d.title|escapejs }}')">
-                        <!-- trash icon -->
-                        <svg xmlns="http://www.w3.org/2000/svg"
-                             class="h-5 w-5"
-                             viewBox="0 0 24 24"
-                             fill="none"
-                             stroke="currentColor"
-                             stroke-width="2">
-                          <path d="M3 6h18"/>
-                          <path d="M8 6V4h8v2"/>
-                          <path d="M19 6l-1 14H6L5 6"/>
-                          <path d="M10 11v6"/>
-                          <path d="M14 11v6"/>
-                        </svg>
-                      </button>
+                      <form method="post" action="{% url 'courses:manage' course.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="delete_deadline"/>
+                        <input type="hidden" name="deadline_id" value="{{ d.id }}"/>
+
+                        <button type="submit"
+                                class="w-11 h-11 rounded-xl border border-red-200 bg-red-50
+                                       flex items-center justify-center text-red-600
+                                       hover:bg-red-100 transition"
+                                aria-label="Delete deadline">
+                          <!-- trash icon -->
+                          <svg xmlns="http://www.w3.org/2000/svg"
+                               class="h-5 w-5"
+                               viewBox="0 0 24 24"
+                               fill="none"
+                               stroke="currentColor"
+                               stroke-width="2">
+                            <path d="M3 6h18"/>
+                            <path d="M8 6V4h8v2"/>
+                            <path d="M19 6l-1 14H6L5 6"/>
+                            <path d="M10 11v6"/>
+                            <path d="M14 11v6"/>
+                          </svg>
+                        </button>
+                      </form>
                     </div>
                   {% endif %}
                 </div>
@@ -606,68 +666,6 @@
   </div>
 </div>
 
-
-<!-- Delete Deadline Modal -->
-<div id="deleteDeadlineModal"
-     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm"
-     onclick="closeDeleteDeadlineModal()">
-
-  <div class="w-full max-w-md rounded-2xl bg-white shadow-[0_30px_90px_rgba(0,0,0,0.25)] overflow-hidden"
-       onclick="event.stopPropagation()">
-
-    <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
-          <!-- warning icon -->
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l6.518 11.59c.75 1.334-.214 3.01-1.742 3.01H3.48c-1.528 0-2.492-1.676-1.742-3.01L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-8a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1z" clip-rule="evenodd"/>
-          </svg>
-        </div>
-
-        <div>
-          <div class="text-base font-semibold text-gray-900">Delete deadline</div>
-          <div class="text-sm text-gray-500">This action cannot be undone.</div>
-        </div>
-      </div>
-
-      <button type="button"
-              class="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition"
-              aria-label="Close"
-              onclick="closeDeleteDeadlineModal()">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-        </svg>
-      </button>
-    </div>
-
-    <div class="px-6 py-5">
-      <p class="text-sm text-gray-700">
-        Are you sure you want to delete
-        <span id="deleteDeadlineTitle" class="font-semibold text-gray-900">this deadline</span>?
-      </p>
-    </div>
-
-    <div class="px-6 py-5 border-t border-gray-100 bg-white flex items-center justify-end gap-3">
-      <button type="button"
-              class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition"
-              onclick="closeDeleteDeadlineModal()">
-        Cancel
-      </button>
-
-      <form id="deleteDeadlineForm" method="post" action="{% url 'courses:manage' course.id %}">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="delete_deadline">
-        <input type="hidden" name="deadline_id" id="deleteDeadlineId" value="">
-        <button type="submit"
-                class="px-5 py-2.5 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition">
-          Delete
-        </button>
-      </form>
-    </div>
-
-  </div>
-</div>
-
 <script>
   // Add Deadline modal
   function openAddDeadlineModal() {
@@ -720,35 +718,6 @@
 
   function escCloseEditDeadlineModal(e) {
     if (e.key === "Escape") closeEditDeadlineModal();
-  }
-
-  // Delete Deadline modal
-  function openDeleteDeadlineModal(id, title) {
-    const modal = document.getElementById("deleteDeadlineModal");
-    if (!modal) return;
-
-    const idEl = document.getElementById("deleteDeadlineId");
-    const titleEl = document.getElementById("deleteDeadlineTitle");
-
-    if (idEl) idEl.value = id || "";
-    if (titleEl) titleEl.textContent = title || "this deadline";
-
-    modal.classList.remove("hidden");
-    modal.classList.add("flex");
-    document.addEventListener("keydown", escCloseDeleteDeadlineModal);
-  }
-
-  function closeDeleteDeadlineModal() {
-    const modal = document.getElementById("deleteDeadlineModal");
-    if (!modal) return;
-
-    modal.classList.add("hidden");
-    modal.classList.remove("flex");
-    document.removeEventListener("keydown", escCloseDeleteDeadlineModal);
-  }
-
-  function escCloseDeleteDeadlineModal(e) {
-    if (e.key === "Escape") closeDeleteDeadlineModal();
   }
 </script>
 {% endif %}
@@ -958,8 +927,7 @@
 
       <form id="removeStudentForm" method="post" action="{% url 'courses:manage' course.id %}">
         {% csrf_token %}
-        <input type="hidden" name="action" value="remove_student">
-        <input type="hidden" name="enrollment_id" id="removeEnrollmentId" value="">
+        <input type="hidden" name="remove_enrollment_id" id="removeEnrollmentId" value="">
         <button type="submit"
                 class="px-5 py-2.5 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition">
           Remove
@@ -1017,67 +985,7 @@
             method="post"
             action="{% url 'courses:manage' course.id %}">
         {% csrf_token %}
-        <input type="hidden" name="action" value="delete_material">
-        <input type="hidden" name="material_id" id="deleteMaterialId">
-        <button type="submit"
-                class="px-5 py-2.5 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition">
-          Delete
-        </button>
-      </form>
-    </div>
-
-  </div>
-</div>
-
-<div id="deleteMaterialModal"
-     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm"
-     onclick="closeDeleteMaterialModal()">
-
-  <div class="w-full max-w-md rounded-2xl bg-white shadow-[0_30px_90px_rgba(0,0,0,0.25)] overflow-hidden"
-       onclick="event.stopPropagation()">
-
-    <!-- Header -->
-    <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
-          ⚠
-        </div>
-
-        <div>
-          <div class="text-base font-semibold text-gray-900">Delete material</div>
-          <div class="text-sm text-gray-500">This action cannot be undone.</div>
-        </div>
-      </div>
-
-      <button type="button"
-              class="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition"
-              onclick="closeDeleteMaterialModal()">
-        ✕
-      </button>
-    </div>
-
-    <!-- Body -->
-    <div class="px-6 py-5">
-      <p class="text-sm text-gray-700">
-        Are you sure you want to delete
-        <span id="deleteMaterialName" class="font-semibold text-gray-900">this file</span>?
-      </p>
-    </div>
-
-    <!-- Footer -->
-    <div class="px-6 py-5 border-t border-gray-100 flex items-center justify-end gap-3">
-      <button type="button"
-              class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition"
-              onclick="closeDeleteMaterialModal()">
-        Cancel
-      </button>
-
-      <form id="deleteMaterialForm"
-            method="post"
-            action="{% url 'courses:manage' course.id %}">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="delete_material">
-        <input type="hidden" name="material_id" id="deleteMaterialId">
+        <input type="hidden" name="delete_material_id" id="deleteMaterialId">
         <button type="submit"
                 class="px-5 py-2.5 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition">
           Delete
