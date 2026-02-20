@@ -1,88 +1,75 @@
-<div class="grid grid-cols-2 gap-6">
-    {% for course in all_courses %}
-    <div class="bg-white rounded-xl shadow p-6 space-y-4">
-
-        <div class="flex justify-between items-start">
-        <div>
-            <h3 class="font-semibold text-lg">{{ course.title }}</h3>
-
-            {% if course.teachers %}
-            <p class="text-sm text-gray-500">
-                Prof.
-                {% for t in course.teachers %}
-                {{ t.full_name|default:t.username }}{% if not forloop.last %}, {% endif %}
-                {% endfor %}
-            </p>
-            {% else %}
-            <p class="text-sm text-gray-400">Instructor TBA</p>
-            {% endif %}
-        </div>
-
-        {% if course.is_enrolled %}
-            <span class="px-3 py-1 text-sm rounded-lg
-                        bg-green-100 text-green-700">
-            Active
-            </span>
-        {% else %}
-            <span class="px-3 py-1 text-sm rounded-lg
-                        bg-gray-100 text-gray-600">
-            Not Enrolled
-            </span>
-        {% endif %}
-        </div>
-
-        <div class="flex gap-3 pt-2">
-        {% if course.is_enrolled %}
-            <a
-            href="{% url 'courses:course_continue' course.id %}"
-            class="flex-1 flex items-center justify-center
-                    px-4 py-2 border rounded-lg
-                    hover:bg-gray-50">
-            ▶ Continue
-            </a>
-        {% else %}
-            <form method="post"
-                action="{% url 'courses:course_enroll' course.id %}"
-                class="flex-1">
-            {% csrf_token %}
-            <button
-                type="submit"
-                class="w-full px-4 py-2
-                        bg-blue-600 text-white
-                        rounded-lg hover:bg-blue-700">
-                ➕ Enroll
-            </button>
-            </form>
-        {% endif %}
-
-        {% if course.is_enrolled %}
-            <button
-            type="button"
-            onclick="openFeedbackModal(
-                '{{ course.title|escapejs }}',
-                '{% url 'courses:course_feedback' course.id %}',
-                {{ course.feedback_rating|default:0 }},
-                `{{ course.feedback_comment|escapejs }}`
-            )"
-            class="w-10 h-10 border rounded-lg
-                    flex items-center justify-center
-                    hover:bg-gray-50"
-            title="Leave feedback">
-            💬
-            </button>
-        {% else %}
-            <button
-            type="button"
-            disabled
-            class="w-10 h-10 border rounded-lg
-                    flex items-center justify-center
-                    text-gray-300 cursor-not-allowed"
-            title="Enroll to leave feedback">
-            💬
-            </button>
-        {% endif %}
-
-        </div>
+<div id="tab-all" class="tab-panel">
+  <div class="flex items-start justify-between gap-4">
+    <div>
+      <h3 class="text-lg font-semibold text-gray-900">All Courses</h3>
+      <p class="mt-1 text-sm text-gray-500">Explore available courses and enroll when ready.</p>
     </div>
+
+    <div class="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="text" placeholder="Search courses..."
+             class="w-64 text-sm text-gray-700 outline-none bg-transparent"/>
+    </div>
+  </div>
+
+  <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+    {% for c in all_courses %}
+
+      <!-- Entire card clickable -->
+      <a href="{% url 'courses:detail' c.id %}"
+         class="group bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden
+                hover:shadow-md hover:border-gray-300 transition block">
+
+        <!-- Media / thumbnail placeholder -->
+        <div class="h-44 bg-gradient-to-br from-slate-100 to-slate-200 relative">
+          {% if c.get_category_display %}
+            <span class="absolute left-4 top-4 inline-flex items-center px-2.5 py-1 rounded-full
+                         bg-white/90 border border-gray-200 text-xs font-semibold text-gray-700">
+              {{ c.get_category_display }}
+            </span>
+          {% endif %}
+        </div>
+
+        <div class="p-5">
+          <!-- Title: 1–2 lines max -->
+          <h4 class="text-base font-bold text-gray-900 leading-snug line-clamp-2 min-h-[3rem]">
+            {{ c.title }}
+          </h4>
+
+          <!-- Instructor: 1 line, truncate -->
+          <div class="mt-2 text-sm text-gray-600 truncate h-5">
+            {% for t in c.teachers %}
+                {{ t.full_name|default:t.username }}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+                <span class="text-gray-400">Instructor TBA</span>
+            {% endfor %}
+          </div>
+
+          <!-- Ratings: row 4 -->
+          <div class="mt-4 flex flex-wrap items-center gap-2">
+            {% with avg=c.avg_rating|default:0 count=c.rating_count|default:0 %}
+              <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-50 border border-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-amber-500" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 17.3l-6.18 3.73 1.64-7.03L2 9.24l7.19-.61L12 2l2.81 6.63 7.19.61-5.46 4.76 1.64 7.03z"/>
+                </svg>
+                <span class="text-sm font-semibold text-gray-800">{{ avg|floatformat:1 }}</span>
+              </span>
+
+              <span class="inline-flex items-center px-3 py-1.5 rounded-full bg-white border border-gray-200">
+                <span class="text-sm text-gray-600">{{ count }} ratings</span>
+              </span>
+            {% endwith %}
+          </div>
+        </div>
+      </a>
+
+    {% empty %}
+      <div class="col-span-full rounded-2xl border border-gray-200 bg-gray-50 p-6 text-sm text-gray-500">
+        No courses available right now.
+      </div>
     {% endfor %}
+  </div>
 </div>

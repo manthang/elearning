@@ -1,59 +1,55 @@
-<div class="grid grid-cols-2 gap-6">
-    {% for course in courses %}
-    <div class="bg-white rounded-xl shadow p-6 space-y-4">
+<div id="tab-enrolled" class="tab-panel hidden">
+  <div>
+    <h3 class="text-lg font-semibold text-gray-900">Enrolled Courses</h3>
+    <p class="mt-1 text-sm text-gray-500">Quick access to courses you’re currently taking.</p>
+  </div>
 
-        <h3 class="font-semibold text-lg">{{ course.title }}</h3>
+  <div class="mt-5 space-y-4">
+    {% for e in enrolled_courses %}
+      <div class="bg-white rounded-2xl border border-gray-200 p-5">
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0">
+            <h4 class="text-base font-semibold text-gray-900 truncate">{{ e.course.title }}</h4>
+            <div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-500">
+              <span class="inline-flex items-center px-2 py-1 rounded-full bg-gray-50 border border-gray-200">
+                ID: {{ e.course.course_id }}
+              </span>
+              {% if e.course.get_category_display %}
+                <span class="inline-flex items-center px-2 py-1 rounded-full bg-gray-50 border border-gray-200">
+                  {{ e.course.get_category_display }}
+                </span>
+              {% endif %}
+            </div>
+          </div>
 
-        {% if course.teachers %}
-        <p class="text-sm text-gray-500">
-            Prof.
-            {% for t in course.teachers %}
-            {{ t.full_name|default:t.username }}{% if not forloop.last %}, {% endif %}
-            {% endfor %}
-        </p>
-        {% else %}
-        <p class="text-sm text-gray-400">Instructor TBA</p>
+          <a href="{% url 'courses:detail' e.course.id %}"
+             class="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white
+                    text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition">
+            Open
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2">
+              <path d="M9 18l6-6-6-6"/>
+            </svg>
+          </a>
+        </div>
+
+        <!-- optional progress row -->
+        {% if e.progress is not None %}
+          <div class="mt-4">
+            <div class="flex items-center justify-between text-xs text-gray-500">
+              <span>Progress</span>
+              <span class="font-semibold text-gray-700">{{ e.progress }}%</span>
+            </div>
+            <div class="mt-2 h-2 rounded-full bg-gray-100 overflow-hidden">
+              <div class="h-full bg-blue-600" style="width: {{ e.progress }}%"></div>
+            </div>
+          </div>
         {% endif %}
-
-        <!-- Progress -->
-        <div class="space-y-1">
-            <div class="flex justify-between text-sm text-gray-600">
-                <span>Progress</span>
-                <span>{{ course.progress }}%</span>
-            </div>
-            <div class="h-2 bg-gray-200 rounded-full">
-                <div class="h-2 bg-blue-600 rounded-full"
-                    style="width: {{ course.progress }}%"></div>
-            </div>
-        </div>
-
-        <div class="flex gap-3 pt-2">
-            <a
-                href="{% url 'courses:course_continue' course.id %}"
-                class="flex-1 flex items-center justify-center
-                        px-4 py-2 border rounded-lg
-                        hover:bg-gray-50">
-                ▶ Continue
-            </a>
-
-            <button
-                type="button"
-                onclick="openFeedbackModal(
-                '{{ course.title|escapejs }}',
-                '{% url 'courses:course_feedback' course.id %}',
-                {{ course.feedback_rating|default:0 }},
-                `{{ course.feedback_comment|escapejs }}`
-                )"
-                class="w-10 h-10 border rounded-lg
-                    flex items-center justify-center
-                    hover:bg-gray-50"
-                title="Leave feedback">
-                💬
-            </button>
-
-        </div>
-    </div>
+      </div>
     {% empty %}
-    <p class="text-gray-400">No enrolled courses yet.</p>
+      <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-sm text-gray-500">
+        You’re not enrolled in any courses yet.
+      </div>
     {% endfor %}
+  </div>
 </div>
