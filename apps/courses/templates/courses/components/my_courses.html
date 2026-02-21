@@ -56,24 +56,10 @@
                        {% if pct|default:0 > 0 %}bg-blue-600 hover:bg-blue-700{% else %}bg-emerald-600 hover:bg-emerald-700{% endif %}
                        text-white ring-4 ring-white/60
                        active:scale-95">
-            {% if pct|default:0 > 0 %}
-              <!-- Resume icon: play + bar -->
+              <!-- Play icon -->
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M8 5v14l11-7z"/>
-                <path d="M5 6h2v12H5z"/>
               </svg>
-            {% else %}
-              <!-- Start icon: play + plus badge -->
-              <div class="relative">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-                <span class="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-white text-emerald-700
-                             flex items-center justify-center text-[12px] font-bold shadow">
-                  +
-                </span>
-              </div>
-            {% endif %}
           </span>
         </a>
       </div>
@@ -148,71 +134,3 @@
     {% endfor %}
   </div>
 </div>
-
-<script>
-(function () {
-  // Close menus on outside click / ESC
-  document.addEventListener('click', function (e) {
-    const menu = e.target.closest('.course-menu');
-    const btn = e.target.closest('.kebab-btn');
-    if (!menu && !btn) closeAllCourseMenus();
-  });
-
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') closeAllCourseMenus();
-  });
-
-  // Simple search (client-side) - matches title/instructor
-  const input = document.getElementById('myCoursesSearch');
-  const list = document.getElementById('myCoursesList');
-  if (input && list) {
-    input.addEventListener('input', function () {
-      const q = (input.value || '').trim().toLowerCase();
-      const cards = list.querySelectorAll('[data-course-title]');
-      cards.forEach(card => {
-        const title = card.getAttribute('data-course-title') || '';
-        const instructor = card.getAttribute('data-course-instructor') || '';
-        const hit = !q || title.includes(q) || instructor.includes(q);
-        card.style.display = hit ? '' : 'none';
-      });
-    });
-  }
-})();
-
-function closeAllCourseMenus() {
-  document.querySelectorAll('.course-menu').forEach(m => m.classList.add('hidden'));
-}
-
-function toggleCourseMenu(event, id) {
-  event.stopPropagation();
-  const el = document.getElementById(id);
-  if (!el) return;
-  const isOpen = !el.classList.contains('hidden');
-  closeAllCourseMenus();
-  if (!isOpen) el.classList.remove('hidden');
-}
-
-async function copyCourseLink(event, btn) {
-  event.stopPropagation();
-  const rel = btn.getAttribute('data-share-url') || '';
-  const url = (window.location && window.location.origin) ? (window.location.origin + rel) : rel;
-
-  try {
-    await navigator.clipboard.writeText(url);
-    btn.textContent = 'Copied!';
-    setTimeout(() => { btn.textContent = 'Share link to course'; }, 1200);
-  } catch (e) {
-    // Fallback
-    const ta = document.createElement('textarea');
-    ta.value = url;
-    document.body.appendChild(ta);
-    ta.select();
-    try { document.execCommand('copy'); } catch (err) {}
-    document.body.removeChild(ta);
-    btn.textContent = 'Copied!';
-    setTimeout(() => { btn.textContent = 'Share link to course'; }, 1200);
-  }
-
-  closeAllCourseMenus();
-}
-</script>
