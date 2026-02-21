@@ -5,17 +5,16 @@
       <p class="text-sm text-gray-500 mt-1">Stay on track with your enrolled courses.</p>
     </div>
 
-    <div class="relative w-72">
+    <div class="relative w-full sm:w-72 group">
       <input type="text"
             placeholder="Search your courses..."
             class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200
-                    bg-white shadow-sm
+                    bg-white shadow-sm transition-all
                     text-sm text-gray-700
-                    focus:outline-none focus:ring-2 focus:ring-gray-900/10
-                    focus:border-gray-400 transition" />
-
+                    focus:outline-none focus:ring-4 focus:ring-blue-500/10
+                    focus:border-blue-500 group-hover:border-gray-300" />
       <svg xmlns="http://www.w3.org/2000/svg"
-          class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+          class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-500 transition-colors"
           viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2">
         <circle cx="11" cy="11" r="8"/>
