@@ -29,104 +29,104 @@
 
   <div class="mt-6 space-y-4" id="myCoursesList">
     {% for c in enrolled_courses %}
-  {% with pct=c.progress|default:0 %}
-  <div class="group relative overflow-hidden bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition"
-       data-course-title="{{ c.title|lower }}"
-       data-course-instructor="{% for t in c.teachers %}{{ t.full_name|default:t.username }}{% if not forloop.last %}, {% endif %}{% endfor %}|lower">
+      {% with pct=c.progress|default:0 %}
+      <div class="group relative overflow-hidden bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition"
+          data-course-title="{{ c.title|lower }}"
+          data-course-instructor="{% for t in c.teachers %}{{ t.full_name|default:t.username }}{% if not forloop.last %}, {% endif %}{% endfor %}|lower">
 
-    <!-- Stretched link (card click) -->
-    <a href="{% url 'courses:detail' c.id %}" class="absolute inset-0 z-0" aria-label="Open course"></a>
+        <!-- Stretched link (card click) -->
+        <a href="{% url 'courses:detail' c.id %}" class="absolute inset-0 z-0" aria-label="Open course"></a>
 
-    <div class="relative z-10 flex items-stretch">
-      <!-- Left media -->
-      <div class="relative w-56 shrink-0 bg-gray-100">
-        {% if c.thumbnail %}
-          <img src="{{ c.thumbnail.url }}" alt="{{ c.title }}" class="h-full w-full object-cover"/>
-        {% else %}
-          <div class="h-full w-full bg-gradient-to-br from-slate-100 to-slate-200"></div>
-        {% endif %}
+        <div class="relative z-10 flex items-stretch">
+          <!-- Left media -->
+          <div class="relative w-56 shrink-0 bg-gray-100">
+            {% if c.thumbnail %}
+              <img src="{{ c.thumbnail.url }}" alt="{{ c.title }}" class="h-full w-full object-cover"/>
+            {% else %}
+              <div class="h-full w-full bg-gradient-to-br from-slate-100 to-slate-200"></div>
+            {% endif %}
 
-        <!-- Hover Start/Resume action (center) -->
-        <a href="{% url 'courses:detail' c.id %}"
-           class="absolute inset-0 flex items-center justify-center z-20"
-           onclick="event.stopPropagation();">
-          <span class="opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition
-                       inline-flex items-center justify-center h-14 w-14 rounded-full shadow-lg
-                       {% if pct|default:0 > 0 %}bg-blue-600 hover:bg-blue-700{% else %}bg-emerald-600 hover:bg-emerald-700{% endif %}
-                       text-white ring-4 ring-white/60
-                       active:scale-95">
-              <!-- Play icon -->
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M8 5v14l11-7z"/>
-              </svg>
-          </span>
-        </a>
-      </div>
-
-      <!-- Right content -->
-      <div class="flex-1 min-w-0 px-6 py-5">
-        <h4 class="text-xl font-semibold text-gray-900 leading-snug line-clamp-2">
-          {{ c.title }}
-        </h4>
-
-        <div class="mt-2 text-sm text-gray-600 truncate">
-          {% for t in c.teachers %}
-            {{ t.full_name|default:t.username }}{% if not forloop.last %}, {% endif %}
-          {% empty %}
-            <span class="text-gray-400">Instructor TBA</span>
-          {% endfor %}
-        </div>
-
-        <!-- Meta -->
-        <div class="mt-3 flex items-center gap-4 text-sm text-gray-500">
-          <span>{{ c.duration|default:"—" }} weeks</span>
-          <span class="text-gray-300">•</span>
-          <span>{{ c.enrollment_count|default:0 }} students</span>
-        </div>
-
-        <!-- Progress bar -->
-        <div class="mt-6">
-          <div class="flex items-center justify-between">
-            <div class="text-sm text-gray-700">
-              <span class="font-medium">{{ pct }}%</span> <span class="text-gray-600">complete</span>
-            </div>
-          </div>
-
-          <div class="mt-2 h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
-            <div class="h-full rounded-full bg-purple-600 transition-all" style="width: {{ pct }}%;"></div>
-          </div>
-
-          <!-- Rating (below progress bar) -->
-          <div class="mt-3 flex items-center justify-end">
-            <a href="{% url 'courses:detail' c.id %}#feedback"
-               class="rating-chip inline-flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 z-20"
-               onclick="event.stopPropagation();">
-              <span class="inline-flex items-center gap-0.5">
-                {% for i in "12345" %}
-                  <svg xmlns="http://www.w3.org/2000/svg"
-                       class="h-4 w-4 {% if c.feedback_rating|default:0 >= forloop.counter %}text-amber-500{% else %}text-gray-300{% endif %}"
-                       viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            <!-- Hover Start/Resume action (center) -->
+            <a href="{% url 'courses:detail' c.id %}"
+              class="absolute inset-0 flex items-center justify-center z-20"
+              onclick="event.stopPropagation();">
+              <span class="opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition
+                          inline-flex items-center justify-center h-14 w-14 rounded-full shadow-lg
+                          {% if pct|default:0 > 0 %}bg-blue-600 hover:bg-blue-700{% else %}bg-emerald-600 hover:bg-emerald-700{% endif %}
+                          text-white ring-4 ring-white/60
+                          active:scale-95">
+                  <!-- Play icon -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z"/>
                   </svg>
-                {% endfor %}
               </span>
-
-              {% if c.feedback_rating|default:0 > 0 %}
-                <span class="rating-default text-gray-600">Your rating</span>
-                <span class="rating-hover hidden text-gray-900 font-medium">Edit rating</span>
-              {% else %}
-                <span class="rating-default text-gray-600">Leave a rating</span>
-                <span class="rating-hover hidden text-gray-900 font-medium">Leave a rating</span>
-              {% endif %}
             </a>
           </div>
-        </div>
 
+          <!-- Right content -->
+          <div class="flex-1 min-w-0 px-6 py-5">
+            <h4 class="text-xl font-semibold text-gray-900 leading-snug line-clamp-2">
+              {{ c.title }}
+            </h4>
+
+            <div class="mt-2 text-sm text-gray-600 truncate">
+              {% for t in c.teachers %}
+                {{ t.full_name|default:t.username }}{% if not forloop.last %}, {% endif %}
+              {% empty %}
+                <span class="text-gray-400">Instructor TBA</span>
+              {% endfor %}
+            </div>
+
+            <!-- Meta -->
+            <div class="mt-3 flex items-center gap-4 text-sm text-gray-500">
+              <span>{{ c.duration|default:"—" }} weeks</span>
+              <span class="text-gray-300">•</span>
+              <span>{{ c.enrollment_count|default:0 }} students</span>
+            </div>
+
+            <!-- Progress bar -->
+            <div class="mt-6">
+              <div class="flex items-center justify-between">
+                <div class="text-sm text-gray-700">
+                  <span class="font-medium">{{ pct }}%</span> <span class="text-gray-600">complete</span>
+                </div>
+              </div>
+
+              <div class="mt-2 h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+                <div class="h-full rounded-full bg-purple-600 transition-all" style="width: {{ pct }}%;"></div>
+              </div>
+
+              <!-- Rating (below progress bar) -->
+              <div class="mt-3 flex items-center justify-end">
+                <a href="{% url 'courses:detail' c.id %}#feedback"
+                  class="rating-chip inline-flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 z-20"
+                  onclick="event.stopPropagation();">
+                  <span class="inline-flex items-center gap-0.5">
+                    {% for i in "12345" %}
+                      <svg xmlns="http://www.w3.org/2000/svg"
+                          class="h-4 w-4 {% if c.feedback_rating|default:0 >= forloop.counter %}text-amber-500{% else %}text-gray-300{% endif %}"
+                          viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                      </svg>
+                    {% endfor %}
+                  </span>
+
+                  {% if c.feedback_rating|default:0 > 0 %}
+                    <span class="rating-default text-gray-600">Your rating</span>
+                    <span class="rating-hover hidden text-gray-900 font-medium">Edit rating</span>
+                  {% else %}
+                    <span class="rating-default text-gray-600">Leave a rating</span>
+                    <span class="rating-hover hidden text-gray-900 font-medium">Leave a rating</span>
+                  {% endif %}
+                </a>
+              </div>
+            </div>
+
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-  {% endwith %}
-{% empty %}
+      {% endwith %}
+    {% empty %}
     <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-sm text-gray-500">
       You haven’t enrolled in any courses yet.
     </div>
