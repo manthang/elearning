@@ -1,119 +1,233 @@
 <div>
+  <style>
+    /* Rating label swap (Udemy-like) */
+    .rating-chip:hover .rating-default { display: none; }
+    .rating-chip:hover .rating-hover { display: inline; }
+  </style>
   <div class="flex items-center justify-between mb-6">
-
     <div>
       <p class="text-sm text-gray-500 mt-1">Stay on track with your enrolled courses.</p>
     </div>
 
-    <div class="relative w-full sm:w-72 group">
-      <input type="text"
-            placeholder="Search your courses..."
-            class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200
-                    bg-white shadow-sm transition-all
+    <div class="relative w-72">
+      <input id="myCoursesSearch" type="text"
+             placeholder="Search your courses..."
+             class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200
+                    bg-white shadow-sm
                     text-sm text-gray-700
-                    focus:outline-none focus:ring-4 focus:ring-blue-500/10
-                    focus:border-blue-500 group-hover:border-gray-300" />
+                    focus:outline-none focus:ring-2 focus:ring-gray-900/10
+                    focus:border-gray-400 transition" />
+
       <svg xmlns="http://www.w3.org/2000/svg"
-          class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-500 transition-colors"
-          viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2">
+           class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+           viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2">
         <circle cx="11" cy="11" r="8"/>
         <line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
     </div>
-
   </div>
 
-  <div class="mt-6 space-y-4">
+  <div class="mt-6 space-y-4" id="myCoursesList">
     {% for c in enrolled_courses %}
-    <a href="{% url 'courses:detail' c.id %}"
-      class="group block bg-white rounded-2xl border border-gray-200
-              shadow-sm hover:shadow-md hover:border-gray-300
-              transition p-5">
+  {% with pct=c.progress|default:0 %}
+  <div class="group relative overflow-hidden bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition"
+       data-course-title="{{ c.title|lower }}"
+       data-course-instructor="{% for t in c.teachers %}{{ t.full_name|default:t.username }}{% if not forloop.last %}, {% endif %}{% endfor %}|lower">
 
-      <div class="flex items-start gap-5">
+    <!-- Stretched link (card click) -->
+    <a href="{% url 'courses:detail' c.id %}" class="absolute inset-0 z-0" aria-label="Open course"></a>
 
-        <!-- Thumbnail -->
-        <div class="w-28 h-20 rounded-xl overflow-hidden bg-gray-100 shrink-0">
-          {% if c.thumbnail %}
-            <img src="{{ c.thumbnail.url }}"
-                class="w-full h-full object-cover"
-                alt="{{ c.title }}">
-          {% endif %}
-        </div>
+    <div class="relative z-10 flex items-stretch">
+      <!-- Left media -->
+      <div class="relative w-56 shrink-0 bg-gray-100">
+        {% if c.thumbnail %}
+          <img src="{{ c.thumbnail.url }}" alt="{{ c.title }}" class="h-full w-full object-cover"/>
+        {% else %}
+          <div class="h-full w-full bg-gradient-to-br from-slate-100 to-slate-200"></div>
+        {% endif %}
 
-        <!-- Content -->
-        <div class="flex-1 min-w-0">
-
-          <!-- Title + Continue -->
-          <div class="flex items-start justify-between gap-4">
-
-            <div class="min-w-0">
-              <h4 class="text-lg font-semibold text-gray-900 truncate">
-                {{ c.title }}
-              </h4>
-
-              <div class="mt-1 text-sm text-gray-600 truncate">
-                {% for t in c.teachers %}
-                  {{ t.full_name|default:t.username }}{% if not forloop.last %}, {% endif %}
-                {% empty %}
-                  <span class="text-gray-400">Instructor TBA</span>
-                {% endfor %}
+        <!-- Hover Start/Resume action (center) -->
+        <a href="{% url 'courses:detail' c.id %}"
+           class="absolute inset-0 flex items-center justify-center z-20"
+           onclick="event.stopPropagation();">
+          <span class="opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition
+                       inline-flex items-center justify-center h-14 w-14 rounded-full shadow-lg
+                       {% if pct|default:0 > 0 %}bg-blue-600 hover:bg-blue-700{% else %}bg-emerald-600 hover:bg-emerald-700{% endif %}
+                       text-white ring-4 ring-white/60
+                       active:scale-95">
+            {% if pct|default:0 > 0 %}
+              <!-- Resume icon: play + bar -->
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+                <path d="M5 6h2v12H5z"/>
+              </svg>
+            {% else %}
+              <!-- Start icon: play + plus badge -->
+              <div class="relative">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+                <span class="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-white text-emerald-700
+                             flex items-center justify-center text-[12px] font-bold shadow">
+                  +
+                </span>
               </div>
-            </div>
-
-            {% if c.progress > 0 %}
-              <span class="inline-flex items-center px-4 py-2 rounded-xl
-                          bg-gray-900 text-white text-sm font-semibold
-                          hover:bg-black transition">
-                Continue
-              </span>
             {% endif %}
-
-          </div>
-
-          <!-- Progress -->
-          <div class="mt-4">
-
-            <div class="flex items-center justify-between text-xs text-gray-500">
-              <span>Progress</span>
-              <span>{{ c.progress }}%</span>
-            </div>
-
-            <div class="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
-              <div class="h-full bg-gray-900 transition-all"
-                  style="width: {{ c.progress }}%;">
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Meta -->
-          <div class="mt-4 flex items-center gap-5 text-xs text-gray-500">
-
-            {% if c.last_accessed %}
-              <span>
-                Last accessed {{ c.last_accessed|date:"M d, Y" }}
-              </span>
-            {% endif %}
-
-            <span>•</span>
-
-            <span>{{ c.duration|default:"—" }} weeks</span>
-
-            <span>•</span>
-
-            <span>{{ c.enrollment_count|default:0 }} students</span>
-
-          </div>
-
-        </div>
+          </span>
+        </a>
       </div>
-    </a>
-    {% empty %}
+
+      <!-- Right content -->
+      <div class="flex-1 min-w-0 px-6 py-5">
+        <h4 class="text-xl font-semibold text-gray-900 leading-snug line-clamp-2">
+          {{ c.title }}
+        </h4>
+
+        <div class="mt-2 text-sm text-gray-600 truncate">
+          {% for t in c.teachers %}
+            {{ t.full_name|default:t.username }}{% if not forloop.last %}, {% endif %}
+          {% empty %}
+            <span class="text-gray-400">Instructor TBA</span>
+          {% endfor %}
+        </div>
+
+        <!-- Meta -->
+        <div class="mt-3 flex items-center gap-4 text-sm text-gray-500">
+          <span>{{ c.duration|default:"—" }} weeks</span>
+          <span class="text-gray-300">•</span>
+          <span>{{ c.enrollment_count|default:0 }} students</span>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="mt-6">
+          <div class="flex items-center justify-between">
+            <div class="text-sm text-gray-700">
+              <span class="font-medium">{{ pct }}%</span> <span class="text-gray-600">complete</span>
+            </div>
+          </div>
+
+          <div class="mt-2 h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
+            <div class="h-full rounded-full bg-purple-600 transition-all" style="width: {{ pct }}%;"></div>
+          </div>
+
+          <!-- Rating (below progress bar) -->
+          <div class="mt-3 flex items-center justify-end">
+            <a href="{% url 'courses:detail' c.id %}#feedback"
+               class="rating-chip inline-flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900 z-20"
+               onclick="event.stopPropagation();">
+              <span class="inline-flex items-center gap-0.5">
+                {% for i in "12345" %}
+                  <svg xmlns="http://www.w3.org/2000/svg"
+                       class="h-4 w-4 {% if c.feedback_rating|default:0 >= forloop.counter %}text-amber-500{% else %}text-gray-300{% endif %}"
+                       viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                  </svg>
+                {% endfor %}
+              </span>
+
+              {% if c.feedback_rating|default:0 > 0 %}
+                <span class="rating-default text-gray-600">Your rating</span>
+                <span class="rating-hover hidden text-gray-900 font-medium">Edit rating</span>
+              {% else %}
+                <span class="rating-default text-gray-600">Leave a rating</span>
+                <span class="rating-hover hidden text-gray-900 font-medium">Leave a rating</span>
+              {% endif %}
+            </a>
+          </div>
+
+          <!-- Bottom info strip -->
+          <div class="mt-4 pt-4 border-t border-gray-100 text-sm text-gray-600 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400"
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 8v4"/>
+              <circle cx="12" cy="16" r="1"/>
+            </svg>
+
+            Grade required to pass the course:
+            <span class="font-medium text-gray-800">
+              {{ c.required_grade|default:"70" }}%
+            </span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  {% endwith %}
+{% empty %}
     <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-sm text-gray-500">
       You haven’t enrolled in any courses yet.
     </div>
     {% endfor %}
   </div>
 </div>
+
+<script>
+(function () {
+  // Close menus on outside click / ESC
+  document.addEventListener('click', function (e) {
+    const menu = e.target.closest('.course-menu');
+    const btn = e.target.closest('.kebab-btn');
+    if (!menu && !btn) closeAllCourseMenus();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeAllCourseMenus();
+  });
+
+  // Simple search (client-side) - matches title/instructor
+  const input = document.getElementById('myCoursesSearch');
+  const list = document.getElementById('myCoursesList');
+  if (input && list) {
+    input.addEventListener('input', function () {
+      const q = (input.value || '').trim().toLowerCase();
+      const cards = list.querySelectorAll('[data-course-title]');
+      cards.forEach(card => {
+        const title = card.getAttribute('data-course-title') || '';
+        const instructor = card.getAttribute('data-course-instructor') || '';
+        const hit = !q || title.includes(q) || instructor.includes(q);
+        card.style.display = hit ? '' : 'none';
+      });
+    });
+  }
+})();
+
+function closeAllCourseMenus() {
+  document.querySelectorAll('.course-menu').forEach(m => m.classList.add('hidden'));
+}
+
+function toggleCourseMenu(event, id) {
+  event.stopPropagation();
+  const el = document.getElementById(id);
+  if (!el) return;
+  const isOpen = !el.classList.contains('hidden');
+  closeAllCourseMenus();
+  if (!isOpen) el.classList.remove('hidden');
+}
+
+async function copyCourseLink(event, btn) {
+  event.stopPropagation();
+  const rel = btn.getAttribute('data-share-url') || '';
+  const url = (window.location && window.location.origin) ? (window.location.origin + rel) : rel;
+
+  try {
+    await navigator.clipboard.writeText(url);
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Share link to course'; }, 1200);
+  } catch (e) {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = url;
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch (err) {}
+    document.body.removeChild(ta);
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Share link to course'; }, 1200);
+  }
+
+  closeAllCourseMenus();
+}
+</script>
