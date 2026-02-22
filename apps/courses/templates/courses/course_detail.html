@@ -283,7 +283,7 @@
         </div>
 
         {% if is_teacher_view %}
-          <a href="{% url 'courses:manage' course.id %}"
+          <a href="{% url 'courses:course_manage' course.id %}"
              class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition shadow-sm">
             <!-- upload icon -->
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
@@ -463,7 +463,7 @@
                       </button>
 
                       <!-- Delete -->
-                      <form method="post" action="{% url 'courses:manage' course.id %}">
+                      <form method="post" action="{% url 'courses:course_manage' course.id %}">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="delete_deadline"/>
                         <input type="hidden" name="deadline_id" value="{{ d.id }}"/>
@@ -530,7 +530,7 @@
 
       <!-- Body -->
       <form method="post"
-            action="{% url 'courses:manage' course.id %}"
+            action="{% url 'courses:course_manage' course.id %}"
             class="px-6 py-5 space-y-4">
         {% csrf_token %}
         <input type="hidden" name="action" value="add_deadline"/>
@@ -610,7 +610,7 @@
 
       <!-- Body -->
       <form method="post"
-            action="{% url 'courses:manage' course.id %}"
+            action="{% url 'courses:course_manage' course.id %}"
             class="px-6 py-5 space-y-4">
         {% csrf_token %}
         <input type="hidden" name="action" value="update_deadline"/>
@@ -758,7 +758,7 @@
       </div>
 
       <!-- Body (scrollable) -->
-      <form id="editCourseModalForm" method="post" action="{% url 'courses:update_course_info' course.id %}" class="px-6 py-5 space-y-5 overflow-y-auto">
+      <form id="editCourseModalForm" method="post" action="{% url 'courses:course_edit' course.id %}" class="px-6 py-5 space-y-5 overflow-y-auto">
         {% csrf_token %}
 
         <!-- Course ID -->
@@ -925,7 +925,7 @@
         Cancel
       </button>
 
-      <form id="removeStudentForm" method="post" action="{% url 'courses:manage' course.id %}">
+      <form id="removeStudentForm" method="post" action="{% url 'courses:course_manage' course.id %}">
         {% csrf_token %}
         <input type="hidden" name="remove_enrollment_id" id="removeEnrollmentId" value="">
         <button type="submit"
@@ -983,7 +983,7 @@
 
       <form id="deleteMaterialForm"
             method="post"
-            action="{% url 'courses:manage' course.id %}">
+            action="{% url 'courses:course_manage' course.id %}">
         {% csrf_token %}
         <input type="hidden" name="delete_material_id" id="deleteMaterialId">
         <button type="submit"

@@ -28,7 +28,7 @@
     {% for c in all_courses %}
 
       <!-- Entire card clickable -->
-      <a href="{% url 'courses:detail' c.id %}"
+      <a href="{% url 'courses:course_detail' c.id %}"
          class="group relative bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden
                 hover:shadow-md hover:border-gray-300 transition block">
 

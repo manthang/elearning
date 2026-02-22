@@ -211,7 +211,7 @@ def course_edit(request, course_id):
     is_teacher = Teaching.objects.filter(course=course, teacher=request.user).exists()
     if not is_teacher:
         messages.error(request, "You don't have permission to edit this course.")
-        return redirect("courses:detail", course_id=course.id)
+        return redirect("courses:course_detail", course_id=course.id)
 
     new_course_id = (request.POST.get("course_id") or "").strip()
     title = (request.POST.get("title") or "").strip()
@@ -219,11 +219,11 @@ def course_edit(request, course_id):
 
     if not new_course_id:
         messages.error(request, "Course ID is required.")
-        return redirect("courses:detail", course_id=course.id)
+        return redirect("courses:course_detail", course_id=course.id)
 
     if not title:
         messages.error(request, "Course title is required.")
-        return redirect("courses:detail", course_id=course.id)
+        return redirect("courses:course_detail", course_id=course.id)
 
     # Core fields
     course.course_id = new_course_id
@@ -235,7 +235,7 @@ def course_edit(request, course_id):
     valid_categories = {k for k, _ in Course.CATEGORY_CHOICES}
     if category not in valid_categories:
         messages.error(request, "Invalid category selected.")
-        return redirect("courses:detail", course_id=course.id)
+        return redirect("courses:course_detail", course_id=course.id)
     course.category = category
 
     # Duration
@@ -251,7 +251,7 @@ def course_edit(request, course_id):
     except IntegrityError:
         messages.error(request, "That Course ID is already used. Please choose another one.")
 
-    return redirect("courses:detail", course_id=course.id)
+    return redirect("courses:course_detail", course_id=course.id)
 
 
 # =========================
@@ -349,14 +349,14 @@ def course_manage(request, course_id):
                 messages.success(request, "Student removed from the course.")
             else:
                 messages.error(request, "Enrollment not found.")
-            return redirect("courses:detail", course_id=course.id)
+            return redirect("courses:course_detail", course_id=course.id)
 
         # ---------- Materials ----------
         if action == "upload_material":
             f = request.FILES.get("material") or request.FILES.get("materials") or request.FILES.get("file")
             if not f:
                 messages.error(request, "Please choose a file to upload.")
-                return redirect("courses:detail", course_id=course.id)
+                return redirect("courses:course_detail", course_id=course.id)
 
             CourseMaterial.objects.create(
                 course=course,
@@ -365,13 +365,13 @@ def course_manage(request, course_id):
                 uploaded_by=user
             )
             messages.success(request, "Material uploaded.")
-            return redirect("courses:detail", course_id=course.id)
+            return redirect("courses:course_detail", course_id=course.id)
 
         if action == "delete_material":
             material_id = (request.POST.get("material_id") or "").strip()
             CourseMaterial.objects.filter(id=material_id, course=course).delete()
             messages.success(request, "Material deleted.")
-            return redirect("courses:detail", course_id=course.id)
+            return redirect("courses:course_detail", course_id=course.id)
 
         # ---------- Deadlines ----------
         if action == "add_deadline":
@@ -381,7 +381,7 @@ def course_manage(request, course_id):
 
             if not title or not due_at_raw:
                 messages.error(request, "Title and due date are required.")
-                return redirect("courses:detail", course_id=course.id)
+                return redirect("courses:course_detail", course_id=course.id)
 
             try:
                 dt = datetime.fromisoformat(due_at_raw)
@@ -389,7 +389,7 @@ def course_manage(request, course_id):
                     dt = timezone.make_aware(dt, timezone.get_current_timezone())
             except Exception:
                 messages.error(request, "Invalid due date format.")
-                return redirect("courses:detail", course_id=course.id)
+                return redirect("courses:course_detail", course_id=course.id)
 
             Deadline.objects.create(
                 course=course,
@@ -398,7 +398,7 @@ def course_manage(request, course_id):
                 description=description
             )
             messages.success(request, "Deadline added.")
-            return redirect("courses:detail", course_id=course.id)
+            return redirect("courses:course_detail", course_id=course.id)
 
         if action == "update_deadline":
             deadline_id = (request.POST.get("deadline_id") or "").strip()
@@ -408,16 +408,16 @@ def course_manage(request, course_id):
 
             if not deadline_id:
                 messages.error(request, "Deadline not found.")
-                return redirect("courses:detail", course_id=course.id)
+                return redirect("courses:course_detail", course_id=course.id)
 
             dl = Deadline.objects.filter(id=deadline_id, course=course).first()
             if not dl:
                 messages.error(request, "Deadline not found.")
-                return redirect("courses:detail", course_id=course.id)
+                return redirect("courses:course_detail", course_id=course.id)
 
             if not title or not due_at_raw:
                 messages.error(request, "Title and due date are required.")
-                return redirect("courses:detail", course_id=course.id)
+                return redirect("courses:course_detail", course_id=course.id)
 
             try:
                 dt = datetime.fromisoformat(due_at_raw)
@@ -425,7 +425,7 @@ def course_manage(request, course_id):
                     dt = timezone.make_aware(dt, timezone.get_current_timezone())
             except Exception:
                 messages.error(request, "Invalid due date format.")
-                return redirect("courses:detail", course_id=course.id)
+                return redirect("courses:course_detail", course_id=course.id)
 
             dl.title = title
             dl.due_at = dt
@@ -433,20 +433,20 @@ def course_manage(request, course_id):
             dl.save()
 
             messages.success(request, "Deadline updated.")
-            return redirect("courses:detail", course_id=course.id)
+            return redirect("courses:course_detail", course_id=course.id)
 
         if action == "delete_deadline":
             deadline_id = (request.POST.get("deadline_id") or "").strip()
             Deadline.objects.filter(id=deadline_id, course=course).delete()
             messages.success(request, "Deadline deleted.")
-            return redirect("courses:detail", course_id=course.id)
+            return redirect("courses:course_detail", course_id=course.id)
 
         # Unknown action
         messages.error(request, "Invalid action.")
-        return redirect("courses:detail", course_id=course.id)
+        return redirect("courses:course_detail", course_id=course.id)
 
     # For GET, just go back to detail (manage is POST-only in this design)
-    return redirect("courses:detail", course_id=course.id)
+    return redirect("courses:course_detail", course_id=course.id)
 
 
 @login_required
@@ -632,14 +632,3 @@ def course_feedback(request, course_id):
     messages.success(request, "Feedback submitted successfully!")
     return redirect("courses:student_home")
 
-
-@login_required
-def course_continue(request, course_id):
-    if request.user.role != request.user.Role.STUDENT:
-        return HttpResponseForbidden("Students only")
-
-    course = get_object_or_404(Course, id=course_id)
-
-    return render(request, "courses/course_detail.html", {
-        "course": course
-    })

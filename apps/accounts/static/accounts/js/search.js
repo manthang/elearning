@@ -63,19 +63,22 @@ function searchUsers() {
       }
 
       data.results.forEach(u => {
-        container.insertAdjacentHTML("beforeend", `
-          <div
-            onclick="openUserProfile(${u.id})"
-            class="border rounded-xl p-4 flex gap-4 hover:bg-gray-50 cursor-pointer"
-          >
-            <img src="${u.avatar}" class="w-10 h-10 rounded-full object-cover" />
-            <div>
-              <p class="font-semibold text-sm">${u.name}</p>
-              <p class="text-xs text-gray-500">✉ ${u.email}</p>
-              ${u.location ? `<p class="text-xs text-gray-500">📍 ${u.location}</p>` : ""}
-            </div>
+        const card = document.createElement("div");
+        card.className = "border rounded-xl p-4 flex gap-4 hover:bg-gray-50 cursor-pointer";
+        card.dataset.username = u.username;
+
+        card.innerHTML = `
+          <img src="${u.avatar || "/media/profile_photos/default-avatar.png"}"
+              class="w-10 h-10 rounded-full object-cover" />
+          <div>
+            <p class="font-semibold text-sm">${u.name}</p>
+            <p class="text-xs text-gray-500">✉ ${u.email}</p>
+            ${u.location ? `<p class="text-xs text-gray-500">📍 ${u.location}</p>` : ""}
           </div>
-        `);
+        `;
+
+        card.addEventListener("click", () => openUserProfile(u.username));
+        container.appendChild(card);
       });
     })
     .catch(() => {
@@ -88,8 +91,8 @@ function searchUsers() {
    PROFILE VIEW
 ========================= */
 
-function openUserProfile(userId) {
-  fetch(`/accounts/profile/${userId}/`)
+function openUserProfile(userName) {
+  fetch(`/accounts/${encodeURIComponent(userName)}/`)
     .then(res => {
       if (!res.ok) throw new Error("Profile not found");
       return res.json();
@@ -107,7 +110,7 @@ function openUserProfile(userId) {
         data.location || "—";
       document.getElementById("profileJoined").innerText = data.joined;
       document.getElementById("profileBio").innerText =
-        data.bio || "No bio provided.";
+        data.bio || "---";
 
       document.getElementById("profileAvatar").src =
         data.avatar || "/media/profile_photos/default-avatar.png";

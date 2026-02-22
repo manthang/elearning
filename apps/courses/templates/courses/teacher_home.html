@@ -27,8 +27,8 @@
 </div>
 
 {% include "chat/chat_modal.html" %}
-{% include "courses/modals/search_modal.html" %}
-{% include "courses/modals/profile_edit_modal.html" %}
+{% include "accounts/search_modal.html" %}
+{% include "accounts/profile_edit_modal.html" %}
 {% include "courses/modals/create_course_modal.html" %}
 {% endblock %}
 
@@ -37,5 +37,5 @@
   <script>const CURRENT_USER_ID = {{ request.user.id }};</script>
   {% endif %}
   <script src="{% static 'chat/js/chat.js' %}"></script>
-  <script src="{% static 'courses/js/search.js' %}"></script>
+  <script src="{% static 'accounts/js/search.js' %}"></script>
 {% endblock %}

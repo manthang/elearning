@@ -28,7 +28,7 @@
       <!-- Body -->
       <form id="profileEditForm" 
             method="post" 
-            action="{% url 'courses:profile_update' %}"
+            action="{% url 'accounts:edit_profile' %}"
             enctype="multipart/form-data"
             class="px-6 py-5 space-y-5 overflow-y-auto">
         {% csrf_token %}

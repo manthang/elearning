@@ -27,7 +27,7 @@
 
       {% if tab == "courses" %}
         <!-- ENROLLED COURSES -->
-        {% include "courses/components/my_courses.html" %}
+        {% include "courses/components/student_courses.html" %}
       {% elif tab == "all" %}
         <!-- ALL COURSES -->
         {% include "courses/components/all_courses.html" %}
@@ -41,13 +41,10 @@
 </div>
 
 <!-- ================= PROFILE EDIT MODAL ================= -->
-{% include "courses/modals/profile_edit_modal.html" %}
-
-<!-- ================= FEEDBACK MODAL ================= -->
-{% include "courses/modals/feedback_modal.html" %}
+{% include "accounts/profile_edit_modal.html" %}
 
 <!-- ================= SEARCH MODAL (SIDE PANEL) ================= -->
-{% include "courses/modals/search_modal.html" %}
+{% include "accounts/search_modal.html" %}
 
 <!-- ================= CHAT MODAL ================= -->
 {% include "chat/chat_modal.html" %}
@@ -60,7 +57,6 @@
     const CURRENT_USER_ID = {{ request.user.id }};
   </script>
   {% endif %}
-  <script src="{% static 'courses/js/feedback.js' %}"></script>
   <script src="{% static 'chat/js/chat.js' %}"></script>
-  <script src="{% static 'courses/js/search.js' %}"></script>
+  <script src="{% static 'accounts/js/search.js' %}"></script>
 {% endblock %}
