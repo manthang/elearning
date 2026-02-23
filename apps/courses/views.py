@@ -10,6 +10,7 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.utils import timezone
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from .models import *
@@ -597,38 +598,33 @@ def course_enroll(request, course_id):
 
 
 @login_required
+@require_POST
 def course_feedback(request, course_id):
     if request.user.role != request.user.Role.STUDENT:
         return HttpResponseForbidden("Students only")
 
     course = get_object_or_404(Course, id=course_id)
 
-    # 🔒 ENFORCE enrollment
-    is_enrolled = Enrollment.objects.filter(
-        student=request.user,
-        course=course
-    ).exists()
-
+    is_enrolled = Enrollment.objects.filter(student=request.user, course=course).exists()
     if not is_enrolled:
-        return HttpResponseForbidden(
-            "You must be enrolled in this course to leave feedback."
-        )
+        return HttpResponseForbidden("You must be enrolled in this course to leave feedback.")
 
-    form = CourseFeedbackForm(request.POST)
+    existing = CourseFeedback.objects.filter(course=course, student=request.user).first()
+    form = CourseFeedbackForm(request.POST, instance=existing)
+
+    # safe "next" redirect (fallback to student_home)
+    next_url = request.POST.get("next")
+    if not next_url or not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+        next_url = redirect("courses:student_home").url
 
     if not form.is_valid():
-        # NEVER save anything if form is invalid
-        return redirect("courses:student_home")
+        messages.error(request, "Please provide a valid rating (1–5).")
+        return redirect(next_url)
 
-    CourseFeedback.objects.update_or_create(
-        course=course,
-        student=request.user,
-        defaults={
-            "rating": form.cleaned_data["rating"],
-            "comment": form.cleaned_data.get("comment", ""),
-        }
-    )
+    feedback = form.save(commit=False)
+    feedback.course = course
+    feedback.student = request.user
+    feedback.save()
 
     messages.success(request, "Feedback submitted successfully!")
-    return redirect("courses:student_home")
-
+    return redirect(next_url)
