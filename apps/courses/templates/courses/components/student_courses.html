@@ -14,7 +14,7 @@
     .star-btn:hover { transform: translateY(-1px) scale(1.05); }
     .star-btn:active { transform: translateY(0) scale(.98); }
 
-    /* (Optional) prevent body scroll when modal open */
+    /* Prevent body scroll when modal open */
     body.modal-open { overflow: hidden; }
   </style>
 
@@ -153,7 +153,7 @@
   </div>
 
   <!-- Feedback Modal -->
-  <div id="feedbackModal" class="modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true">
+  <div id="feedbackModal" class="modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true" tabindex="-1">
     <div class="h-full w-full flex items-center justify-center p-4">
       <div class="modal-panel bg-white rounded-2xl shadow-xl border border-gray-200">
         <div class="px-6 py-5 border-b border-gray-100">
@@ -162,12 +162,13 @@
               <h3 class="text-lg font-semibold text-gray-900">Leave a feedback</h3>
               <p id="feedbackCourseTitle" class="mt-1 text-sm text-gray-500 truncate">—</p>
             </div>
-            <button type="button" id="closeFeedbackModalBtn"
-                    class="shrink-0 inline-flex items-center justify-center h-9 w-9 rounded-xl border border-gray-200
-                           text-gray-600 hover:bg-gray-50 hover:text-gray-800 transition"
+            <button type="button"
+                    id="closeFeedbackModalBtn"
+                    class="p-2 rounded-xl hover:bg-slate-100 text-slate-500"
                     aria-label="Close">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 6L6 18"/><path d="M6 6l12 12"/>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
               </svg>
             </button>
           </div>
@@ -183,11 +184,11 @@
             <label class="block text-sm font-medium text-gray-700">Your rating</label>
             <div class="mt-3 flex items-center gap-1" id="feedbackStars">
               {% for i in "12345" %}
-              <button type="button" class="star-btn" data-star="{{ forloop.counter }}" aria-label="Rate {{ forloop.counter }}">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-300" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
-                </svg>
-              </button>
+                <button type="button" class="star-btn" data-star="{{ forloop.counter }}" aria-label="Rate {{ forloop.counter }}">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-300" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                  </svg>
+                </button>
               {% endfor %}
               <span class="ml-3 text-sm text-gray-500" id="feedbackHint">Select a rating</span>
             </div>
@@ -199,22 +200,22 @@
             </label>
             <textarea id="feedbackComment" name="comment" rows="3"
                       class="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700
-                             focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500"
+                            focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500"
                       placeholder="Share what you liked or what could be improved..."></textarea>
           </div>
 
           <div class="mt-6 flex items-center justify-end gap-3">
             <button type="button" id="cancelFeedbackBtn"
                     class="px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700
-                           hover:bg-gray-50 hover:border-gray-300 transition">
+                          hover:bg-gray-50 hover:border-gray-300 transition">
               Cancel
             </button>
 
             <button type="submit" id="saveFeedbackBtn" disabled
                     class="px-4 py-2 rounded-xl text-sm font-semibold text-white transition
-                           bg-blue-600/60 cursor-not-allowed
-                           enabled:bg-blue-600 enabled:hover:bg-blue-700 enabled:cursor-pointer
-                           focus:outline-none focus:ring-4 focus:ring-blue-500/20">
+                          bg-blue-600/60 cursor-not-allowed
+                          enabled:bg-blue-600 enabled:hover:bg-blue-700 enabled:cursor-pointer
+                          focus:outline-none focus:ring-4 focus:ring-blue-500/20">
               Save
             </button>
           </div>
@@ -249,22 +250,34 @@
       let initialComment = '';
       let currentRating = 0;
 
+      // ✅ store the element that opened the modal so we can restore focus on close
+      let lastOpenerEl = null;
+
       function openModal() {
         modal.setAttribute('aria-hidden', 'false');
         document.body.classList.add('modal-open');
 
         // focus comment for quick typing
         setTimeout(() => {
-          commentInput && commentInput.focus();
+          if (commentInput) commentInput.focus();
         }, 0);
       }
 
       function closeModal({ reset = true } = {}) {
+        // ✅ IMPORTANT: Move focus out of modal BEFORE aria-hidden becomes true
+        if (modal.contains(document.activeElement)) {
+          if (lastOpenerEl && typeof lastOpenerEl.focus === 'function') {
+            lastOpenerEl.focus();
+          } else {
+            // fallback
+            if (modal && typeof modal.focus === 'function') modal.focus();
+          }
+        }
+
         modal.setAttribute('aria-hidden', 'true');
         document.body.classList.remove('modal-open');
 
         if (reset) {
-          // Reset fields so next open is cleanly re-filled
           courseTitleEl.textContent = '—';
           courseIdInput.value = '';
           ratingInput.value = '';
@@ -316,9 +329,7 @@
         const ratingChanged = rating !== (initialRating || 0);
         const commentChanged = comment !== (initialComment || '');
 
-        // Require a rating to enable save (common UX + backend-friendly)
         const ratingValid = rating >= 1;
-
         return ratingValid && (ratingChanged || commentChanged);
       }
 
@@ -332,13 +343,10 @@
         const rating = parseInt(card.getAttribute('data-feedback-rating') || '0', 10) || 0;
         const comment = card.getAttribute('data-feedback-comment') || '';
 
-        // store initials for dirty-checking
         initialRating = rating;
         initialComment = (comment || '').trim();
-
         currentRating = rating;
 
-        // fill UI
         courseTitleEl.textContent = displayTitle || '—';
         courseIdInput.value = courseId || '';
         ratingInput.value = String(rating || 0);
@@ -347,22 +355,19 @@
         renderStars(rating || 0);
         setHint(rating || 0);
 
-        // set action to /courses/<id>/feedback/
-        if (courseId) {
-          form.action = `/courses/${courseId}/feedback/`;
-        } else {
-          form.action = '';
-        }
+        if (courseId) form.action = `/courses/${courseId}/feedback/`;
+        else form.action = '';
 
-        // Save disabled until user changes something
         syncSaveState();
       }
 
-      // 1) Click rating area -> open modal, fill existing values
+      // Click rating area -> open modal, fill existing values
       document.querySelectorAll('[data-open-feedback]').forEach((btn) => {
         btn.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
+
+          lastOpenerEl = btn; // ✅ capture opener
 
           const card = btn.closest('[data-course-id]');
           if (!card) return;
@@ -393,13 +398,8 @@
         });
       }
 
-      // 2) Only enable Save if there are changes
-      // handled by syncSaveState()
-
-      // 3) Save submits to /courses/<id>/feedback/ (non-AJAX)
-      // (Optional) store a flag; not required because the redirect reload shows latest rating.
+      // Save submits to /courses/<id>/feedback/ (non-AJAX)
       form.addEventListener('submit', () => {
-        // If you ever want to detect after reload, you can use this:
         sessionStorage.setItem('feedback_submitted', '1');
       });
 
@@ -418,11 +418,6 @@
         if (e.key !== 'Escape') return;
         if (modal.getAttribute('aria-hidden') === 'false') closeModal();
       });
-
-      // 4) After closing modal, refresh my courses to show latest rating:
-      // In non-AJAX flow, after Save the server redirects back to this page,
-      // so you already see latest rating immediately.
-      // (We do NOT force reload on close/cancel to avoid unnecessary refresh.)
     })();
   </script>
 </div>
