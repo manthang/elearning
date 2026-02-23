@@ -13,7 +13,11 @@
     .star-btn { transition: transform .12s ease, filter .12s ease; }
     .star-btn:hover { transform: translateY(-1px) scale(1.05); }
     .star-btn:active { transform: translateY(0) scale(.98); }
+
+    /* (Optional) prevent body scroll when modal open */
+    body.modal-open { overflow: hidden; }
   </style>
+
   <div class="flex items-center justify-between mb-6">
     <div>
       <p class="text-sm text-gray-500 mt-1">Stay on track with your enrolled courses.</p>
@@ -21,16 +25,16 @@
 
     <div class="relative w-full sm:w-72 group">
       <input type="text"
-            placeholder="Search your courses..."
-            class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200
+             placeholder="Search your courses..."
+             class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200
                     bg-white shadow-sm transition-all
                     text-sm text-gray-700
                     focus:outline-none focus:ring-4 focus:ring-blue-500/10
                     focus:border-blue-500 group-hover:border-gray-300" />
       <svg xmlns="http://www.w3.org/2000/svg"
-          class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-500 transition-colors"
-          viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2">
+           class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-500 transition-colors"
+           viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2">
         <circle cx="11" cy="11" r="8"/>
         <line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
@@ -41,12 +45,13 @@
     {% for c in enrolled_courses %}
       {% with pct=c.progress|default:0 %}
       <div class="group relative overflow-hidden bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-gray-300 transition"
-          data-course-title="{{ c.title|lower }}"
-          data-course-instructor="{% for t in c.teachers %}{{ t.full_name|default:t.username }}{% if not forloop.last %}, {% endif %}{% endfor %}"
-          data-course-id="{{ c.id }}"
-          data-detail-url="{% url 'courses:course_detail' c.id %}"
-          data-feedback-rating="{{ c.feedback_rating|default:0 }}"
-          data-feedback-comment="{{ c.feedback_comment|default:''|escapejs }}">
+           data-course-title="{{ c.title|lower }}"
+           data-course-display-title="{{ c.title|escapejs }}"
+           data-course-instructor="{% for t in c.teachers %}{{ t.full_name|default:t.username }}{% if not forloop.last %}, {% endif %}{% endfor %}"
+           data-course-id="{{ c.id }}"
+           data-detail-url="{% url 'courses:course_detail' c.id %}"
+           data-feedback-rating="{{ c.feedback_rating|default:0 }}"
+           data-feedback-comment="{{ c.feedback_comment|default:''|escapejs }}">
 
         <!-- Stretched link (card click) -->
         <a href="{% url 'courses:course_detail' c.id %}" class="absolute inset-0 z-0" aria-label="Open course"></a>
@@ -62,17 +67,16 @@
 
             <!-- Hover Start/Resume action (center) -->
             <a href="{% url 'courses:course_detail' c.id %}"
-              class="absolute inset-0 flex items-center justify-center z-20"
-              onclick="event.stopPropagation();">
+               class="absolute inset-0 flex items-center justify-center z-20"
+               onclick="event.stopPropagation();">
               <span class="opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 transition
                           inline-flex items-center justify-center h-14 w-14 rounded-full shadow-lg
                           {% if pct|default:0 > 0 %}bg-blue-600 hover:bg-blue-700{% else %}bg-emerald-600 hover:bg-emerald-700{% endif %}
                           text-white ring-4 ring-white/60
                           active:scale-95">
-                  <!-- Play icon -->
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M8 5v14l11-7z"/>
-                  </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
               </span>
             </a>
           </div>
@@ -119,8 +123,8 @@
                   <span class="inline-flex items-center gap-0.5" data-rating-stars>
                     {% for i in "12345" %}
                       <svg xmlns="http://www.w3.org/2000/svg"
-                          class="h-4 w-4 {% if c.feedback_rating|default:0 >= forloop.counter %}text-amber-500{% else %}text-gray-300{% endif %}"
-                          viewBox="0 0 24 24" fill="currentColor">
+                           class="h-4 w-4 {% if c.feedback_rating|default:0 >= forloop.counter %}text-amber-500{% else %}text-gray-300{% endif %}"
+                           viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
                       </svg>
                     {% endfor %}
@@ -142,9 +146,9 @@
       </div>
       {% endwith %}
     {% empty %}
-    <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-sm text-gray-500">
-      You haven’t enrolled in any courses yet.
-    </div>
+      <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-sm text-gray-500">
+        You haven’t enrolled in any courses yet.
+      </div>
     {% endfor %}
   </div>
 
@@ -190,7 +194,9 @@
           </div>
 
           <div class="mt-5">
-            <label class="block text-sm font-medium text-gray-700">Comment <span class="text-gray-400">(optional)</span></label>
+            <label class="block text-sm font-medium text-gray-700">
+              Comment <span class="text-gray-400">(optional)</span>
+            </label>
             <textarea id="feedbackComment" name="comment" rows="3"
                       class="mt-2 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-700
                              focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500"
@@ -213,6 +219,7 @@
             </button>
           </div>
         </form>
+
       </div>
     </div>
   </div>
@@ -220,26 +227,79 @@
   <script>
     (function () {
       const modal = document.getElementById('feedbackModal');
-      const titleEl = document.getElementById('feedbackCourseTitle');
-      const courseIdEl = document.getElementById('feedbackCourseId');
-      const commentEl = document.getElementById('feedbackComment');
-      const saveBtn = document.getElementById('saveFeedbackBtn');
-      const cancelBtn = document.getElementById('cancelFeedbackBtn');
-      const closeBtn = document.getElementById('closeFeedbackModalBtn');
+      const modalPanel = modal ? modal.querySelector('.modal-panel') : null;
+
+      const form = document.getElementById('feedbackForm');
+      const courseTitleEl = document.getElementById('feedbackCourseTitle');
+
+      const courseIdInput = document.getElementById('feedbackCourseId');
+      const ratingInput = document.getElementById('feedbackRating');
+      const commentInput = document.getElementById('feedbackComment');
+
       const starsWrap = document.getElementById('feedbackStars');
       const hintEl = document.getElementById('feedbackHint');
 
-      let activeCard = null;
-      let initialRating = 0;
-      let selectedRating = 0;
+      const saveBtn = document.getElementById('saveFeedbackBtn');
+      const cancelBtn = document.getElementById('cancelFeedbackBtn');
+      const closeBtn = document.getElementById('closeFeedbackModalBtn');
 
-      function paintStars(rating) {
-        const buttons = starsWrap.querySelectorAll('[data-star]');
-        buttons.forEach(btn => {
-          const star = parseInt(btn.getAttribute('data-star'), 10);
+      if (!modal || !form || !starsWrap || !saveBtn) return;
+
+      let initialRating = 0;
+      let initialComment = '';
+      let currentRating = 0;
+
+      function openModal() {
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+
+        // focus comment for quick typing
+        setTimeout(() => {
+          commentInput && commentInput.focus();
+        }, 0);
+      }
+
+      function closeModal({ reset = true } = {}) {
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+
+        if (reset) {
+          // Reset fields so next open is cleanly re-filled
+          courseTitleEl.textContent = '—';
+          courseIdInput.value = '';
+          ratingInput.value = '';
+          commentInput.value = '';
+          form.action = '';
+          initialRating = 0;
+          initialComment = '';
+          currentRating = 0;
+          renderStars(0);
+          setHint(0);
+          setSaveEnabled(false);
+        }
+      }
+
+      function setSaveEnabled(enabled) {
+        saveBtn.disabled = !enabled;
+      }
+
+      function setHint(rating) {
+        if (!hintEl) return;
+        if (!rating) hintEl.textContent = 'Select a rating';
+        else if (rating <= 2) hintEl.textContent = 'Needs improvement';
+        else if (rating === 3) hintEl.textContent = 'Okay';
+        else if (rating === 4) hintEl.textContent = 'Good';
+        else hintEl.textContent = 'Excellent';
+      }
+
+      function renderStars(rating) {
+        const starButtons = starsWrap.querySelectorAll('[data-star]');
+        starButtons.forEach((btn) => {
+          const n = parseInt(btn.getAttribute('data-star'), 10);
           const svg = btn.querySelector('svg');
           if (!svg) return;
-          if (star <= rating) {
+
+          if (n <= rating) {
             svg.classList.remove('text-gray-300');
             svg.classList.add('text-amber-500');
           } else {
@@ -247,130 +307,122 @@
             svg.classList.add('text-gray-300');
           }
         });
-        hintEl.textContent = rating ? `${rating} / 5` : 'Select a rating';
       }
 
-      function updateSaveState() {
-        const cardComment = (activeCard?.getAttribute('data-feedback-comment') || '').trim();
-        const changed = selectedRating !== initialRating || (commentEl.value || '').trim() !== cardComment;
-        saveBtn.disabled = !changed;
+      function hasChanges() {
+        const comment = (commentInput.value || '').trim();
+        const rating = parseInt(ratingInput.value || '0', 10) || 0;
+
+        const ratingChanged = rating !== (initialRating || 0);
+        const commentChanged = comment !== (initialComment || '');
+
+        // Require a rating to enable save (common UX + backend-friendly)
+        const ratingValid = rating >= 1;
+
+        return ratingValid && (ratingChanged || commentChanged);
       }
 
-      function openModal(card) {
-        activeCard = card;
-        const courseTitle = (card.querySelector('h4')?.textContent || '').trim();
+      function syncSaveState() {
+        setSaveEnabled(hasChanges());
+      }
+
+      function fillFromCard(card) {
         const courseId = card.getAttribute('data-course-id');
-        const form = document.getElementById('feedbackForm');
-        form.action = `/courses/${encodeURIComponent(courseId)}/feedback/`;
-        initialRating = parseInt(card.getAttribute('data-feedback-rating') || '0', 10);
-        selectedRating = initialRating;
+        const displayTitle = card.getAttribute('data-course-display-title') || '';
+        const rating = parseInt(card.getAttribute('data-feedback-rating') || '0', 10) || 0;
+        const comment = card.getAttribute('data-feedback-comment') || '';
 
-        titleEl.textContent = courseTitle || '—';
-        courseIdEl.value = courseId || '';
-        commentEl.value = (card.getAttribute('data-feedback-comment') || '').trim();
-        hintEl.classList.remove('text-red-600');
+        // store initials for dirty-checking
+        initialRating = rating;
+        initialComment = (comment || '').trim();
 
-        paintStars(selectedRating);
-        // keep hidden input in sync for non-AJAX submit
-        const ratingHidden = document.getElementById('feedbackRating');
-        if (ratingHidden) ratingHidden.value = selectedRating ? String(selectedRating) : '';
-        updateSaveState();
+        currentRating = rating;
 
-        modal.setAttribute('aria-hidden', 'false');
-        document.body.style.overflow = 'hidden';
+        // fill UI
+        courseTitleEl.textContent = displayTitle || '—';
+        courseIdInput.value = courseId || '';
+        ratingInput.value = String(rating || 0);
+        commentInput.value = comment || '';
 
-        setTimeout(() => { starsWrap.querySelector('[data-star="1"]')?.focus(); }, 0);
+        renderStars(rating || 0);
+        setHint(rating || 0);
+
+        // set action to /courses/<id>/feedback/
+        if (courseId) {
+          form.action = `/courses/${courseId}/feedback/`;
+        } else {
+          form.action = '';
+        }
+
+        // Save disabled until user changes something
+        syncSaveState();
       }
 
-      function closeModal() {
-        modal.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
-        activeCard = null;
-      }
+      // 1) Click rating area -> open modal, fill existing values
+      document.querySelectorAll('[data-open-feedback]').forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
 
-      // Open modal when clicking rating
-      document.addEventListener('click', (e) => {
-        const btn = e.target.closest('[data-open-feedback="1"]');
-        if (!btn) return;
-        const card = btn.closest('[data-course-id]');
-        if (!card) return;
-        e.preventDefault();
-        openModal(card);
+          const card = btn.closest('[data-course-id]');
+          if (!card) return;
+
+          fillFromCard(card);
+          openModal();
+        });
       });
 
-      // Stars select
+      // Stars click updates rating + enables save only if changed
       starsWrap.addEventListener('click', (e) => {
         const btn = e.target.closest('[data-star]');
         if (!btn) return;
-        selectedRating = parseInt(btn.getAttribute('data-star'), 10);
-        paintStars(selectedRating);
-        // keep hidden input in sync for non-AJAX submit
-        const ratingHidden = document.getElementById('feedbackRating');
-        if (ratingHidden) ratingHidden.value = selectedRating ? String(selectedRating) : '';
-        updateSaveState();
+
+        const rating = parseInt(btn.getAttribute('data-star'), 10) || 0;
+        currentRating = rating;
+        ratingInput.value = String(rating);
+
+        renderStars(rating);
+        setHint(rating);
+        syncSaveState();
       });
 
-      commentEl.addEventListener('input', updateSaveState);
+      // Comment typing affects save enabled state
+      if (commentInput) {
+        commentInput.addEventListener('input', () => {
+          syncSaveState();
+        });
+      }
 
-      // Close actions
-      cancelBtn.addEventListener('click', closeModal);
-      closeBtn.addEventListener('click', closeModal);
+      // 2) Only enable Save if there are changes
+      // handled by syncSaveState()
+
+      // 3) Save submits to /courses/<id>/feedback/ (non-AJAX)
+      // (Optional) store a flag; not required because the redirect reload shows latest rating.
+      form.addEventListener('submit', () => {
+        // If you ever want to detect after reload, you can use this:
+        sessionStorage.setItem('feedback_submitted', '1');
+      });
+
+      // Close behaviors
+      cancelBtn && cancelBtn.addEventListener('click', () => closeModal());
+      closeBtn && closeBtn.addEventListener('click', () => closeModal());
+
+      // Click backdrop closes (but clicking panel doesn’t)
       modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
+        if (modalPanel && modalPanel.contains(e.target)) return;
+        closeModal();
       });
+
+      // ESC closes
       document.addEventListener('keydown', (e) => {
-        if (modal.getAttribute('aria-hidden') === 'false' && e.key === 'Escape') closeModal();
+        if (e.key !== 'Escape') return;
+        if (modal.getAttribute('aria-hidden') === 'false') closeModal();
       });
 
-      // Submit (non-AJAX)
-      const form = document.getElementById('feedbackForm');
-      const ratingInput = document.getElementById('feedbackRating');
-
-      form.addEventListener('submit', (e) => {
-        // Block submit if unchanged or invalid
-        const comment = (commentEl.value || '').trim();
-        const changed = (selectedRating !== initialRating) || (comment !== (activeCard?.getAttribute('data-feedback-comment') || ''));
-        if (!changed) {
-          e.preventDefault();
-          return;
-        }
-        if (!selectedRating || selectedRating < 1 || selectedRating > 5) {
-          e.preventDefault();
-          hintEl.textContent = 'Please select 1–5 stars.';
-          hintEl.classList.add('text-red-600');
-          return;
-        }
-        hintEl.classList.remove('text-red-600');
-        ratingInput.value = String(selectedRating);
-        // allow normal POST submit
-      });
-
-          if (!res.ok) throw new Error('Save failed');
-
-          // Refresh UI locally (latest rating)
-          activeCard.setAttribute('data-feedback-rating', String(selectedRating));
-          activeCard.setAttribute('data-feedback-comment', comment);
-
-          const stars = activeCard.querySelectorAll('[data-rating-stars] svg');
-          stars.forEach((svg, idx) => {
-            const starNum = idx + 1;
-            svg.classList.toggle('text-amber-500', starNum <= selectedRating);
-            svg.classList.toggle('text-gray-300', starNum > selectedRating);
-          });
-          const label = activeCard.querySelector('[data-rating-label]');
-          if (label) label.textContent = selectedRating > 0 ? 'Your rating' : 'Leave a rating';
-
-          closeModal();
-        } catch (err) {
-          hintEl.textContent = 'Could not save. Please try again.';
-          hintEl.classList.add('text-red-600');
-          saveBtn.disabled = false;
-        } finally {
-          saveBtn.textContent = prevText;
-          // keep disabled/enabled state correct if modal still open
-          if (modal.getAttribute('aria-hidden') === 'false') updateSaveState();
-        }
-      });
+      // 4) After closing modal, refresh my courses to show latest rating:
+      // In non-AJAX flow, after Save the server redirects back to this page,
+      // so you already see latest rating immediately.
+      // (We do NOT force reload on close/cancel to avoid unnecessary refresh.)
     })();
   </script>
 </div>
