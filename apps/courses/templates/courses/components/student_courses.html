@@ -250,7 +250,7 @@
       let initialComment = '';
       let currentRating = 0;
 
-      // ✅ store the element that opened the modal so we can restore focus on close
+      // Store the element that opened the modal so we can restore focus on close
       let lastOpenerEl = null;
 
       function openModal() {
@@ -264,7 +264,7 @@
       }
 
       function closeModal({ reset = true } = {}) {
-        // ✅ IMPORTANT: Move focus out of modal BEFORE aria-hidden becomes true
+        // Move focus out of modal before aria-hidden becomes true
         if (modal.contains(document.activeElement)) {
           if (lastOpenerEl && typeof lastOpenerEl.focus === 'function') {
             lastOpenerEl.focus();
@@ -299,7 +299,8 @@
       function setHint(rating) {
         if (!hintEl) return;
         if (!rating) hintEl.textContent = 'Select a rating';
-        else if (rating <= 2) hintEl.textContent = 'Needs improvement';
+        else if (rating === 1) hintEl.textContent = 'Poor';
+        else if (rating === 2) hintEl.textContent = 'Needs improvement';
         else if (rating === 3) hintEl.textContent = 'Okay';
         else if (rating === 4) hintEl.textContent = 'Good';
         else hintEl.textContent = 'Excellent';
@@ -367,7 +368,7 @@
           e.preventDefault();
           e.stopPropagation();
 
-          lastOpenerEl = btn; // ✅ capture opener
+          lastOpenerEl = btn; // capture opener
 
           const card = btn.closest('[data-course-id]');
           if (!card) return;
@@ -398,7 +399,7 @@
         });
       }
 
-      // Save submits to /courses/<id>/feedback/ (non-AJAX)
+      // Save submits to /courses/<id>/feedback/
       form.addEventListener('submit', () => {
         sessionStorage.setItem('feedback_submitted', '1');
       });
