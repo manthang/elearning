@@ -16,7 +16,7 @@ from apps.courses.models import *
 User = get_user_model()
 
 
-def signup(request):
+def signup_view(request):
     if request.method == "POST":
         username = request.POST.get("username", "").strip()
         full_name = request.POST.get("fullname", "").strip()
@@ -48,7 +48,7 @@ def signup(request):
     return render(request, "accounts/signup.html")
 
 
-def login(request):
+def login_view(request):
     if request.method == "POST":
         user = authenticate(
             request,
@@ -63,7 +63,7 @@ def login(request):
     return render(request, "accounts/login.html")
 
 
-def logout(request):
+def logout_view(request):
     logout(request)
     return redirect("accounts:login")
 

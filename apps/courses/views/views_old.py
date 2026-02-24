@@ -13,8 +13,8 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from .models import *
-from .forms import *
+from ..models import *
+from ..forms import *
 
 from apps.status.forms import *
 from apps.status.models import *
@@ -266,12 +266,11 @@ def course_detail(request, course_id: int):
     is_teacher = (user.role == user.Role.TEACHER)
     is_student = (user.role == user.Role.STUDENT)
 
-    can_view = False
+    can_view = True
     if is_teacher:
         can_view = Teaching.objects.filter(course=course, teacher=user).exists()
         back_url = reverse("courses:teacher_home")
     elif is_student:
-        can_view = Enrollment.objects.filter(course=course, student=user).exists()
         back_url = reverse("courses:student_home")
 
     if not can_view:

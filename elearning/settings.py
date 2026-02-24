@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "apps.core.apps.CoreConfig",
     "apps.courses.apps.CoursesConfig",
     "apps.chat.apps.ChatConfig",
+    # "apps.notifications.apps.NotificationsConfig",
     "apps.status.apps.StatusConfig",
     "apps.api.apps.ApiConfig",
 ]
@@ -77,6 +78,10 @@ TEMPLATES = [
         },
     },
 ]
+
+# TEMPLATES[0]["OPTIONS"]["context_processors"] += [
+#     "notifications.context_processors.notifications_unread_count",
+# ]
 
 WSGI_APPLICATION = 'elearning.wsgi.application'
 ASGI_APPLICATION = "elearning.routing.application"
