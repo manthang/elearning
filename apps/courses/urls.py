@@ -14,7 +14,6 @@ urlpatterns = [
 
     # Edit basic Course info
     path("courses/<int:course_id>/edit/", views.course_edit, name="course_edit"),
-    path("courses/<int:course_id>/manage/", views.course_manage, name="course_manage"),
 
     # Enrollments (remove)
     path("courses/<int:course_id>/enrollments/<int:enrollment_id>/remove/",

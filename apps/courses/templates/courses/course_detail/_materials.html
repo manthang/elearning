@@ -1,0 +1,105 @@
+<div id="deleteMaterialModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm"
+     onclick="closeDeleteMaterialModal()">
+
+  <div class="w-full max-w-md rounded-2xl bg-white shadow-[0_30px_90px_rgba(0,0,0,0.25)] overflow-hidden"
+       onclick="event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+          ⚠
+        </div>
+
+        <div>
+          <div class="text-base font-semibold text-gray-900">Delete material</div>
+          <div class="text-sm text-gray-500">This action cannot be undone.</div>
+        </div>
+      </div>
+
+      <button type="button"
+              class="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition"
+              onclick="closeDeleteMaterialModal()">
+        ✕
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="px-6 py-5">
+      <p class="text-sm text-gray-700">
+        Are you sure you want to delete
+        <span id="deleteMaterialName" class="font-semibold text-gray-900">this file</span>?
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-5 border-t border-gray-100 flex items-center justify-end gap-3">
+      <button type="button"
+              class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition"
+              onclick="closeDeleteMaterialModal()">
+        Cancel
+      </button>
+
+      <form id="deleteMaterialForm" method="post" action="">
+        {% csrf_token %}
+        <button type="submit"
+                class="px-5 py-2.5 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition">
+          Delete
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  function openMaterialPicker() {
+    const input = document.getElementById("materialFileInput");
+    if (!input) return;
+
+    input.value = "";
+    input.click();
+  }
+
+  function handleMaterialFileChosen() {
+    const input = document.getElementById("materialFileInput");
+    const form = document.getElementById("uploadMaterialForm");
+    if (!input || !form) return;
+
+    if (input.files && input.files.length > 0) {
+      form.submit();
+    }
+  }
+
+  function openDeleteMaterialModal(materialId, materialName) {
+    const modal = document.getElementById("deleteMaterialModal");
+    const nameEl = document.getElementById("deleteMaterialName");
+    const formEl = document.getElementById("deleteMaterialForm");
+
+    if (!modal || !nameEl || !formEl) return;
+
+    nameEl.textContent = materialName || "this file";
+
+    const courseId = "{{ course.id }}";
+    formEl.action = `/courses/${courseId}/materials/${materialId}/delete/`;
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+
+    document.addEventListener("keydown", escCloseDeleteModal);
+  }
+
+  function closeDeleteMaterialModal() {
+    const modal = document.getElementById("deleteMaterialModal");
+
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+
+    document.removeEventListener("keydown", escCloseDeleteModal);
+  }
+
+  function escCloseDeleteModal(e) {
+    if (e.key === "Escape") closeDeleteMaterialModal();
+  }
+</script>

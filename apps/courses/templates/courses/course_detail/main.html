@@ -1,0 +1,14 @@
+{% extends "core/layout.html" %}
+
+{% load static %}
+
+{% block title %}{{ course.title }}{% endblock %}
+
+{% block content %}
+  {% include "courses/course_detail/_course_overview.html" %}
+  {% include "courses/course_detail/_course_edit.html" %}
+  {% include "courses/course_detail/_students.html" %}
+  {% include "courses/course_detail/_materials.html" %}
+  {% include "courses/course_detail/_deadlines.html" %}
+  <!-- {% include "courses/course_detail/_feedbacks.html" %} -->
+{% endblock %}

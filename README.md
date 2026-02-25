@@ -32,7 +32,7 @@ elearning/
 │   │   └── templates/courses/
 │   │       ├── student_home.html
 │   │       ├── teacher_home.html
-│   │       ├── course_detail.html
+│   │       ├── course_detail/main.html
 │   │       └── course_create.html
 │   │
 │   ├── status/               # status updates (activity feed)

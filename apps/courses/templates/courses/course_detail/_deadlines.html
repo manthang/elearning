@@ -1,0 +1,306 @@
+<!-- Add Deadline Modal -->
+<div id="addDeadlineModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm"
+     onclick="closeAddDeadlineModal()">
+
+  <div class="w-full max-w-lg"
+       onclick="event.stopPropagation()">
+
+    <div class="bg-white rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.25)] overflow-hidden border border-slate-100">
+
+      <!-- Header -->
+      <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+        <div>
+          <div class="text-lg font-bold text-gray-900">Add Deadline</div>
+          <div class="text-sm text-gray-500">Create a new course deadline.</div>
+        </div>
+
+        <button type="button"
+                onclick="closeAddDeadlineModal()"
+                class="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition"
+                aria-label="Close">
+          ✕
+        </button>
+      </div>
+
+      <!-- Body -->
+      <form method="post"
+            action="{% url 'courses:deadline_add' course.id %}"
+            class="px-6 py-5 space-y-4">
+        {% csrf_token %}
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-800 mb-2">
+            Title <span class="text-red-500">*</span>
+          </label>
+          <input name="deadline_title"
+                 required
+                 class="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                 placeholder="e.g., Midterm Exam" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-800 mb-2">
+            Due at <span class="text-red-500">*</span>
+          </label>
+          <input type="datetime-local"
+                 name="deadline_due_at"
+                 required
+                 class="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-800 mb-2">
+            Description
+          </label>
+          <textarea name="deadline_description"
+                    rows="3"
+                    class="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    placeholder="Optional details..."></textarea>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-3">
+          <button type="button"
+                  onclick="closeAddDeadlineModal()"
+                  class="px-5 py-2.5 rounded-xl border border-gray-200 font-semibold text-gray-700 hover:bg-gray-50 transition">
+            Cancel
+          </button>
+
+          <button type="submit"
+                  class="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
+            Add Deadline
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- Edit Deadline Modal -->
+<div id="editDeadlineModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm"
+     onclick="closeEditDeadlineModal()">
+
+  <div class="w-full max-w-lg"
+       onclick="event.stopPropagation()">
+
+    <div class="bg-white rounded-3xl shadow-[0_30px_90px_rgba(0,0,0,0.25)] overflow-hidden border border-slate-100">
+
+      <!-- Header -->
+      <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+        <div>
+          <div class="text-lg font-bold text-gray-900">Edit Deadline</div>
+          <div class="text-sm text-gray-500">Update the title, due date, or description.</div>
+        </div>
+
+        <button type="button"
+                onclick="closeEditDeadlineModal()"
+                class="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition"
+                aria-label="Close">
+          ✕
+        </button>
+      </div>
+
+      <!-- Body -->
+      <form id="editDeadlineForm" method="post" action=""
+            class="px-6 py-5 space-y-4">
+        {% csrf_token %}
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-800 mb-2">
+            Title <span class="text-red-500">*</span>
+          </label>
+          <input name="deadline_title"
+                 id="editDeadlineTitle"
+                 required
+                 class="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-800 mb-2">
+            Due at <span class="text-red-500">*</span>
+          </label>
+          <input type="datetime-local"
+                 name="deadline_due_at"
+                 id="editDeadlineDueAt"
+                 required
+                 class="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-800 mb-2">
+            Description
+          </label>
+          <textarea name="deadline_description"
+                    id="editDeadlineDescription"
+                    rows="3"
+                    class="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+                    placeholder="Optional details..."></textarea>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-3">
+          <button type="button"
+                  onclick="closeEditDeadlineModal()"
+                  class="px-5 py-2.5 rounded-xl border border-gray-200 font-semibold text-gray-700 hover:bg-gray-50 transition">
+            Cancel
+          </button>
+
+          <button type="submit"
+                  class="px-5 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
+            Save Changes
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<!-- Delete Deadline Modal -->
+<div id="deleteDeadlineModal"
+     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm"
+     onclick="closeDeleteDeadlineModal()">
+
+  <div class="w-full max-w-md rounded-2xl bg-white shadow-[0_30px_90px_rgba(0,0,0,0.25)] overflow-hidden"
+       onclick="event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
+          ⚠
+        </div>
+
+        <div>
+          <div class="text-base font-semibold text-gray-900">Delete deadline</div>
+          <div class="text-sm text-gray-500">This action cannot be undone.</div>
+        </div>
+      </div>
+
+      <button type="button"
+              class="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition"
+              onclick="closeDeleteDeadlineModal()"
+              aria-label="Close">
+        ✕
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="px-6 py-5">
+      <p class="text-sm text-gray-700">
+        Are you sure you want to delete
+        <span id="deleteDeadlineName" class="font-semibold text-gray-900">this deadline</span>?
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="px-6 py-5 border-t border-gray-100 flex items-center justify-end gap-3">
+      <button type="button"
+              class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition"
+              onclick="closeDeleteDeadlineModal()">
+        Cancel
+      </button>
+
+      <form id="deleteDeadlineForm" method="post" action="">
+        {% csrf_token %}
+        <button type="submit"
+                class="px-5 py-2.5 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition">
+          Delete
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // Add Deadline modal
+  function openAddDeadlineModal() {
+    const modal = document.getElementById("addDeadlineModal");
+    if (!modal) return;
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    document.addEventListener("keydown", escCloseAddDeadlineModal);
+  }
+
+  function closeAddDeadlineModal() {
+    const modal = document.getElementById("addDeadlineModal");
+    if (!modal) return;
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    document.removeEventListener("keydown", escCloseAddDeadlineModal);
+  }
+
+  function escCloseAddDeadlineModal(e) {
+    if (e.key === "Escape") closeAddDeadlineModal();
+  }
+
+  // Edit Deadline modal
+  function openEditDeadlineModal(id, title, dueAt, description) {
+    const modal = document.getElementById("editDeadlineModal");
+    if (!modal) return;
+
+    const formEl = document.getElementById("editDeadlineForm");
+    const titleEl = document.getElementById("editDeadlineTitle");
+    const dueEl = document.getElementById("editDeadlineDueAt");
+    const descEl = document.getElementById("editDeadlineDescription");
+
+    const courseId = "{{ course.id }}";
+
+    if (formEl) {
+      formEl.action = `/courses/${courseId}/deadlines/${id}/edit/`;
+    }
+
+    if (titleEl) titleEl.value = title || "";
+    if (dueEl) dueEl.value = dueAt || "";
+    if (descEl) descEl.value = description || "";
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    document.addEventListener("keydown", escCloseEditDeadlineModal);
+  }
+
+  function closeEditDeadlineModal() {
+    const modal = document.getElementById("editDeadlineModal");
+    if (!modal) return;
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    document.removeEventListener("keydown", escCloseEditDeadlineModal);
+  }
+
+  function escCloseEditDeadlineModal(e) {
+    if (e.key === "Escape") closeEditDeadlineModal();
+  }
+
+  // Delete Deadline modal
+  function openDeleteDeadlineModal(deadlineId, deadlineTitle) {
+    const modal = document.getElementById("deleteDeadlineModal");
+    const nameEl = document.getElementById("deleteDeadlineName");
+    const formEl = document.getElementById("deleteDeadlineForm");
+
+    if (!modal || !nameEl || !formEl) return;
+
+    nameEl.textContent = deadlineTitle || "this deadline";
+
+    const courseId = "{{ course.id }}";
+    formEl.action = `/courses/${courseId}/deadlines/${deadlineId}/delete/`;
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+    document.addEventListener("keydown", escCloseDeleteDeadlineModal);
+  }
+
+  function closeDeleteDeadlineModal() {
+    const modal = document.getElementById("deleteDeadlineModal");
+    if (!modal) return;
+
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+    document.removeEventListener("keydown", escCloseDeleteDeadlineModal);
+  }
+
+  function escCloseDeleteDeadlineModal(e) {
+    if (e.key === "Escape") closeDeleteDeadlineModal();
+  }
+</script>
