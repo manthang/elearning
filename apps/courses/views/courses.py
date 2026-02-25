@@ -231,6 +231,7 @@ def course_detail(request, course_id: int):
         "materials": materials,
         "materials_count": materials.count(),
         "deadlines": deadlines,
+        "deadlines_count": deadlines.count(),
         "category_choices": Course.CATEGORY_CHOICES,
         "is_teacher_view": is_teacher and Teaching.objects.filter(course=course, teacher=user).exists(),
         "dashboard_url": dashboard_url,

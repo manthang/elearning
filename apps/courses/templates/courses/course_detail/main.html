@@ -1,14 +1,60 @@
 {% extends "core/layout.html" %}
-
 {% load static %}
 
 {% block title %}{{ course.title }}{% endblock %}
 
 {% block content %}
-  {% include "courses/course_detail/_course_overview.html" %}
-  {% include "courses/course_detail/_course_edit.html" %}
-  {% include "courses/course_detail/_students.html" %}
-  {% include "courses/course_detail/_materials.html" %}
-  {% include "courses/course_detail/_deadlines.html" %}
-  <!-- {% include "courses/course_detail/_feedbacks.html" %} -->
+<div class="bg-gray-50 min-h-screen p-6">
+  <div class="max-w-6xl mx-auto space-y-6">
+
+    <div>
+      <a href="{{ dashboard_url }}" class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900">
+        <span class="text-lg">←</span> Back to Dashboard
+      </a>
+    </div>
+
+    {% include "courses/course_detail/_course_summary.html" %}
+
+    <div class="flex flex-wrap items-center border-b border-gray-200 bg-white rounded-t-2xl px-6 pt-2 gap-8">
+      {% with current_tab=request.GET.tab|default:"overview" %}
+        <a href="?tab=overview" class="pb-4 text-sm font-bold {% if current_tab == 'overview' %}text-blue-600 border-b-2 border-blue-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+          Overview
+        </a>
+        {% if is_teacher_view %}
+        <a href="?tab=students" class="pb-4 text-sm font-bold {% if current_tab == 'students' %}text-blue-600 border-b-2 border-blue-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+          Students ({{ enrollment_count }})
+        </a>
+        {% endif %}
+        <a href="?tab=feedback" class="pb-4 text-sm font-bold {% if current_tab == 'feedback' %}text-blue-600 border-b-2 border-blue-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+          Feedbacks ({{ feedbacks_count }})
+        </a>
+        <a href="?tab=materials" class="pb-4 text-sm font-bold {% if current_tab == 'materials' %}text-blue-600 border-b-2 border-blue-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+          Materials ({{ materials_count }})
+        </a>
+        <a href="?tab=deadlines" class="pb-4 text-sm font-bold {% if current_tab == 'deadlines' %}text-blue-600 border-b-2 border-blue-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+          Deadlines ({{ deadlines_count }})
+        </a>
+      {% endwith %}
+    </div>
+
+    <div class="space-y-6">
+      {% with current_tab=request.GET.tab|default:"overview" %}
+        {% if current_tab == 'overview' %}
+          {% include "courses/course_detail/_course_overview.html" %}
+        {% elif current_tab == 'students' and is_teacher_view %}
+          {% include "courses/course_detail/_students.html" %}
+        {% elif current_tab == 'feedback' %}
+          {% include "courses/course_detail/_feedbacks.html" %}
+        {% elif current_tab == 'materials' %}
+          {% include "courses/course_detail/_materials.html" %}
+        {% elif current_tab == 'deadlines' %}
+          {% include "courses/course_detail/_deadlines.html" %}
+        {% endif %}
+      {% endwith %}
+    </div>
+
+  </div>
+</div>
+
+{% include "courses/course_detail/_course_edit.html" %}
 {% endblock %}

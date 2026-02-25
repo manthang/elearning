@@ -1,3 +1,95 @@
+<div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+  <h2 class="text-xl font-bold text-gray-900">Enrolled Students</h2>
+
+  <div class="mt-5 space-y-4">
+    {% for e in enrollments %}
+      <div class="border border-gray-200 rounded-2xl p-5">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex items-center gap-4 min-w-0">
+            <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-100 shrink-0">
+                {% if e.student.profile_photo %}
+                    <img src="{{ e.student.profile_photo.url }}"
+                        alt="{{ e.student.full_name|default:e.student.username }}"
+                        class="w-full h-full object-cover">
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center font-semibold text-blue-700 bg-blue-50">
+                    {% with name=e.student.full_name|default:e.student.username %}
+                        {{ name|slice:":1"|upper }}{{ name|slice:"1:2"|upper }}
+                    {% endwith %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="min-w-0">
+              <div class="font-bold text-gray-900 truncate">
+                {{ e.student.full_name|default:e.student.username }}
+              </div>
+              <div class="text-sm text-gray-500 truncate">
+                {{ e.student.email|default:"—" }}
+              </div>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="text-sm text-gray-500">
+                Enrolled:
+                {% if e.created_at %}{{ e.created_at|date:"M j, Y" }}{% else %}—{% endif %}
+            </div>
+
+            {% if is_teacher_view %}
+                <button type="button"
+                        class="group relative ml-2 w-10 h-10 rounded-xl border border-gray-200 bg-white
+                                flex items-center justify-center
+                                text-gray-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50
+                                transition-all"
+                        aria-label="Remove student"
+                        onclick="openRemoveStudentModal('{{ e.id }}', '{{ e.student.full_name|default:e.student.username|escapejs }}')">
+
+                    <!-- Tooltip -->
+                    <span class="pointer-events-none absolute -top-10 left-1/2 -translate-x-1/2
+                                whitespace-nowrap rounded-lg bg-gray-900 px-3 py-1 text-xs text-white
+                                opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0
+                                transition">
+                    Remove
+                    </span>
+
+                    <!-- Nice trash icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-2 14H7L5 6"/>
+                    <path d="M10 11v6"/>
+                    <path d="M14 11v6"/>
+                    <path d="M9 6V4h6v2"/>
+                    </svg>
+                </button>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        <div class="mt-4">
+          <div class="flex items-center justify-between text-sm text-gray-700">
+            <span>Progress: {{ e.progress }}%</span>
+          </div>
+          <div class="mt-2 h-3 rounded-full bg-gray-200 overflow-hidden">
+            <div class="h-full bg-green-600 rounded-full"
+                  style="width: {{ e.progress }}%;"></div>
+          </div>
+        </div>
+      </div>
+    {% empty %}
+      <div class="text-sm text-gray-500">No students enrolled yet.</div>
+    {% endfor %}
+  </div>
+</div>
+
 <!-- Delete a Student Enrollment Modal -->
 <div id="removeStudentModal"
      class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm"

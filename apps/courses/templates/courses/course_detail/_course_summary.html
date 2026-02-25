@@ -1,0 +1,96 @@
+<!-- Top summary card -->
+<div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+  <div class="flex items-start justify-between gap-4">
+    <div class="min-w-0">
+      <h1 class="text-3xl font-bold text-gray-900 leading-tight">
+        {{ course.title }}
+      </h1>
+
+      <div class="mt-2 text-gray-600">
+        Instructor:
+        <span class="font-semibold text-gray-900">
+          {% if instructor_user %}
+            {{ instructor_user.full_name|default:instructor_user.username }}
+          {% else %}
+            —
+          {% endif %}
+        </span>
+      </div>
+
+      <div class="mt-4 flex flex-wrap items-center gap-x-10 gap-y-3 text-gray-700">
+        <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M12 6v6l4 2"/>
+            </svg>
+            <span class="font-semibold text-gray-900">{% if course.duration %}{{ course.duration }}{% else %}—{% endif %}</span>
+            <span class="text-gray-600">weeks</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            <span class="font-semibold text-gray-900">{{ enrollment_count }}</span>
+            <span class="text-gray-600">students</span>
+        </div>
+        </div>
+
+    </div>
+
+    {% if is_teacher_view %}
+      <button type="button"
+              onclick="openEditCourseModal()"
+              class="shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
+        <svg xmlns="http://www.w3.org/2000/svg"
+            class="h-4 w-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round">
+          <path d="M12 20h9"/>
+          <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/>
+        </svg>
+        <span>Edit Course</span>
+      </button>
+    {% else %}
+      <div class="shrink-0 flex flex-col items-end gap-3">
+        {% if is_enrolled %}
+          <span class="inline-flex items-center px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 text-sm font-semibold">
+            Enrolled
+          </span>
+        {% else %}
+          <form method="post" action="{% url 'courses:course_enroll' course.id %}">
+            {% csrf_token %}
+            <button type="submit"
+                    class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition shadow-sm">
+              Enroll
+            </button>
+          </form>
+        {% endif %}
+      </div>
+    {% endif %}
+
+  </div>
+
+  {% if is_teacher_view %}
+  <!-- Average Progress -->
+  <div class="mt-6">
+    <div class="flex items-center justify-between text-sm font-semibold text-gray-800">
+      <span>Average Student Progress</span>
+      <span>{{ avg_progress }}%</span>
+    </div>
+    <div class="mt-2 h-3 rounded-full bg-gray-200 overflow-hidden">
+      <div class="h-full bg-blue-600 rounded-full"
+            style="width: {{ avg_progress }}%;"></div>
+    </div>
+  </div>
+  {% endif %}
+</div>
