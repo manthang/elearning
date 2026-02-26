@@ -1,31 +1,29 @@
-<div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-  <div class="flex items-center justify-between gap-4">
-    <div>
-      <h2 class="text-xl font-bold text-gray-900">Materials</h2>
-      <p class="mt-1 text-sm text-gray-500">Files for students to download and review.</p>
+<div class="space-y-6">
+  <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+    <div class="min-w-0">
+      <div class="flex items-center gap-3">
+        <h2 class="text-2xl font-bold text-gray-900 leading-none">Materials</h2>
+        
+        <div class="flex items-center gap-1.5">
+          <div class="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 rounded-lg shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            <span class="text-[10px] font-black text-white uppercase tracking-tight">{{ materials|length }} Files</span>
+          </div>
+        </div>
+      </div>
+      <p class="text-sm text-gray-500 mt-1">Files for students to download and review.</p>
     </div>
 
     {% if is_teacher_view %}
-    <form id="uploadMaterialForm"
-          method="post"
-          action="{% url 'courses:material_upload' course.id %}"
-          enctype="multipart/form-data"
-          class="shrink-0">
+    <form id="uploadMaterialForm" method="post" action="{% url 'courses:material_upload' course.id %}" enctype="multipart/form-data" class="shrink-0">
       {% csrf_token %}
-
-      <!-- hidden OS file picker -->
-      <input id="materialFileInput"
-            type="file"
-            name="file"
-            class="hidden"
-            onchange="handleMaterialFileChosen()" />
-
-      <button type="button"
-              onclick="openMaterialPicker()"
+      <input id="materialFileInput" type="file" name="file" class="hidden" onchange="document.getElementById('uploadMaterialForm').submit()" />
+      <button type="button" onclick="document.getElementById('materialFileInput').click()" 
               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M3 16a2 2 0 002 2h10a2 2 0 002-2v-5h-2v5H5v-5H3v5z"/>
-          <path d="M7 8l3-3 3 3H11v6H9V8H7z"/>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
         </svg>
         Upload Material
       </button>
@@ -33,143 +31,103 @@
     {% endif %}
   </div>
 
-  <div class="mt-5 space-y-4">
+  <div class="grid grid-cols-1 gap-3 mt-2">
     {% for m in materials %}
-      <div class="rounded-2xl border border-gray-200 bg-white p-5">
+      <div class="group bg-white rounded-2xl border border-gray-200 p-4 hover:border-blue-300 transition-all hover:shadow-sm">
         <div class="flex items-center justify-between gap-4">
-
-          <!-- Left -->
+          
           <div class="flex items-center gap-4 min-w-0">
-            <div class="w-14 h-14 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
-              <!-- file icon -->
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                <path d="M14 2v6h6"/>
+            <div class="w-10 h-10 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0 group-hover:bg-blue-50 group-hover:border-blue-100 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400 group-hover:text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
               </svg>
             </div>
 
             <div class="min-w-0">
-              <div class="font-semibold text-gray-900 truncate">
-                {% if m.original_name %}
-                  {{ m.original_name }}
-                {% else %}
-                  {{ m.file.name|default:"Material" }}
-                {% endif %}
+              <div class="text-sm font-bold text-gray-900 truncate pr-4">
+                {{ m.original_name|default:m.file.name }}
               </div>
-
-              <div class="mt-1 flex flex-wrap items-center gap-3 text-sm text-gray-500">
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100 text-xs font-semibold">
-                  FILE
+              
+              <div class="flex items-center gap-2 mt-1.5">
+                <span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 text-[10px] font-black uppercase border border-blue-100">
+                   {{ m.file.name|slice:"-5:"|cut:"."|upper }}
                 </span>
-                <span>Uploaded {{ m.uploaded_at|date:"M d, Y" }}</span>
+                <span class="px-2 py-0.5 rounded-md bg-gray-50 text-gray-500 text-[10px] font-bold border border-gray-100">
+                  {{ m.file.size|filesizeformat }}
+                </span>
+                <span class="text-[10px] text-gray-400 font-medium ml-1">
+                  Uploaded {{ m.uploaded_at|date:"M d, Y" }}
+                </span>
               </div>
             </div>
           </div>
 
-          <!-- Right -->
-          <div class="flex items-center gap-2 shrink-0">
+          <div class="flex items-center gap-1.5">
             {% if m.file %}
-              <a href="{{ m.file.url }}"
-                  class="w-11 h-11 rounded-xl border border-gray-200 bg-gray-50
-                        flex items-center justify-center text-gray-600
-                        hover:bg-gray-100 transition"
-                  aria-label="Download">
-                <!-- download icon -->
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                  <polyline points="7 10 12 15 17 10"/>
-                  <line x1="12" y1="15" x2="12" y2="3"/>
-                </svg>
-              </a>
+              <div class="relative group/tooltip">
+                <a href="{{ m.file.url }}" download
+                   class="w-9 h-9 rounded-lg flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M7 10l5 5m0 0l5-5m-5 5V3"/>
+                  </svg>
+                </a>
+                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-[10px] font-bold rounded-lg opacity-0 translate-y-1 group-hover/tooltip:opacity-100 group-hover/tooltip:translate-y-0 transition-all pointer-events-none whitespace-nowrap z-10 shadow-xl">
+                  Download file
+                  <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                </div>
+              </div>
             {% endif %}
 
             {% if is_teacher_view %}
-                <button type="button"
-                        class="w-11 h-11 rounded-xl border border-red-200 bg-red-50
-                            flex items-center justify-center text-red-600
-                            hover:bg-red-100 transition"
-                        aria-label="Delete material"
-                        onclick="openDeleteMaterialModal('{{ m.id }}', '{{ m.original_name|default:m.file.name|escapejs }}')">
-                    <!-- trash icon -->
-                    <svg xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round">
-                        <polyline points="3 6 5 6 21 6"/>
-                        <path d="M19 6l-2 14H7L5 6"/>
-                        <path d="M10 11v6"/>
-                        <path d="M14 11v6"/>
-                        <path d="M9 6V4h6v2"/>
-                    </svg>
+              <div class="relative group/tooltip">
+                <button type="button" 
+                        class="w-9 h-9 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition-all"
+                        onclick="openDeleteMaterialModal('{{ m.id }}', '{{ m.original_name|escapejs }}')">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
                 </button>
+                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-gray-900 text-white text-[10px] font-bold rounded-lg opacity-0 translate-y-1 group-hover/tooltip:opacity-100 group-hover/tooltip:translate-y-0 transition-all pointer-events-none whitespace-nowrap z-10 shadow-xl">
+                  Delete material
+                  <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+                </div>
+              </div>
             {% endif %}
           </div>
         </div>
       </div>
     {% empty %}
-      <div class="rounded-2xl border border-gray-200 bg-gray-50 p-6 text-sm text-gray-500">
-        No materials uploaded yet.
+       <div class="flex flex-col items-center justify-center py-20 bg-gray-50/50 rounded-[32px] border-2 border-dashed border-gray-200 text-center">
+         <h3 class="text-lg font-bold text-gray-900">No materials uploaded yet</h3>
       </div>
     {% endfor %}
   </div>
 </div>
 
-<div id="deleteMaterialModal"
-     class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm"
-     onclick="closeDeleteMaterialModal()">
-
-  <div class="w-full max-w-md rounded-2xl bg-white shadow-[0_30px_90px_rgba(0,0,0,0.25)] overflow-hidden"
-       onclick="event.stopPropagation()">
-
-    <!-- Header -->
+<div id="deleteMaterialModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/40 backdrop-blur-sm" onclick="closeDeleteMaterialModal()">
+  <div class="w-full max-w-md rounded-2xl bg-white shadow-[0_30px_90px_rgba(0,0,0,0.25)] overflow-hidden" onclick="event.stopPropagation()">
     <div class="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
       <div class="flex items-center gap-3">
         <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center">
-          ⚠
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l6.518 11.59c.75 1.334-.214 3.01-1.742 3.01H3.48c-1.528 0-2.492-1.676-1.742-3.01L8.257 3.1zM11 14a1 1 0 10-2 0 1 1 0 002 0zm-1-8a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
         </div>
-
         <div>
           <div class="text-base font-semibold text-gray-900">Delete material</div>
           <div class="text-sm text-gray-500">This action cannot be undone.</div>
         </div>
       </div>
-
-      <button type="button"
-              class="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition"
-              onclick="closeDeleteMaterialModal()">
-        ✕
-      </button>
+      <button type="button" class="w-10 h-10 rounded-full hover:bg-gray-100 flex items-center justify-center transition" onclick="closeDeleteMaterialModal()">✕</button>
     </div>
-
-    <!-- Body -->
     <div class="px-6 py-5">
-      <p class="text-sm text-gray-700">
-        Are you sure you want to delete
-        <span id="deleteMaterialName" class="font-semibold text-gray-900">this file</span>?
-      </p>
+      <p class="text-sm text-gray-700">Are you sure you want to delete <span id="deleteMaterialName" class="font-semibold text-gray-900"></span>?</p>
     </div>
-
-    <!-- Footer -->
-    <div class="px-6 py-5 border-t border-gray-100 flex items-center justify-end gap-3">
-      <button type="button"
-              class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition"
-              onclick="closeDeleteMaterialModal()">
-        Cancel
-      </button>
-
+    <div class="px-6 py-5 border-t border-gray-100 bg-white flex items-center justify-end gap-3">
+      <button type="button" class="px-5 py-2.5 rounded-xl border border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 transition" onclick="closeDeleteMaterialModal()">Cancel</button>
       <form id="deleteMaterialForm" method="post" action="">
         {% csrf_token %}
-        <button type="submit"
-                class="px-5 py-2.5 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition">
-          Delete
-        </button>
+        <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition">Delete</button>
       </form>
     </div>
-
   </div>
 </div>
 

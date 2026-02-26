@@ -1,3 +1,5 @@
+import os
+
 from datetime import timedelta
 from django.db import models
 from django.conf import settings
@@ -100,6 +102,11 @@ class CourseMaterial(models.Model):
         if self.file and not self.original_name:
             self.original_name = self.file.name.split("/")[-1]
         super().save(*args, **kwargs)
+
+    @property
+    def extension(self):
+        name, extension = os.path.splitext(self.original_name)
+        return extension.replace('.', '').upper()
 
     def __str__(self):
         return f"{self.course.title} - {self.original_name}"
