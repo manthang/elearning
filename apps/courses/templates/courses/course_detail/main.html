@@ -40,10 +40,34 @@
               <div class="hidden md:block w-px h-10 bg-gray-100"></div>
 
               <div class="flex flex-col">
+                <span class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">Duration</span>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xl font-bold text-gray-900 leading-none">
+                    {{ course.duration|default:"8" }}
+                  </span>
+                  <span class="text-sm font-medium text-gray-500 mt-1">weeks</span>
+                </div>
+              </div>
+
+              <div class="hidden md:block w-px h-10 bg-gray-100"></div>
+
+              <div class="flex flex-col">
+                <span class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">Students</span>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-xl font-bold text-gray-900 leading-none">
+                    {{ enrollment_count|default:"8" }}
+                  </span>
+                  <span class="text-sm font-medium text-gray-500 mt-1">enrolled</span>
+                </div>
+              </div>
+
+              <div class="hidden md:block w-px h-10 bg-gray-100"></div>
+
+              <div class="flex flex-col">
                 <span class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">Rating</span>
                 <div class="flex items-center gap-2">
                   <div class="flex items-center gap-1">
-                    <span class="text-sm font-bold text-gray-900 leading-none mr-1">
+                    <span class="text-xl font-bold text-gray-900 leading-none mr-1">
                       {{ avg_rating|default:"0.0" }}<span class="text-sm text-gray-400"> / 5.0</span>
                     </span>
                     <div class="flex items-center">
@@ -56,21 +80,14 @@
                           {% endif %}
                         {% endfor %}
                       {% endwith %}
+                      <span class="text-sm font-medium text-gray-500 leading-none mt-0.5 ml-1">
+                        ({{ total_feedbacks|default:0 }})
+                      </span>
                     </div>
                   </div>
-                  
-                  <span class="text-sm font-medium text-gray-500 leading-none mt-0.5 ml-1">
-                    ({{ total_feedbacks|default:0 }})
-                  </span>
                 </div>
               </div>
-
-              <div class="hidden md:block w-px h-10 bg-gray-100"></div>
-
-              <div class="flex flex-col">
-                <span class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">Students</span>
-                <span class="text-xl font-bold text-gray-900">{{ enrollment_count|default:0 }}</span>
-              </div>
+              
             </div>
           </div>
 
