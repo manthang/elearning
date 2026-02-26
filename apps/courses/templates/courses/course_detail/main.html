@@ -7,52 +7,99 @@
 <div class="bg-gray-50 min-h-screen p-6">
   <div class="max-w-6xl mx-auto space-y-6">
 
-    <div>
-      <a href="{{ dashboard_url }}" class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900">
+    <div class="flex items-center justify-between">
+      <a href="{{ dashboard_url }}" class="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-900 transition font-medium">
         <span class="text-lg">←</span> Back to Dashboard
       </a>
     </div>
 
-    {% include "courses/course_detail/_course_summary.html" %}
+    <div class="bg-white rounded-[32px] border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+      
+      <div class="p-8 pb-8 bg-white">
+        <div class="flex flex-col md:flex-row justify-between items-start gap-6">
+          
+          <div class="space-y-4">
+            <div>
+              <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight leading-none">{{ course.title }}</h1>
+              <p class="mt-2 text-gray-500 font-medium">
+                Instructor: <span class="text-gray-900">{{ instructor_user.full_name|default:instructor_user.username }}</span>
+              </p>
+            </div>
 
-    <div class="flex flex-wrap items-center border-b border-gray-200 bg-white rounded-t-2xl px-6 pt-2 gap-8">
-      {% with current_tab=request.GET.tab|default:"overview" %}
-        <a href="?tab=overview" class="pb-4 text-sm font-bold {% if current_tab == 'overview' %}text-blue-600 border-b-2 border-blue-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
-          Overview
-        </a>
-        {% if is_teacher_view %}
-        <a href="?tab=students" class="pb-4 text-sm font-bold {% if current_tab == 'students' %}text-blue-600 border-b-2 border-blue-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
-          Students ({{ enrollment_count }})
-        </a>
-        {% endif %}
-        <a href="?tab=feedback" class="pb-4 text-sm font-bold {% if current_tab == 'feedback' %}text-blue-600 border-b-2 border-blue-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
-          Feedbacks ({{ feedbacks_count }})
-        </a>
-        <a href="?tab=materials" class="pb-4 text-sm font-bold {% if current_tab == 'materials' %}text-blue-600 border-b-2 border-blue-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
-          Materials ({{ materials_count }})
-        </a>
-        <a href="?tab=deadlines" class="pb-4 text-sm font-bold {% if current_tab == 'deadlines' %}text-blue-600 border-b-2 border-blue-600{% else %}text-gray-500 hover:text-gray-700{% endif %}">
-          Deadlines ({{ deadlines_count }})
-        </a>
-      {% endwith %}
-    </div>
+            <div class="flex items-center gap-6">
+              <div class="flex flex-col">
+                <span class="text-[10px] uppercase font-bold text-gray-400 tracking-widest">Course Rating</span>
+                <span class="text-lg font-bold text-gray-900">{{ avg_rating|default:"—" }} <span class="text-sm text-gray-400">/ 5.0</span></span>
+              </div>
+              <div class="w-px h-8 bg-gray-100"></div>
+              <div class="flex flex-col">
+                <span class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">Ratings</span>
+                <span class="text-xl font-bold text-gray-900">{{ total_feedbacks|default:0 }}</span>
+              </div>
+              <div class="w-px h-8 bg-gray-100"></div>
+              <div class="flex flex-col">
+                <span class="text-[10px] uppercase font-bold text-gray-400 tracking-widest">Enrolled Students</span>
+                <span class="text-lg font-bold text-gray-900">{{ enrollment_count|default:0 }}</span>
+              </div>
+            </div>
+          </div>
 
-    <div class="space-y-6">
-      {% with current_tab=request.GET.tab|default:"overview" %}
-        {% if current_tab == 'overview' %}
-          {% include "courses/course_detail/_course_overview.html" %}
-        {% elif current_tab == 'students' and is_teacher_view %}
-          {% include "courses/course_detail/_students.html" %}
-        {% elif current_tab == 'feedback' %}
-          {% include "courses/course_detail/_feedbacks.html" %}
-        {% elif current_tab == 'materials' %}
-          {% include "courses/course_detail/_materials.html" %}
-        {% elif current_tab == 'deadlines' %}
-          {% include "courses/course_detail/_deadlines.html" %}
-        {% endif %}
-      {% endwith %}
+          {% if is_teacher_view %}
+          <button onclick="openEditCourseModal()" 
+                  class="group flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-2xl text-sm font-bold text-gray-700 hover:bg-gray-50 hover:border-blue-200 hover:text-blue-600 transition-all shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Edit Course
+          </button>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="px-8 border-b border-gray-100 bg-white">
+        <nav class="flex gap-10">
+          {% with current_tab=request.GET.tab|default:"overview" %}
+            {% comment %} Simple helper for the tab links {% endcomment %}
+            <a href="?tab=overview" class="pb-4 text-sm font-bold border-b-2 transition-all {% if current_tab == 'overview' %}border-blue-600 text-blue-600{% else %}border-transparent text-gray-400 hover:text-gray-600{% endif %}">
+              Overview
+            </a>
+            {% if is_teacher_view %}
+            <a href="?tab=students" class="pb-4 text-sm font-bold border-b-2 transition-all {% if current_tab == 'students' %}border-blue-600 text-blue-600{% else %}border-transparent text-gray-400 hover:text-gray-600{% endif %}">
+              Students
+            </a>
+            {% endif %}
+            <a href="?tab=materials" class="pb-4 text-sm font-bold border-b-2 transition-all {% if current_tab == 'materials' %}border-blue-600 text-blue-600{% else %}border-transparent text-gray-400 hover:text-gray-600{% endif %}">
+              Materials
+            </a>
+            <a href="?tab=deadlines" class="pb-4 text-sm font-bold border-b-2 transition-all {% if current_tab == 'deadlines' %}border-blue-600 text-blue-600{% else %}border-transparent text-gray-400 hover:text-gray-600{% endif %}">
+              Deadlines
+            </a>
+            <a href="?tab=feedback" class="pb-4 text-sm font-bold border-b-2 transition-all {% if current_tab == 'feedback' %}border-blue-600 text-blue-600{% else %}border-transparent text-gray-400 hover:text-gray-600{% endif %}">
+              Feedback
+            </a>
+          {% endwith %}
+        </nav>
+      </div>
+
+      <div class="p-8 bg-gray-50/50 min-h-[400px]">
+        {% with current_tab=request.GET.tab|default:"overview" %}
+          {% if current_tab == 'overview' %}
+            {% include "courses/course_detail/_course_overview.html" %}
+          {% elif current_tab == 'students' %}
+            {% include "courses/course_detail/_students.html" %}
+          {% elif current_tab == 'materials' %}
+            {% include "courses/course_detail/_materials.html" %}
+          {% elif current_tab == 'deadlines' %}
+            {% include "courses/course_detail/_deadlines.html" %}
+          {% elif current_tab == 'feedback' %}
+            {% include "courses/course_detail/_feedbacks.html" %}
+          {% endif %}
+        {% endwith %}
+      </div>
     </div>
 
   </div>
 </div>
+
+{% include "courses/course_detail/_course_edit.html" %}
 {% endblock %}
