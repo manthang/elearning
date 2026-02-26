@@ -20,11 +20,22 @@
     <form id="uploadMaterialForm" method="post" action="{% url 'courses:material_upload' course.id %}" enctype="multipart/form-data" class="shrink-0">
       {% csrf_token %}
       <input id="materialFileInput" type="file" name="file" class="hidden" onchange="document.getElementById('uploadMaterialForm').submit()" />
-      <button type="button" onclick="document.getElementById('materialFileInput').click()" 
-              class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      
+      <button type="button" 
+              onclick="document.getElementById('materialFileInput').click()" 
+              class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-bold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition shadow-sm">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" 
+            class="h-4 w-4 text-gray-500" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            stroke-width="2.5" 
+            stroke-linecap="round" 
+            stroke-linejoin="round">
+          <path d="M12 5v14M5 12h14"/>
         </svg>
+
         Upload Material
       </button>
     </form>
@@ -50,7 +61,7 @@
               
               <div class="flex items-center gap-2 mt-1.5">
                 <span class="px-2 py-0.5 rounded-md bg-blue-50 text-blue-600 text-[10px] font-black uppercase border border-blue-100">
-                   {{ m.file.name|slice:"-5:"|cut:"."|upper }}
+                   {{ m.extension }}
                 </span>
                 <span class="px-2 py-0.5 rounded-md bg-gray-50 text-gray-500 text-[10px] font-bold border border-gray-100">
                   {{ m.file.size|filesizeformat }}
