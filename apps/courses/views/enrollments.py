@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from ..models import *
@@ -39,4 +40,4 @@ def enrollment_remove(request, course_id, enrollment_id):
         messages.success(request, "Student removed from the course.")
     else:
         messages.error(request, "Enrollment not found.")
-    return redirect("courses:course_detail", course_id=course.id)
+    return redirect(f"{reverse('courses:course_detail', args=[course.id])}?tab=students")

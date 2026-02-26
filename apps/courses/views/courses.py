@@ -268,7 +268,7 @@ def course_enroll(request, course_id):
         course=course
     )
 
-    return redirect("courses:student_home")
+    return redirect(f"{reverse('courses:course_detail', args=[course.id])}?tab=overview")
 
 
 # =========================

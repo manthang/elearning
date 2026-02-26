@@ -3,6 +3,7 @@ from django.contrib import messages
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 
@@ -65,7 +66,7 @@ def deadline_add(request, course_id):
 
     Deadline.objects.create(course=course, title=title, description=description, due_at=dt)
     messages.success(request, "Deadline added.")
-    return redirect("courses:course_detail", course_id=course.id)
+    return redirect(f"{reverse('courses:course_detail', args=[course.id])}?tab=deadlines")
 
 
 @login_required
@@ -92,7 +93,7 @@ def deadline_edit(request, course_id, deadline_id):
     dl.save()
 
     messages.success(request, "Deadline updated.")
-    return redirect("courses:course_detail", course_id=course.id)
+    return redirect(f"{reverse('courses:course_detail', args=[course.id])}?tab=deadlines")
 
 
 @login_required
@@ -107,4 +108,4 @@ def deadline_delete(request, course_id, deadline_id):
         messages.success(request, "Deadline deleted.")
     else:
         messages.error(request, "Deadline not found.")
-    return redirect("courses:course_detail", course_id=course.id)
+    return redirect(f"{reverse('courses:course_detail', args=[course.id])}?tab=deadlines")
