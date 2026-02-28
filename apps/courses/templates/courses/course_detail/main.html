@@ -28,12 +28,23 @@
               <div class="flex flex-col">
                 <span class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">Instructor</span>
                 <div class="flex items-center gap-2">
+                {% if instructor_user %}
                   <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600">
                     {{ instructor_user.username|slice:":1"|upper }}
                   </div>
                   <span class="text-sm font-bold text-gray-900">
                     {{ instructor_user.full_name|default:instructor_user.username }}
                   </span>
+                {% else %}
+                  <div class="w-6 h-6 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
+                    </svg>
+                  </div>
+                  <span class="text-sm font-medium text-gray-500 italic">
+                    To be assigned
+                  </span>
+                {% endif %}
                 </div>
               </div>
 
@@ -43,7 +54,7 @@
                 <span class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">Duration</span>
                 <div class="flex items-center gap-1.5">
                   <span class="text-xl font-bold text-gray-900 leading-none">
-                    {{ course.duration|default:"8" }}
+                    {{ course.duration|default:"-" }}
                   </span>
                   <span class="text-sm font-medium text-gray-500 mt-1">weeks</span>
                 </div>
@@ -55,7 +66,7 @@
                 <span class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">Students</span>
                 <div class="flex items-center gap-1.5">
                   <span class="text-xl font-bold text-gray-900 leading-none">
-                    {{ enrollment_count|default:"8" }}
+                    {{ enrollment_count|default:"0" }}
                   </span>
                   <span class="text-sm font-medium text-gray-500 mt-1">enrolled</span>
                 </div>
@@ -81,7 +92,7 @@
                         {% endfor %}
                       {% endwith %}
                       <span class="text-sm font-medium text-gray-500 leading-none mt-0.5 ml-1">
-                        ({{ total_feedbacks|default:0 }})
+                        ({{ total_reviews|default:0 }})
                       </span>
                     </div>
                   </div>
@@ -123,43 +134,38 @@
 
       <div class="px-8 border-b border-gray-100 bg-white">
         <nav class="flex gap-10">
-          {% with current_tab=request.GET.tab|default:"overview" %}
-            {% comment %} Simple helper for the tab links {% endcomment %}
-            <a href="?tab=overview" class="pb-4 text-sm font-bold border-b-2 transition-all {% if current_tab == 'overview' %}border-blue-600 text-blue-600{% else %}border-transparent text-gray-400 hover:text-gray-600{% endif %}">
-              Overview
-            </a>
-            {% if is_teacher_view %}
-            <a href="?tab=students" class="pb-4 text-sm font-bold border-b-2 transition-all {% if current_tab == 'students' %}border-blue-600 text-blue-600{% else %}border-transparent text-gray-400 hover:text-gray-600{% endif %}">
-              Students
-            </a>
-            {% endif %}
-            <a href="?tab=materials" class="pb-4 text-sm font-bold border-b-2 transition-all {% if current_tab == 'materials' %}border-blue-600 text-blue-600{% else %}border-transparent text-gray-400 hover:text-gray-600{% endif %}">
-              Materials
-            </a>
-            <a href="?tab=deadlines" class="pb-4 text-sm font-bold border-b-2 transition-all {% if current_tab == 'deadlines' %}border-blue-600 text-blue-600{% else %}border-transparent text-gray-400 hover:text-gray-600{% endif %}">
-              Deadlines
-            </a>
-            <a href="?tab=feedback" class="pb-4 text-sm font-bold border-b-2 transition-all {% if current_tab == 'feedback' %}border-blue-600 text-blue-600{% else %}border-transparent text-gray-400 hover:text-gray-600{% endif %}">
-              Feedback
-            </a>
-          {% endwith %}
+          <a href="?tab=overview" class="pb-4 text-sm font-bold border-b-2 transition-all {% if current_tab == 'overview' %}border-blue-600 text-blue-600{% else %}border-transparent text-gray-400 hover:text-gray-600{% endif %}">
+            Overview
+          </a>
+          {% if is_teacher_view %}
+          <a href="?tab=students" class="pb-4 text-sm font-bold border-b-2 transition-all {% if current_tab == 'students' %}border-blue-600 text-blue-600{% else %}border-transparent text-gray-400 hover:text-gray-600{% endif %}">
+            Students
+          </a>
+          {% endif %}
+          <a href="?tab=materials" class="pb-4 text-sm font-bold border-b-2 transition-all {% if current_tab == 'materials' %}border-blue-600 text-blue-600{% else %}border-transparent text-gray-400 hover:text-gray-600{% endif %}">
+            Materials
+          </a>
+          <a href="?tab=deadlines" class="pb-4 text-sm font-bold border-b-2 transition-all {% if current_tab == 'deadlines' %}border-blue-600 text-blue-600{% else %}border-transparent text-gray-400 hover:text-gray-600{% endif %}">
+            Deadlines
+          </a>
+          <a href="?tab=feedback" class="pb-4 text-sm font-bold border-b-2 transition-all {% if current_tab == 'feedback' %}border-blue-600 text-blue-600{% else %}border-transparent text-gray-400 hover:text-gray-600{% endif %}">
+            Feedback
+          </a>
         </nav>
       </div>
 
       <div class="p-8 bg-gray-50/50 min-h-[400px]">
-        {% with current_tab=request.GET.tab|default:"overview" %}
-          {% if current_tab == 'overview' %}
-            {% include "courses/course_detail/_course_overview.html" %}
-          {% elif current_tab == 'students' %}
-            {% include "courses/course_detail/_students.html" %}
-          {% elif current_tab == 'materials' %}
-            {% include "courses/course_detail/_materials.html" %}
-          {% elif current_tab == 'deadlines' %}
-            {% include "courses/course_detail/_deadlines.html" %}
-          {% elif current_tab == 'feedback' %}
-            {% include "courses/course_detail/_feedbacks.html" %}
-          {% endif %}
-        {% endwith %}
+        {% if current_tab == 'overview' %}
+          {% include "courses/course_detail/_course_overview.html" %}
+        {% elif current_tab == 'students' %}
+          {% include "courses/course_detail/_students.html" %}
+        {% elif current_tab == 'materials' %}
+          {% include "courses/course_detail/_materials.html" %}
+        {% elif current_tab == 'deadlines' %}
+          {% include "courses/course_detail/_deadlines.html" %}
+        {% elif current_tab == 'feedback' %}
+          {% include "courses/course_detail/_feedbacks.html" %}
+        {% endif %}
       </div>
     </div>
 

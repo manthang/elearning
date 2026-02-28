@@ -34,7 +34,7 @@ urlpatterns = [
          views.deadline_delete, name="deadline_delete"),
 
     # Student Actions
-    path("courses/<int:course_id>/", views.course_detail_new, name="course_detail"),
+    path("courses/<int:course_id>/", views.course_detail, name="course_detail"),
     path("courses/<int:course_id>/enroll/", views.course_enroll, name="course_enroll"),
 
     # Feedback for a Course: GET to retrieve, POST to create
