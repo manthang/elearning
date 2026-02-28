@@ -10,7 +10,7 @@ urlpatterns = [
     # Core app for home page redirect
     path("", include("apps.core.urls")),
     path("", include("apps.accounts.urls")),
-    path("", include("apps.courses.urls")),
+    path("courses/", include("apps.courses.urls")),
     path("status/", include("apps.status.urls")),
     path("chat/", include("apps.chat.urls")),
 ]

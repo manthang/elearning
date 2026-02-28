@@ -1,22 +1,20 @@
 import re
 from datetime import datetime
 
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.db import transaction, IntegrityError
 from django.db.models import Count, Sum, Avg, Q, F
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
-from django.utils import timezone
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from ..models import *
 from ..forms import *
-
-from apps.status.forms import *
-from apps.status.models import *
+from ..utils import _get_course_feedback_data
 
 
 # =========================
@@ -163,6 +161,102 @@ def course_edit(request, course_id):
         messages.error(request, f"An error occurred while saving: {str(e)}")
 
     return redirect_target
+
+
+# =========================
+# Course Detail
+# =========================
+@login_required
+def course_detail(request, course_id: int):
+    course = get_object_or_404(Course, id=course_id)
+    user = request.user
+
+    # Which tab are we on? (Defaults to 'overview')
+    current_tab = request.GET.get("tab", "overview")
+
+    # --- COMMON DATA (Needed for Permissions and the Top Header) ---
+    # Check roles
+    is_teacher = (user.role == user.Role.TEACHER)
+    is_student = (user.role == user.Role.STUDENT)
+    is_teacher_view = is_teacher and Teaching.objects.filter(course=course, teacher=user).exists()
+
+    # Determine the correct Dashboard URL
+    dashboard_url = reverse("core:home")
+    
+    # Check Enrollment Status
+    is_enrolled = False
+    user_feedback = None
+    if is_student:
+        is_enrolled = Enrollment.objects.filter(student=user, course=course).exists()
+        # Fetch their existing feedback if they have one
+        user_feedback = CourseFeedback.objects.filter(student=user, course=course).first()
+
+    # Fetch all feedback data
+    feedback_data = _get_course_feedback_data(course)
+
+    # --- COMMON DATA (Always passed for the Header) ---
+    enrollment_count = Enrollment.objects.filter(course=course).count()
+    instructor = Teaching.objects.filter(course=course).select_related("teacher").first()
+
+    context = {
+        "course": course,
+        "current_tab": current_tab,
+        "dashboard_url": dashboard_url,
+        "is_teacher_view": is_teacher_view,
+        "instructor_user": instructor.teacher if instructor else None,
+        "is_enrolled": is_enrolled,
+        "enrollment_count": enrollment_count,
+        "total_reviews": feedback_data['total_reviews'],
+        "avg_rating": feedback_data['avg_rating'],
+        "star_display": feedback_data['star_display'],
+        "user_feedback": user_feedback,
+        'category_choices': Course.CATEGORY_CHOICES,
+    }
+
+    # --- CONDITIONAL DATA (Only runs what is needed!) ---
+    
+    if current_tab == "overview":
+        # Maybe fetch course syllabus or recent announcements here
+        pass
+
+    elif current_tab == "students" and is_teacher_view:
+        # Only fetch the heavy student list and calculate progress if on this tab
+        enrollments = Enrollment.objects.filter(course=course).select_related("student").order_by("-id")
+        avg_progress = enrollments.aggregate(a=Avg("progress"))["a"] or 0
+        
+        context["enrollments"] = enrollments
+        context["avg_progress"] = int(round(avg_progress))
+
+    elif current_tab == "materials":
+        # Only fetch files if on the materials tab
+        context["materials"] = CourseMaterial.objects.filter(course=course).order_by("-uploaded_at")
+
+    elif current_tab == "deadlines":
+        # Only fetch deadlines if on the deadlines tab
+        context["deadlines"] = Deadline.objects.filter(course=course).order_by("due_at")
+
+    elif current_tab == "feedback":
+        # Get the full base queryset
+        reviews = feedback_data['reviews']
+        
+        # Grab the URL parameters from the submitted form
+        search_query = request.GET.get('search', '').strip()
+        rating_filter = request.GET.get('rating')
+
+        # Filter by Search Text
+        if search_query:
+            reviews = reviews.filter(comment__icontains=search_query)
+            
+        # Filter by Exact Star Rating
+        if rating_filter and rating_filter.isdigit():
+            reviews = reviews.filter(rating=int(rating_filter))
+
+        # Pass the newly filtered reviews to the template
+        context["reviews"] = reviews
+        context["rating_stats"] = feedback_data['rating_stats']
+
+    # Render the single main shell
+    return render(request, "courses/course_detail/main.html", context)
 
 
 # =========================
