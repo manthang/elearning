@@ -200,30 +200,41 @@ def course_enroll(request, course_id):
 # =========================
 # Course Feedback
 # =========================
-@login_required
-@require_POST
 def course_feedback(request, course_id):
-    if request.user.role != request.user.Role.STUDENT:
+    # Security Check
+    if not request.user.is_student():
         return HttpResponseForbidden("Students only")
 
     course = get_object_or_404(Course, id=course_id)
 
+    # Enrollment Check
     is_enrolled = Enrollment.objects.filter(student=request.user, course=course).exists()
     if not is_enrolled:
-        return HttpResponseForbidden("You must be enrolled in this course to leave feedback.")
+        return HttpResponseForbidden("You must be enrolled to leave feedback.")
 
+    # Redirect back to the originating page (dashboard or detail view) after saving
+    # Priority: 1. 'next' hidden input, 2. Referer header, 3. Default dashboard
+    next_url = request.POST.get("next") or request.META.get('HTTP_REFERER')
+    
+    # Security: Ensure the URL is safe and internal
+    if not next_url or not url_has_allowed_host_and_scheme(
+        url=next_url, 
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure()
+    ):
+        next_url = reverse("courses:student_home")
+
+    # Handle Form
     existing = CourseFeedback.objects.filter(course=course, student=request.user).first()
     form = CourseFeedbackForm(request.POST, instance=existing)
 
-    # safe "next" redirect (fallback to student_home)
-    next_url = request.POST.get("next")
-    if not next_url or not url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
-        next_url = redirect("courses:student_home").url
-
     if not form.is_valid():
-        messages.error(request, "Please provide a valid rating (1–5).")
+        # Capture specific errors if necessary
+        error_msg = form.errors.as_text() if form.errors else "Please provide a valid rating (1–5)."
+        messages.error(request, error_msg)
         return redirect(next_url)
 
+    # Save Data
     feedback = form.save(commit=False)
     feedback.course = course
     feedback.student = request.user

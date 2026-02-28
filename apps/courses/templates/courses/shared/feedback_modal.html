@@ -43,8 +43,8 @@
         {% csrf_token %}
         <input type="hidden" id="feedbackCourseId" name="course_id" value="">
         <input type="hidden" id="feedbackRating" name="rating" value="">
-        <input type="hidden" id="feedbackNext" name="next" value="{{ request.path }}?tab=courses">
-
+        <input type="hidden" id="feedbackNext" name="next" value="{{ request.get_full_path }}">
+        
         <div class="flex flex-col items-center text-center">
           <label class="block text-sm font-bold text-gray-700 mb-3">Overall Rating</label>
           <div class="flex items-center gap-1.5" id="feedbackStars">
