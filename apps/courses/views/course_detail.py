@@ -28,6 +28,11 @@ def course_detail(request, course_id: int):
         # Fallback just in case (e.g., an admin user)
         dashboard_url = "/"
     
+    # Check Enrollment Status
+    is_enrolled = False
+    if is_student:
+        is_enrolled = Enrollment.objects.filter(student=user, course=course).exists()
+
     # Fetch all feedback data
     feedback_data = get_course_feedback_data(course)
 
@@ -41,6 +46,7 @@ def course_detail(request, course_id: int):
         "dashboard_url": dashboard_url,
         "is_teacher_view": is_teacher_view,
         "instructor_user": instructor.teacher if instructor else None,
+        "is_enrolled": is_enrolled,
         "enrollment_count": enrollment_count,
         "total_reviews": feedback_data['total_reviews'],
         "avg_rating": feedback_data['avg_rating'],
