@@ -75,13 +75,15 @@
 
   <div class="pt-6 border-t border-gray-100">
     <h3 class="text-xl font-bold text-gray-900 mb-5">Reviews</h3>
-    <form method="get" action="" class="flex flex-col md:flex-row gap-4" id="review-filter-form" 
-      onsubmit="if(this.q.value === '') this.q.disabled = true;">
+    
+    <form method="get" action="" class="flex flex-col md:flex-row gap-4" id="review-filter-form"
+          onsubmit="if(this.search.value.trim() === '') this.search.disabled = true;">
       <input type="hidden" name="tab" value="feedback">
       
       <div class="relative flex-1">
-        <input type="text" name="q" placeholder="Search reviews" value="{{ request.GET.q }}"
+        <input type="text" name="search" placeholder="Search reviews" value="{{ request.GET.search }}"
                class="w-full h-12 pl-4 pr-12 rounded-xl border border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 transition outline-none text-sm shadow-sm">
+               
         <button type="submit" class="absolute right-2 top-2 w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white hover:bg-blue-700 transition shadow-sm">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
         </button>
@@ -142,20 +144,18 @@
 </div>
 
 <script>
-    function filterByRating(stars) {
-      const form = document.getElementById('review-filter-form');
-      const searchInput = form.querySelector('input[name="q"]');
-      const selectElement = document.getElementById('rating-select');
-      
-      // 1. Set the dropdown to the clicked star
-      selectElement.value = stars; 
-      
-      // 2. If the search box is empty, disable it so it doesn't show up in the URL
-      if (searchInput.value.trim() === '') {
-        searchInput.disabled = true;
-      }
-      
-      // 3. Now submit the form!
-      form.submit(); 
+  function filterByRating(stars) {
+    const form = document.getElementById('review-filter-form');
+    
+    const searchInput = form.querySelector('input[name="search"]');
+    const selectElement = document.getElementById('rating-select');
+    
+    selectElement.value = stars; 
+    
+    if (searchInput.value.trim() === '') {
+      searchInput.disabled = true;
     }
-  </script>
+    
+    form.submit(); 
+  }
+</script>

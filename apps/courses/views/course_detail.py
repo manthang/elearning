@@ -80,7 +80,7 @@ def course_detail(request, course_id: int):
         reviews = feedback_data['reviews']
         
         # Grab the URL parameters from the submitted form
-        search_query = request.GET.get('q', '').strip()
+        search_query = request.GET.get('search', '').strip()
         rating_filter = request.GET.get('rating')
 
         # Filter by Search Text
