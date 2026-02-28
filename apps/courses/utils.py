@@ -14,6 +14,18 @@ def get_course_feedback_data(course):
     avg_rating_val = reviews.aggregate(a=Avg('rating'))['a'] or 0
     avg_rating = round(avg_rating_val, 1)
 
+    # Calculate the exact star breakdown (round to nearest 0.5)
+    nearest_half = round(avg_rating * 2) / 2
+    star_display = []
+    
+    for i in range(1, 6):
+        if nearest_half >= i:
+            star_display.append('full')
+        elif nearest_half >= i - 0.5:
+            star_display.append('half')
+        else:
+            star_display.append('empty')
+
     # Rating Distribution (1 to 5 stars)
     counts = dict(reviews.values_list('rating').annotate(c=Count('id')))
     rating_stats = []
@@ -31,5 +43,6 @@ def get_course_feedback_data(course):
         'reviews': reviews,
         'total_reviews': total_reviews,
         'avg_rating': avg_rating,
+        'star_display': star_display,
         'rating_stats': rating_stats,
     }

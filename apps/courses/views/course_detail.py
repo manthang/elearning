@@ -50,6 +50,7 @@ def course_detail(request, course_id: int):
         "enrollment_count": enrollment_count,
         "total_reviews": feedback_data['total_reviews'],
         "avg_rating": feedback_data['avg_rating'],
+        "star_display": feedback_data['star_display'],
     }
 
     # --- CONDITIONAL DATA (Only runs what is needed!) ---
