@@ -1,53 +1,54 @@
 {% extends "core/layout.html" %}
-{% load static %}
 
-{% block title %}{{ profile_user.full_name|default:profile_user.username }} | eLearning{% endblock %}
+{% block title %}
+  {% if is_own_profile %}{{ profile_user.get_role_display }} Dashboard{% else %}{{ profile_user.full_name }}'s Profile{% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="bg-gray-50 min-h-screen p-6">
-
   {% include "accounts/components/header.html" %}
 
   <div class="grid grid-cols-12 gap-6">
-
     <div class="col-span-4 space-y-6">
-      
       {% include "accounts/components/profile_card.html" %}
-
-      {% if is_own_profile and profile_user.is_student %}
+      
+      {% if is_own_profile %}
         {% include "courses/components/upcoming_deadlines.html" %}
       {% endif %}
-      
     </div>
 
     <div class="col-span-8">
-      
       {% include "accounts/components/dashboard_tabs.html" %}
 
-      {% if tab == "courses" %}
-        
-        {% if profile_user.is_teacher %}
-          {% include "courses/components/teacher_courses.html" %}
-        {% else %}
-          {% include "courses/components/student_courses.html" %}
+      {% if profile_user.is_teacher %}
+        {% if is_own_profile %}
+          {% include "courses/components/teacher_overview_strip.html" %}
         {% endif %}
-
-      {% elif tab == "all" and is_own_profile %}
-        {% include "courses/components/all_courses.html" %}
-        
-      {% elif tab == "status" %}
-        {% include "status/status_feed.html" %}
-        
+        {% include "courses/components/teacher_courses.html" %}
+      
+      {% else %}
+        {% if tab == "courses" %}
+          {% include "courses/components/student_courses.html" %}
+        {% elif tab == "all" and is_own_profile %}
+          {% include "courses/components/all_courses.html" %}
+        {% endif %}
       {% endif %}
-    </div>
 
+      {% if tab == "status" %}
+        {% include "status/status_feed.html" %}
+      {% endif %}
+
+    </div>
   </div>
 </div>
 
 {% if is_own_profile %}
   {% include "accounts/components/profile_edit_modal.html" %}
   {% include "chat/chat_modal.html" %}
+  {% if profile_user.is_teacher %}
+    {% include "courses/shared/create_course_modal.html" %}
+  {% endif %}
 {% endif %}
-{% include "accounts/components/search_modal.html" %}
 
+{% include "accounts/components/search_modal.html" %}
 {% endblock %}
