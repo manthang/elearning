@@ -76,7 +76,23 @@ def course_detail(request, course_id: int):
         context["deadlines"] = Deadline.objects.filter(course=course).order_by("due_at")
 
     elif current_tab == "feedback":
-        context["reviews"] = feedback_data['reviews']
+        # Get the full base queryset
+        reviews = feedback_data['reviews']
+        
+        # Grab the URL parameters from the submitted form
+        search_query = request.GET.get('q', '').strip()
+        rating_filter = request.GET.get('rating')
+
+        # Filter by Search Text
+        if search_query:
+            reviews = reviews.filter(comment__icontains=search_query)
+            
+        # 2. Filter by Exact Star Rating
+        if rating_filter and rating_filter.isdigit():
+            reviews = reviews.filter(rating=int(rating_filter))
+
+        # Pass the newly filtered reviews to the template
+        context["reviews"] = reviews
         context["rating_stats"] = feedback_data['rating_stats']
 
     # Render the single main shell
