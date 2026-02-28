@@ -124,7 +124,9 @@
             {{ fb.comment|default:"-" }}
           </div>
 
-          <div class="mt-4 flex items-center gap-4">
+          {% comment %}
+            I am hiding this "thumb up and/or report a review" feature for now.
+          <!-- <div class="mt-4 flex items-center gap-4">
             <span class="text-[11px] text-gray-500">Was this review helpful?</span>
             <div class="flex gap-2">
               <button class="w-9 h-9 rounded-full border border-gray-900 flex items-center justify-center hover:bg-gray-50 transition">
@@ -135,7 +137,8 @@
               </button>
               <button class="text-xs font-bold text-gray-900 underline ml-2">Report</button>
             </div>
-          </div>
+          </div> -->
+          {% endcomment %}
         </div>
       </div>
     </div>
