@@ -32,6 +32,8 @@
       <form id="editCourseModalForm" method="post" action="" class="px-6 py-5 space-y-5 overflow-y-auto">
         {% csrf_token %}
 
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+
         <div>
           <label class="block text-sm font-semibold text-slate-800 mb-2">
             Course ID

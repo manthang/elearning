@@ -3,7 +3,7 @@ from datetime import datetime
 
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.db.models import Count, Sum, Avg, Q, F
 from django.http import HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
@@ -119,50 +119,50 @@ def course_create(request):
 def course_edit(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
 
+    # Determine where to send the user after processing
+    # Fallback to the course detail page if no 'next' parameter is provided
+    fallback_url = redirect("courses:course_detail", course_id=course.id)
+    next_url = request.POST.get("next")
+    redirect_target = redirect(next_url) if next_url else fallback_url
+
+    # Permission Check
     is_teacher = Teaching.objects.filter(course=course, teacher=request.user).exists()
     if not is_teacher:
         messages.error(request, "You don't have permission to edit this course.")
-        return redirect("courses:course_detail", course_id=course.id)
+        return redirect_target
 
-    new_course_id = (request.POST.get("course_id") or "").strip()
+    # Extract core fields (Notice we ignore course_id as it shouldn't change)
     title = (request.POST.get("title") or "").strip()
     description = (request.POST.get("description") or "").strip()
+    category = (request.POST.get("category") or "").strip()
 
-    if not new_course_id:
-        messages.error(request, "Course ID is required.")
-        return redirect("courses:course_detail", course_id=course.id)
-
+    # Validation
     if not title:
         messages.error(request, "Course title is required.")
-        return redirect("courses:course_detail", course_id=course.id)
+        return redirect_target
 
-    # Core fields
-    course.course_id = new_course_id
-    course.title = title
-    course.description = description
-
-     # Category: validate against choices
-    category = (request.POST.get("category") or "").strip()
     valid_categories = {k for k, _ in Course.CATEGORY_CHOICES}
     if category not in valid_categories:
         messages.error(request, "Invalid category selected.")
-        return redirect("courses:course_detail", course_id=course.id)
-    course.category = category
+        return redirect_target
 
-    # Duration
+    # Apply Updates
+    course.title = title
+    course.description = description
+    course.category = category
     course.duration = (request.POST.get("duration") or "").strip() or None
 
-    # Max students
     max_students_raw = (request.POST.get("max_students") or "").strip()
     course.max_students = int(max_students_raw) if max_students_raw.isdigit() else None
 
+    #Save
     try:
         course.save()
-        messages.success(request, "Course updated.")
-    except IntegrityError:
-        messages.error(request, "That Course ID is already used. Please choose another one.")
+        messages.success(request, "Course updated successfully.")
+    except Exception as e:
+        messages.error(request, f"An error occurred while saving: {str(e)}")
 
-    return redirect("courses:course_detail", course_id=course.id)
+    return redirect_target
 
 
 # =========================
