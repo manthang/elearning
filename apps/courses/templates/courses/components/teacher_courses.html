@@ -1,163 +1,94 @@
-<div class="bg-white rounded-xl shadow">
-  <div class="px-6 py-5 border-b border-gray-100">
-    <div class="flex items-center justify-between gap-4">
-      <div>
-        <h2 class="text-lg font-semibold text-gray-900">My Courses</h2>
-        <p class="text-sm text-gray-500 mt-1">
-          Courses you’ve created. Manage content, students, and materials.
-        </p>
-      </div>
+<div>
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div class="relative w-full sm:w-72 group">
+      <input type="text"
+             placeholder="Search your courses..."
+             class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white shadow-sm text-sm focus:ring-2 focus:ring-blue-600 focus:border-transparent" />
+      <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
     </div>
+
+    {% if is_own_profile %}
+      <button onclick="openCreateCourseModal()" 
+              class="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Create Course
+      </button>
+    {% endif %}
   </div>
 
-  <div class="p-6 space-y-4">
-    {% for c in my_courses %}
-      <div class="border border-gray-200 rounded-xl p-5 hover:shadow-sm transition bg-white">
-        <div class="flex items-start justify-between gap-4">
+  <div class="space-y-4">
+    {% for c in taught_courses %}
+      <div class="relative bg-white rounded-2xl border border-gray-200 shadow-sm hover:border-blue-300 transition flex overflow-hidden">
+        
+        <div class="w-48 shrink-0 bg-gray-100">
+          {% if c.thumbnail %}
+            <img src="{{ c.thumbnail.url }}" alt="{{ c.title }}" class="h-full w-full object-cover"/>
+          {% else %}
+            <div class="h-full w-full bg-slate-200"></div>
+          {% endif %}
+        </div>
 
-          <!-- LEFT CONTENT -->
-          <div class="min-w-0 flex-1">
-
-            <!-- ===== TITLE (OWN LINE) ===== -->
-            <h3 class="font-semibold text-gray-900 text-lg truncate"
-                title="{{ c.title }}">
-              {{ c.title }}
-            </h3>
-
-            <!-- ===== BADGES (OWN DEDICATED LINE) ===== -->
-            <div class="mt-2 flex flex-wrap items-center gap-2">
-
-              {% if c.course_id %}
-                <span class="text-xs font-semibold px-2 py-1 rounded-full 
-                             bg-gray-100 text-gray-700 border border-gray-200">
-                  ID: {{ c.course_id }}
-                </span>
-              {% endif %}
-
-              <span class="text-xs font-semibold px-2 py-1 rounded-full 
-                           bg-gray-50 text-gray-700 border border-gray-200">
-                {{ c.get_category_display|default:"General" }}
+        <div class="flex-1 p-5 flex flex-col justify-between">
+          <div>
+            <div class="flex justify-between items-start">
+              <h4 class="text-lg font-bold text-gray-900 leading-snug line-clamp-1">{{ c.title }}</h4>
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200">
+                Published
               </span>
-
-              {% if c.max_students and c.student_count >= c.max_students %}
-                <span class="text-xs font-semibold px-2 py-1 rounded-full 
-                             bg-red-50 text-red-700 border border-red-100">
-                  Full
-                </span>
-              {% endif %}
             </div>
-
-            <!-- ===== STATS ROW ===== -->
-            <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-700">
-
-              <!-- Duration -->
-              <div class="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-5 w-5 text-gray-400"
-                     viewBox="0 0 24 24"
-                     fill="none"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     stroke-linecap="round"
-                     stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="M12 6v6l4 2"></path>
-                </svg>
-
-                <span class="font-semibold text-gray-900">
-                  {% if c.duration %}{{ c.duration }}{% else %}—{% endif %}
-                </span>
-                <span class="text-gray-600">weeks</span>
-              </div>
-
-              <!-- Students -->
-              <div class="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-5 w-5 text-gray-400"
-                     viewBox="0 0 24 24"
-                     fill="none"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     stroke-linecap="round"
-                     stroke-linejoin="round">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                  <circle cx="9" cy="7" r="4"/>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                </svg>
-
-                <span class="font-semibold text-gray-900">
-                  {{ c.student_count|default:0 }}
-                  {% if c.max_students %}/ {{ c.max_students }}{% endif %}
-                </span>
-                <span class="text-gray-600">students</span>
-              </div>
-
-              <!-- Materials -->
-              <div class="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="h-5 w-5 text-gray-400"
-                     viewBox="0 0 24 24"
-                     fill="none"
-                     stroke="currentColor"
-                     stroke-width="2"
-                     stroke-linecap="round"
-                     stroke-linejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <path d="M14 2v6h6"></path>
-                </svg>
-
-                <span class="font-semibold text-gray-900">
-                  {{ c.materials_total|default:0 }}
-                </span>
-                <span class="text-gray-600">materials</span>
-              </div>
+            
+            <div class="mt-3 flex items-center gap-4 text-sm text-gray-500">
+              <span class="flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                {{ c.students_total|default:0 }} Students
+              </span>
+              <span class="text-gray-300">•</span>
+              <span class="flex items-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                {{ c.materials_total|default:0 }} Materials
+              </span>
             </div>
-
-            <!-- Updated -->
-            <div class="mt-3 text-xs text-gray-500">
-              Updated:
-              {% if c.updated_at %}
-                {{ c.updated_at|date:"M d, Y • h:i A" }}
-              {% else %}
-                —
-              {% endif %}
-            </div>
-
           </div>
 
-          <!-- ===== RIGHT SIDE ===== -->
-          <div class="shrink-0 flex items-center gap-2">
-
-            <span class="text-xs font-semibold px-2 py-1 rounded-full 
-                         bg-green-50 text-green-700 border border-green-100">
-              Active
-            </span>
-
-            <a href="{% url 'courses:course_detail' c.id %}"
-               class="inline-flex items-center gap-2 px-3 py-1.5 
-                      rounded-lg border border-gray-200 
-                      text-sm font-semibold text-gray-700 
-                      hover:bg-gray-50 transition">
-              <span>Manage</span>
-              <svg xmlns="http://www.w3.org/2000/svg"
-                   class="h-4 w-4"
-                   viewBox="0 0 24 24"
-                   fill="none"
-                   stroke="currentColor"
-                   stroke-width="2"
-                   stroke-linecap="round"
-                   stroke-linejoin="round">
-                <path d="M9 18l6-6-6-6"></path>
-              </svg>
-            </a>
-          </div>
-
+          {% if is_own_profile %}
+            <div class="mt-4 pt-4 border-t border-gray-100 flex gap-3">
+              <a href="{% url 'courses:course_detail' c.id %}" class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition">View Course</a>
+              <a href="{% url 'courses:course_detail' c.id %}?tab=students" class="text-sm font-medium text-gray-600 hover:text-gray-900 transition">Manage Students</a>
+              <button type="button"
+                      onclick="openEditCourseModal(this)"
+                      data-edit-url="{% url 'courses:course_edit' c.id %}"
+                      data-course-code="{{ c.course_id }}"
+                      data-title="{{ c.title }}"
+                      data-description="{{ c.description }}"
+                      data-category="{{ c.category }}"
+                      data-duration="{{ c.duration|default:'' }}"
+                      data-max-students="{{ c.max_students|default:'' }}"
+                      class="text-sm font-medium text-gray-600 hover:text-gray-900 transition focus:outline-none">
+                Edit Details
+              </button>
+            </div>
+          {% else %}
+            <div class="mt-4 pt-4 border-t border-gray-100">
+               <a href="{% url 'courses:course_detail' c.id %}" class="text-sm font-semibold text-blue-600 hover:text-blue-800 transition">View Details &rarr;</a>
+            </div>
+          {% endif %}
         </div>
       </div>
     {% empty %}
-      <div class="text-sm text-gray-500">
-        You haven’t created any courses yet.
+      <div class="rounded-2xl border-2 border-dashed border-gray-200 bg-white p-10 text-center flex flex-col items-center justify-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-300 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        <p class="text-gray-500 font-medium mb-4">
+          {% if is_own_profile %}You haven't created any courses yet.{% else %}{{ profile_user.full_name }} hasn't published any courses yet.{% endif %}
+        </p>
+        {% if is_own_profile %}
+          <button onclick="openCreateCourseModal()" class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 text-blue-700 font-semibold hover:bg-blue-100 transition">
+            Create your first course
+          </button>
+        {% endif %}
       </div>
     {% endfor %}
   </div>

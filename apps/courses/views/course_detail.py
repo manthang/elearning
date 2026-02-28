@@ -1,9 +1,11 @@
-from ..utils import *
-
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Avg
 from django.urls import reverse
+
+from ..models import *
+from ..utils import _get_course_feedback_data
+
 
 @login_required
 def course_detail(request, course_id: int):
@@ -20,13 +22,7 @@ def course_detail(request, course_id: int):
     is_teacher_view = is_teacher and Teaching.objects.filter(course=course, teacher=user).exists()
 
     # Determine the correct Dashboard URL
-    if is_teacher:
-        dashboard_url = reverse("courses:teacher_home")
-    elif is_student:
-        dashboard_url = reverse("courses:student_home")
-    else:
-        # Fallback just in case (e.g., an admin user)
-        dashboard_url = "/"
+    dashboard_url = reverse("core:home")
     
     # Check Enrollment Status
     is_enrolled = False
@@ -37,7 +33,7 @@ def course_detail(request, course_id: int):
         user_feedback = CourseFeedback.objects.filter(student=user, course=course).first()
 
     # Fetch all feedback data
-    feedback_data = get_course_feedback_data(course)
+    feedback_data = _get_course_feedback_data(course)
 
     # --- COMMON DATA (Always passed for the Header) ---
     enrollment_count = Enrollment.objects.filter(course=course).count()
@@ -55,6 +51,7 @@ def course_detail(request, course_id: int):
         "avg_rating": feedback_data['avg_rating'],
         "star_display": feedback_data['star_display'],
         "user_feedback": user_feedback,
+        'category_choices': Course.CATEGORY_CHOICES,
     }
 
     # --- CONDITIONAL DATA (Only runs what is needed!) ---

@@ -57,7 +57,7 @@ def _get_all_courses_catalog(enrolled_course_ids):
     return all_courses
 
 
-def get_course_feedback_data(course):
+def _get_course_feedback_data(course):
     """
     Fetches reviews and calculates all rating statistics for a course.
     Returns a dictionary to be used in views or APIs.

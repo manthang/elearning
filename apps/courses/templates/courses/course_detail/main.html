@@ -116,8 +116,16 @@
 
           <div class="shrink-0 md:pt-2">
             {% if is_teacher_view %}
-              <button onclick="openEditCourseModal()" 
-                      class="group flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-2xl text-sm font-bold text-gray-700 hover:bg-gray-50 hover:border-blue-200 hover:text-blue-600 transition-all shadow-sm">
+              <button type="button" 
+                      onclick="openEditCourseModal(this)"
+                      data-edit-url="{% url 'courses:course_edit' course.id %}"
+                      data-course-code="{{ course.course_id }}"
+                      data-title="{{ course.title }}"
+                      data-description="{{ course.description }}"
+                      data-category="{{ course.category }}"
+                      data-duration="{{ course.duration|default:'' }}"
+                      data-max-students="{{ course.max_students|default:'' }}"
+                      class="group flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 rounded-2xl text-sm font-bold text-gray-700 hover:bg-gray-50 hover:border-blue-200 hover:text-blue-600 transition-all shadow-sm focus:outline-none">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 group-hover:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
@@ -189,6 +197,6 @@
   </div>
 </div>
 
-{% include "courses/course_detail/_course_edit.html" %}
+{% include "courses/shared/course_edit_modal.html" %}
 {% include "courses/shared/feedback_modal.html" %}
 {% endblock %}
