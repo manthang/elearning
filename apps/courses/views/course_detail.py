@@ -87,7 +87,7 @@ def course_detail(request, course_id: int):
         if search_query:
             reviews = reviews.filter(comment__icontains=search_query)
             
-        # 2. Filter by Exact Star Rating
+        # Filter by Exact Star Rating
         if rating_filter and rating_filter.isdigit():
             reviews = reviews.filter(rating=int(rating_filter))
 
