@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.db.models import Prefetch, Avg, Count
 from django.contrib.auth import get_user_model
 from django.shortcuts import redirect, render, get_object_or_404
+from django.urls import reverse
 
 from apps.courses.models import *
 
@@ -121,23 +122,32 @@ def user_profile(request, username):
 @login_required
 @require_POST
 def edit_profile(request):
-    """Dedicated endpoint to handle profile form submissions."""
     user = request.user
+    
+    # Update text fields
     user.full_name = request.POST.get("full_name", "").strip()
     user.location = request.POST.get("location", "").strip()
     user.bio = request.POST.get("bio", "").strip()
-    
-    if "profile_photo" in request.FILES:
+
+    # Handle explicitly removing the photo
+    if request.POST.get("remove_photo") == "1":
+        if user.profile_photo:
+            # Delete the actual image file from your media folder to save space
+            user.profile_photo.delete(save=False) 
+        # Clear the database field
+        user.profile_photo = None 
+
+    # Handle uploading a new photo
+    elif "profile_photo" in request.FILES:
+        if user.profile_photo:
+            user.profile_photo.delete(save=False) # Clean up the old one first
         user.profile_photo = request.FILES["profile_photo"]
-        
+
     user.save()
     messages.success(request, "Profile updated successfully!")
-    
-    # Safely redirect back to where they were
-    next_url = request.POST.get("next") or request.META.get("HTTP_REFERER")
-    if not next_url:
-        next_url = reverse("accounts:user_profile", args=[user.username])
-        
+
+    # Safely redirect back to wherever they were
+    next_url = request.POST.get("next") or reverse("accounts:user_profile", kwargs={"username": user.username})
     return redirect(next_url)
 
 

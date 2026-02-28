@@ -26,7 +26,7 @@
 
       {% if tab == "courses" %}
         
-        {% if profile_user.role == "TEACHER" %}
+        {% if profile_user.is_teacher %}
           {% include "courses/components/teacher_courses.html" %}
         {% else %}
           {% include "courses/components/student_courses.html" %}
