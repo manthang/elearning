@@ -1,0 +1,53 @@
+{% extends "core/layout.html" %}
+{% load static %}
+
+{% block title %}{{ profile_user.full_name|default:profile_user.username }} | eLearning{% endblock %}
+
+{% block content %}
+<div class="bg-gray-50 min-h-screen p-6">
+
+  {% include "accounts/components/header.html" %}
+
+  <div class="grid grid-cols-12 gap-6">
+
+    <div class="col-span-4 space-y-6">
+      
+      {% include "accounts/components/profile_card.html" %}
+
+      {% if is_own_profile and profile_user.is_student %}
+        {% include "courses/components/upcoming_deadlines.html" %}
+      {% endif %}
+      
+    </div>
+
+    <div class="col-span-8">
+      
+      {% include "accounts/components/dashboard_tabs.html" %}
+
+      {% if tab == "courses" %}
+        
+        {% if profile_user.role == "TEACHER" %}
+          {% include "courses/components/teacher_courses.html" %}
+        {% else %}
+          {% include "courses/components/student_courses.html" %}
+        {% endif %}
+
+      {% elif tab == "all" and is_own_profile %}
+        {% include "courses/components/all_courses.html" %}
+        
+      {% elif tab == "status" %}
+        {% include "status/status_feed.html" %}
+        
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+{% if is_own_profile %}
+  {% include "accounts/profile_edit_modal.html" %}
+  {% include "chat/chat_modal.html" %}
+{% endif %}
+{% include "accounts/search_modal.html" %}
+
+{% endblock %}

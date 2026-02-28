@@ -1,12 +1,10 @@
-from django.shortcuts import render, redirect
-
+from django.shortcuts import redirect
 
 def home_redirect(request):
+    # Not logged in? Go to login or a public landing page.
     if not request.user.is_authenticated:
         return redirect("accounts:login")
 
-    if request.user.role == request.user.Role.TEACHER:
-        return redirect("courses:teacher_home")
-
-    return redirect("courses:student_home")
-
+    # Logged in? Send them to the accounts home redirect, 
+    # which will safely bounce them to /@theirusername/
+    return redirect("accounts:home")

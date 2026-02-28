@@ -1,8 +1,8 @@
 <nav class="bg-white border-b border-gray-100">
   <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
     <!-- Brand / Home -->
-    <a href="{% if user.is_authenticated %}{% if user.role == user.Role.TEACHER %}{% url 'courses:teacher_home' %}{% else %}{% url 'courses:student_home' %}{% endif %}{% else %}/{% endif %}"
-       class="inline-flex items-center gap-2 font-semibold text-gray-900">
+    <a href="{% url 'core:home' %}"
+        class="inline-flex items-center gap-2 font-semibold text-gray-900">
       <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -53,7 +53,7 @@
 
             <div class="border-t border-gray-100 my-1"></div>
 
-            <a href="/logout/"
+            <a href="{% url 'accounts:logout' %}"
                class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50"
                role="menuitem">
               Logout
@@ -63,7 +63,7 @@
 
       {% else %}
 
-        <a href="/login/"
+        <a href="{% url 'accounts:login' %}"
            class="inline-flex items-center px-4 py-2 rounded-xl border border-gray-200 bg-white
                   text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition">
           Login

@@ -29,7 +29,7 @@
 {% include "chat/chat_modal.html" %}
 {% include "accounts/search_modal.html" %}
 {% include "accounts/profile_edit_modal.html" %}
-{% include "courses/modals/create_course_modal.html" %}
+{% include "courses/shared/create_course_modal.html" %}
 {% endblock %}
 
 {% block extra_js %}

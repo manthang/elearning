@@ -1,47 +1,59 @@
 {% load humanize %}
 
-<!-- STATUS ITEM -->
-<div class="bg-white rounded-xl border p-6">
+<div class="bg-white rounded-3xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition-shadow">
   <div class="flex gap-4">
-    <!-- Avatar -->
-    <img
-      src="{{ update.author.avatar_url }}"
-      class="w-12 h-12 rounded-full object-cover"
-      alt="{{ update.author.full_name }}"
-    />
+    <img src="{{ s.author.avatar_url }}" 
+         alt="{{ s.author.username }}" 
+         class="w-12 h-12 rounded-full object-cover shrink-0 border border-gray-100 shadow-sm">
+    
+    <div class="flex-1 min-w-0">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-base font-bold text-gray-900">
+              {{ s.author.full_name|default:s.author.username }}
+            </span>
+            
+            {% if s.author.is_teacher %}
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 uppercase tracking-widest">Instructor</span>
+            {% elif s.author == request.user %}
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600 uppercase tracking-widest">You</span>
+            {% endif %}
+            
+            <span class="text-gray-300">•</span>
+            <span class="text-sm font-medium text-gray-500">{{ s.created_at|naturaltime }}</span>
+          </div>
+        </div>
 
-    <!-- Content -->
-    <div class="flex-1">
-      <!-- Header -->
-      <div class="flex items-center gap-2">
-        <span class="font-semibold text-gray-900">
-          {{ update.author.full_name|default:update.author.username }}
-        </span>
-
-        {% if update.author == request.user %}
-          <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-600">
-            You
-          </span>
-        {% endif %}
+        {% if s.author == request.user %}
+        <form method="post" action="{% url 'status:delete' s.id %}" onsubmit="return confirm('Are you sure you want to delete this post?');">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}">
+          
+          <button type="submit" title="Delete post"
+                  class="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-red-600 hover:bg-red-50 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+            </svg>
+          </button>
+        </form>
+      {% endif %}
       </div>
 
-      <!-- Time -->
-      <div class="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
-        🕒 {{ update.created_at|naturaltime }}
-      </div>
+      <p class="mt-3 text-base text-gray-800 leading-relaxed whitespace-pre-line">{{ s.content }}</p>
 
-      <!-- Text -->
-      <p class="mt-3 text-gray-800 leading-relaxed">
-        {{ update.content }}
-      </p>
-
-      <!-- Actions -->
-      <div class="flex gap-6 mt-4 text-gray-500 text-sm">
-        <button class="flex items-center gap-1 hover:text-red-500 transition">
-          ❤️ {{ update.likes_count|default:0 }}
-        </button>
-        <button class="flex items-center gap-1 hover:text-blue-500 transition">
-          💬 {{ update.comments_count|default:0 }}
+      <div class="mt-4 pt-4 border-t border-gray-50 flex items-center gap-6">
+        <form method="post" action="{% url 'status:toggle_like' s.id %}">
+          {% csrf_token %}
+          <button type="submit" class="flex items-center gap-2 text-sm font-bold transition {% if request.user in s.liked_by.all %}text-red-500{% else %}text-gray-400 hover:text-gray-600{% endif %}">
+            <svg class="w-5 h-5" fill="{% if request.user in s.liked_by.all %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            {{ s.likes_count }}
+          </button>
+        </form>
+        
+        <button class="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-blue-600 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          Comment
         </button>
       </div>
     </div>

@@ -202,7 +202,7 @@ def course_enroll(request, course_id):
 # =========================
 def course_feedback(request, course_id):
     # Security Check
-    if not request.user.is_student():
+    if not request.user.is_student:
         return HttpResponseForbidden("Students only")
 
     course = get_object_or_404(Course, id=course_id)

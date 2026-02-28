@@ -35,13 +35,16 @@ class User(AbstractUser):
 
     @property
     def avatar_url(self):
+        """Returns the photo URL or a default fallback."""
         if self.profile_photo:
             return self.profile_photo.url
         return f"{settings.MEDIA_URL}/profile_photos/default-avatar.svg"
 
+    @property
     def is_student(self):
         return self.role == self.Role.STUDENT
 
+    @property
     def is_teacher(self):
         return self.role == self.Role.TEACHER
 

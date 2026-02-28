@@ -51,7 +51,7 @@ function searchUsers() {
     return;
   }
 
-  fetch(`/accounts/search/?q=${encodeURIComponent(q)}&role=${currentRole}`)
+  fetch(`/users/search/?q=${encodeURIComponent(q)}&role=${currentRole}`)
     .then(res => res.json())
     .then(data => {
       container.innerHTML = "";
