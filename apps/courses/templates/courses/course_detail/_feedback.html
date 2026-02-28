@@ -105,10 +105,15 @@
     {% for fb in reviews %}
     <div class="py-8">
       <div class="flex gap-4">
-        <div class="w-12 h-12 rounded-full bg-gray-900 flex items-center justify-center text-white font-bold shrink-0">
-          {{ fb.student.full_name|slice:":1"|upper }}
-        </div>
-        
+        {% if fb.student.profile_photo %}
+          <img src="{{ fb.student.avatar_url }}" 
+               alt="{{ fb.student.username }}'s avatar" 
+               class="w-12 h-12 rounded-full object-cover shrink-0 border border-gray-100 shadow-sm">
+        {% else %}
+          <div class="w-12 h-12 rounded-full bg-gray-900 flex items-center justify-center text-white font-bold shrink-0 shadow-sm">
+            {{ fb.student.full_name|default:fb.student.username|slice:":1"|upper }}
+          </div>
+        {% endif %}
         <div class="flex-1 min-w-0">
           <div class="text-sm font-bold text-gray-900">{{ fb.student.full_name }}</div>
           <div class="flex items-center gap-2 mt-1">
@@ -141,6 +146,10 @@
           {% endcomment %}
         </div>
       </div>
+    </div>
+    {% empty %}
+    <div class="py-20 text-center">
+        <h3 class="text-lg font-bold text-gray-900">No reviews yet</h3>
     </div>
     {% endfor %}
   </div>
