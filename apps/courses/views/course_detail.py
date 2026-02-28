@@ -30,8 +30,11 @@ def course_detail(request, course_id: int):
     
     # Check Enrollment Status
     is_enrolled = False
+    user_feedback = None
     if is_student:
         is_enrolled = Enrollment.objects.filter(student=user, course=course).exists()
+        # Fetch their existing feedback if they have one
+        user_feedback = CourseFeedback.objects.filter(student=user, course=course).first()
 
     # Fetch all feedback data
     feedback_data = get_course_feedback_data(course)
@@ -51,6 +54,7 @@ def course_detail(request, course_id: int):
         "total_reviews": feedback_data['total_reviews'],
         "avg_rating": feedback_data['avg_rating'],
         "star_display": feedback_data['star_display'],
+        "user_feedback": user_feedback,
     }
 
     # --- CONDITIONAL DATA (Only runs what is needed!) ---

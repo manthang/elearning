@@ -1,0 +1,277 @@
+<style>
+    /* Rating label swap (Udemy-like) */
+    .rating-chip:hover .rating-default { display: none; }
+    .rating-chip:hover .rating-hover { display: inline; }
+
+    /* Feedback modal (match Add Deadlines modal vibe) */
+    .modal-backdrop[aria-hidden="true"] { display: none; }
+    .modal-backdrop { position: fixed; inset: 0; z-index: 60; background: rgba(15, 23, 42, .45); }
+    .modal-panel { max-width: 520px; width: calc(100% - 2rem); }
+
+    /* Stars */
+    .star-btn { transition: transform .12s ease, filter .12s ease; }
+    .star-btn:hover { transform: translateY(-1px) scale(1.05); }
+    .star-btn:active { transform: translateY(0) scale(.98); }
+
+    /* Prevent body scroll when modal open */
+    body.modal-open { overflow: hidden; }
+</style>
+
+<div id="feedbackModal" class="modal-backdrop backdrop-blur-sm transition-opacity" aria-hidden="true" role="dialog" aria-modal="true" tabindex="-1">
+  <div class="h-full w-full flex items-center justify-center p-4">
+    <div class="modal-panel bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden transform transition-all">
+      
+      <div class="px-6 py-5 border-b border-gray-100 bg-white">
+        <div class="flex items-start justify-between gap-4">
+          <div class="min-w-0">
+            <h3 class="text-xl font-bold text-gray-900">Leave Feedback</h3>
+            <p id="feedbackCourseTitle" class="mt-1 text-sm font-medium text-blue-600 truncate">—</p>
+          </div>
+          <button type="button"
+                  id="closeFeedbackModalBtn"
+                  class="p-2 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition"
+                  aria-label="Close">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <form id="feedbackForm" class="px-6 py-6 space-y-6" method="post" action="">
+        {% csrf_token %}
+        <input type="hidden" id="feedbackCourseId" name="course_id" value="">
+        <input type="hidden" id="feedbackRating" name="rating" value="">
+        <input type="hidden" id="feedbackNext" name="next" value="{{ request.path }}?tab=courses">
+
+        <div class="flex flex-col items-center text-center">
+          <label class="block text-sm font-bold text-gray-700 mb-3">Overall Rating</label>
+          <div class="flex items-center gap-1.5" id="feedbackStars">
+            {% for i in "12345" %}
+              <button type="button" class="star-btn transition-transform hover:scale-110 active:scale-95" data-star="{{ forloop.counter }}" aria-label="Rate {{ forloop.counter }}">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-200 transition-colors duration-150" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+                </svg>
+              </button>
+            {% endfor %}
+          </div>
+          <span class="mt-2 text-xs font-bold uppercase tracking-wider text-gray-400" id="feedbackHint">Select a rating</span>
+        </div>
+
+        <div>
+          <label class="block text-sm font-bold text-gray-700 mb-2">
+            Written Review <span class="text-gray-400 font-normal">(Optional)</span>
+          </label>
+          <textarea id="feedbackComment" name="comment" rows="4"
+                    class="w-full rounded-2xl border-0 bg-gray-50 px-4 py-3 text-sm text-gray-900 placeholder-gray-400
+                           focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-inner transition resize-none"
+                    placeholder="Share what you liked or what could be improved..."></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 pt-2">
+          <button type="button" id="cancelFeedbackBtn"
+                  class="px-5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-bold text-gray-700
+                        hover:bg-gray-50 hover:border-gray-300 transition shadow-sm">
+            Cancel
+          </button>
+
+          <button type="submit" id="saveFeedbackBtn" disabled
+                  class="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition shadow-sm
+                        bg-blue-600/50 cursor-not-allowed
+                        enabled:bg-blue-600 enabled:hover:bg-blue-700 enabled:cursor-pointer">
+            Save Review
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    // --- 1. DOM Elements ---
+    const modal = document.getElementById('feedbackModal');
+    const modalPanel = modal ? modal.querySelector('.modal-panel') : null;
+    const form = document.getElementById('feedbackForm');
+    
+    // Display & Inputs
+    const courseTitleEl = document.getElementById('feedbackCourseTitle');
+    const courseIdInput = document.getElementById('feedbackCourseId');
+    const ratingInput = document.getElementById('feedbackRating');
+    const commentInput = document.getElementById('feedbackComment');
+    
+    // Interactive Elements
+    const starsWrap = document.getElementById('feedbackStars');
+    const hintEl = document.getElementById('feedbackHint');
+    const saveBtn = document.getElementById('saveFeedbackBtn');
+    const cancelBtn = document.getElementById('cancelFeedbackBtn');
+    const closeBtn = document.getElementById('closeFeedbackModalBtn');
+
+    // Abort if the modal isn't on the page
+    if (!modal || !form || !starsWrap || !saveBtn) return;
+
+    // --- 2. State Management ---
+    let initialRating = 0;
+    let initialComment = '';
+    let lastOpenerEl = null;
+
+    // --- 3. Core Functions ---
+    function openModal() {
+      modal.setAttribute('aria-hidden', 'false');
+      document.body.classList.add('modal-open');
+      
+      // Auto-focus comment box for quick typing
+      setTimeout(() => {
+        if (commentInput) commentInput.focus();
+      }, 50);
+    }
+
+    function closeModal(reset = true) {
+      // Restore focus for accessibility/keyboard navigation
+      if (modal.contains(document.activeElement) && lastOpenerEl && typeof lastOpenerEl.focus === 'function') {
+        lastOpenerEl.focus();
+      }
+
+      modal.setAttribute('aria-hidden', 'true');
+      document.body.classList.remove('modal-open');
+
+      // Wipe data clean on close
+      if (reset) {
+        courseTitleEl.textContent = '—';
+        courseIdInput.value = '';
+        ratingInput.value = '';
+        commentInput.value = '';
+        form.action = '';
+        
+        initialRating = 0;
+        initialComment = '';
+        
+        renderStars(0);
+        updateHint(0);
+        saveBtn.disabled = true;
+      }
+    }
+
+    function updateHint(rating) {
+      if (!hintEl) return;
+      const hints = ['Select a rating', 'Poor', 'Needs improvement', 'Okay', 'Good', 'Excellent'];
+      hintEl.textContent = hints[rating] || hints[0];
+    }
+
+    function renderStars(rating) {
+      const starButtons = starsWrap.querySelectorAll('[data-star]');
+      
+      starButtons.forEach((btn) => {
+        const n = parseInt(btn.getAttribute('data-star'), 10);
+        const svg = btn.querySelector('svg');
+        if (!svg) return;
+
+        // Toggle colors to match the updated UI palette
+        if (n <= rating) {
+          svg.classList.remove('text-gray-200');
+          svg.classList.add('text-amber-400');
+        } else {
+          svg.classList.remove('text-amber-400');
+          svg.classList.add('text-gray-200');
+        }
+      });
+    }
+
+    function checkChanges() {
+      const comment = (commentInput.value || '').trim();
+      const rating = parseInt(ratingInput.value || '0', 10) || 0;
+
+      const ratingChanged = rating !== initialRating;
+      const commentChanged = comment !== initialComment;
+      const isValid = rating >= 1; // Must have at least 1 star to submit
+
+      saveBtn.disabled = !(isValid && (ratingChanged || commentChanged));
+    }
+
+    function populateModal(triggerEl) {
+      // Looks for data either on the button itself or a parent wrapper
+      const dataContainer = triggerEl.closest('[data-course-id]') || triggerEl;
+      if (!dataContainer) return;
+
+      const courseId = dataContainer.getAttribute('data-course-id');
+      const displayTitle = dataContainer.getAttribute('data-course-display-title') || '';
+      const rating = parseInt(dataContainer.getAttribute('data-feedback-rating') || '0', 10) || 0;
+      const comment = dataContainer.getAttribute('data-feedback-comment') || '';
+
+      // Set State
+      initialRating = rating;
+      initialComment = comment.trim();
+
+      // Populate DOM
+      courseTitleEl.textContent = displayTitle || '—';
+      courseIdInput.value = courseId || '';
+      ratingInput.value = String(rating);
+      commentInput.value = initialComment;
+      form.action = courseId ? `/courses/${courseId}/feedback/` : '';
+
+      // Update UI
+      renderStars(rating);
+      updateHint(rating);
+      checkChanges();
+    }
+
+    // --- 4. Event Listeners ---
+
+    // Open Modal
+    document.querySelectorAll('[data-open-feedback]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        lastOpenerEl = btn;
+        populateModal(btn);
+        openModal();
+      });
+    });
+
+    // Star Click Interactions
+    starsWrap.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-star]');
+      if (!btn) return;
+
+      const rating = parseInt(btn.getAttribute('data-star'), 10) || 0;
+      ratingInput.value = String(rating);
+
+      renderStars(rating);
+      updateHint(rating);
+      checkChanges();
+    });
+
+    // Detect Typing (to enable the Save button)
+    if (commentInput) {
+      commentInput.addEventListener('input', checkChanges);
+    }
+
+    // Form Submission
+    form.addEventListener('submit', () => {
+      saveBtn.disabled = true;
+      saveBtn.innerText = 'Saving...'; // UI feedback prevents double-clicks
+      sessionStorage.setItem('feedback_submitted', '1');
+    });
+
+    // Close Modal via Buttons
+    if (cancelBtn) cancelBtn.addEventListener('click', () => closeModal());
+    if (closeBtn) closeBtn.addEventListener('click', () => closeModal());
+
+    // Close Modal via Backdrop Click
+    modal.addEventListener('click', (e) => {
+      if (modalPanel && modalPanel.contains(e.target)) return;
+      closeModal();
+    });
+
+    // Close Modal via Escape Key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') {
+        closeModal();
+      }
+    });
+
+  })();
+</script>

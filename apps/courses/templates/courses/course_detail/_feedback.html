@@ -1,9 +1,27 @@
 <div class="space-y-8">
-  <div class="flex items-center gap-3">
-    <h2 class="text-2xl font-bold text-gray-900 leading-none">Student feedback</h2>
-    <div class="inline-flex items-center gap-1 px-2 py-1 bg-blue-600 rounded-lg shadow-sm">
-      <span class="text-[10px] font-black text-white uppercase tracking-tight">{{ total_reviews|default:0 }} Reviews</span>
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <h2 class="text-2xl font-bold text-gray-900 leading-none">Student feedback</h2>
+      <div class="inline-flex items-center gap-1 px-3 py-1 bg-blue-600 rounded-lg shadow-sm">
+        <span class="text-[10px] font-black text-white uppercase tracking-tight">{{ total_reviews|default:0 }} Reviews</span>
+      </div>
     </div>
+
+    {% if is_enrolled and request.user.is_student %}
+      <button type="button"
+              data-open-feedback="1"
+              data-course-id="{{ course.id }}"
+              data-course-display-title="{{ course.title|escapejs }}"
+              data-feedback-rating="{{ user_feedback.rating|default:0 }}"
+              data-feedback-comment="{{ user_feedback.comment|default:''|escapejs }}"
+              class="px-5 py-2.5 bg-white border border-gray-200 text-gray-900 rounded-xl text-sm font-bold hover:bg-gray-50 hover:border-blue-600 transition shadow-sm">
+        {% if user_feedback %}
+          Edit your rating
+        {% else %}
+          Leave a rating
+        {% endif %}
+      </button>
+    {% endif %}
   </div>
 
   <div class="flex justify-center w-full py-8">
