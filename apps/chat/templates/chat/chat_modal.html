@@ -21,46 +21,66 @@
               flex transform scale-95 opacity-0 transition-all duration-200 bg-white">
 
     <!-- ================= LEFT (Sidebar) ================= -->
-    <aside class="w-[380px] flex flex-col bg-white border-r border-gray-100">
+    <aside class="w-[380px] flex flex-col bg-white border-r border-gray-100 relative overflow-hidden">
 
-      <!-- Sidebar header -->
-      <div class="px-4 py-3 flex items-center justify-between bg-white">
-        <div class="flex items-center gap-3">
-          <div class="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M10 10a4 4 0 100-8 4 4 0 000 8zM3 18a7 7 0 0114 0H3z"/>
-            </svg>
+      <div id="inboxView" class="flex flex-col h-full w-full transition-transform duration-300">
+        <div class="px-4 py-3 flex items-center justify-between bg-white">
+          <div class="flex items-center gap-3">
+            <div class="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 10a4 4 0 100-8 4 4 0 000 8zM3 18a7 7 0 0114 0H3z"/>
+              </svg>
+            </div>
+            <div class="font-semibold text-gray-900">Chats</div>
           </div>
-          <div class="font-semibold text-gray-900">Chats</div>
+
+          <button type="button"
+                  onclick="toggleNewChatView(true)"
+                  class="h-9 w-9 rounded-full hover:bg-gray-100 transition flex items-center justify-center"
+                  aria-label="New chat">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M17 3a1 1 0 011 1v11a2 2 0 01-2 2H7l-4 3v-3H4a2 2 0 01-2-2V4a1 1 0 011-1h14z"/>
+            </svg>
+          </button>
         </div>
 
-        <button type="button"
-                class="h-9 w-9 rounded-full hover:bg-gray-100 transition flex items-center justify-center"
-                aria-label="New chat">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M17 3a1 1 0 011 1v11a2 2 0 01-2 2H7l-4 3v-3H4a2 2 0 01-2-2V4a1 1 0 011-1h14z"/>
-          </svg>
-        </button>
-      </div>
-
-      <!-- Search (NO border-top line under Chats) -->
-      <div class="px-3 pb-2 bg-white">
-        <div class="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
-            <path fill-rule="evenodd" d="M12.9 14.32a8 8 0 111.414-1.414l3.387 3.387a1 1 0 01-1.414 1.414l-3.387-3.387zM14 8a6 6 0 11-12 0 6 6 0 0112 0z" clip-rule="evenodd"/>
-          </svg>
-          <input id="chatSearch"
-                 type="text"
-                 placeholder="Search"
-                 class="w-full bg-transparent outline-none text-sm text-gray-700 placeholder:text-gray-400"
-                 autocomplete="off"/>
+        <div class="px-3 pb-2 bg-white">
+          <div class="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M12.9 14.32a8 8 0 111.414-1.414l3.387 3.387a1 1 0 01-1.414 1.414l-3.387-3.387zM14 8a6 6 0 11-12 0 6 6 0 0112 0z" clip-rule="evenodd"/>
+            </svg>
+            <input id="chatSearch" type="text" placeholder="Search chats" class="w-full bg-transparent outline-none text-sm text-gray-700 placeholder:text-gray-400" autocomplete="off"/>
+          </div>
         </div>
+
+        <div id="conversationList" class="flex-1 overflow-y-auto"></div>
       </div>
 
-      <!-- Conversations -->
-      <div id="conversationList"
-           class="flex-1 overflow-y-auto">
-        <!-- injected by JS -->
+      <div id="newChatView" class="absolute inset-0 bg-white flex flex-col h-full w-full transform translate-x-full transition-transform duration-300 z-10">
+        
+        <div class="px-4 py-3 flex items-center gap-4 bg-white border-b border-gray-100">
+          <button type="button" onclick="toggleNewChatView(false)" class="text-gray-500 hover:text-gray-800 transition">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </button>
+          <div class="font-semibold text-gray-900">New Chat</div>
+        </div>
+
+        <div class="px-3 py-3 bg-white border-b border-gray-50">
+          <div class="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2 focus-within:ring-1 focus-within:ring-[#00a884] transition-all">
+            <input id="newChatSearchInput" 
+                  type="text" 
+                  placeholder="Search by name or email..." 
+                  class="w-full bg-transparent outline-none text-sm text-gray-700 placeholder:text-gray-400" 
+                  autocomplete="off"
+                  oninput="handleNewChatSearch(this.value)" />
+          </div>
+        </div>
+
+        <div id="newChatSearchResults" class="flex-1 overflow-y-auto py-2">
+          <div class="text-center text-sm text-gray-400 mt-10">Type a name to search users...</div>
+        </div>
       </div>
 
     </aside>
@@ -174,4 +194,4 @@
     window.CURRENT_USER_ID = "{{ request.user.id|escapejs }}";
 </script>
 
-<script src="{% static 'chat/js/chat.js' %}"></script>
+<script src="{% static 'chat/js/chat.js' %}?v=1"></script>

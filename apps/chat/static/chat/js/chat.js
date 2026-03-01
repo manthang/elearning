@@ -454,3 +454,117 @@ function escapeHtml(str) {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+
+
+/* =========================================================
+   NEW CHAT / USER SEARCH FEATURE
+========================================================= */
+let userSearchTimeout = null;
+
+window.toggleNewChatView = function(show) {
+  const inboxView = document.getElementById("inboxView");
+  const newChatView = document.getElementById("newChatView");
+  const searchInput = document.getElementById("newChatSearchInput");
+
+  if (show) {
+    // Slide New Chat in, slide Inbox left
+    newChatView.classList.remove("translate-x-full");
+    inboxView.classList.add("-translate-x-full");
+    setTimeout(() => searchInput?.focus(), 300); // Focus input after animation
+  } else {
+    // Slide New Chat out, slide Inbox back
+    newChatView.classList.add("translate-x-full");
+    inboxView.classList.remove("-translate-x-full");
+    
+    // Reset search
+    if (searchInput) searchInput.value = "";
+    document.getElementById("newChatSearchResults").innerHTML = `<div class="text-center text-sm text-gray-400 mt-10">Type a name to search users...</div>`;
+  }
+}
+
+window.handleNewChatSearch = function(query) {
+  clearTimeout(userSearchTimeout);
+  const container = document.getElementById("newChatSearchResults");
+  const cleanQuery = query.trim();
+
+  if (!cleanQuery) {
+    container.innerHTML = `<div class="text-center text-sm text-gray-400 mt-10">Type a name to search users...</div>`;
+    return;
+  }
+
+  // Show a loading state
+  container.innerHTML = `<div class="text-center text-sm text-gray-400 mt-10">Searching...</div>`;
+
+  // Debounce the API call by 400ms so we don't spam the server
+  userSearchTimeout = setTimeout(() => {
+    // Re-using your existing generic user search endpoint
+    fetch(`/users/search/?q=${encodeURIComponent(cleanQuery)}`)
+      .then(res => res.json())
+      .then(data => {
+        container.innerHTML = "";
+        
+        // Assume your backend returns { "results": [...] }
+        const users = data.results || [];
+
+        // Filter out the current logged-in user so they can't chat with themselves
+        const validUsers = users.filter(u => String(u.id) !== String(getCurrentUserId()));
+
+        if (validUsers.length === 0) {
+          container.innerHTML = `<div class="text-center text-sm text-gray-400 mt-10">No users found.</div>`;
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        validUsers.forEach(user => {
+          const div = document.createElement("div");
+          div.className = "px-4 py-3 flex items-center gap-3 hover:bg-gray-50 cursor-pointer transition";
+          
+          // Use avatar_url falling back to default
+          const avatar = user.avatar_url || "/media/profile_photos/default-avatar.png";
+          
+          div.innerHTML = `
+            <img src="${avatar}" class="w-10 h-10 rounded-full object-cover bg-gray-100" />
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-sm text-gray-900 truncate">${escapeHtml(user.full_name || user.username)}</div>
+              <div class="text-xs text-gray-500 truncate">${escapeHtml(user.email || user.role)}</div>
+            </div>
+          `;
+
+          // When clicked, start the conversation
+          div.onclick = () => initiateChatWithUser(user.id);
+          fragment.appendChild(div);
+        });
+
+        container.appendChild(fragment);
+      })
+      .catch(err => {
+        console.error("User search failed:", err);
+        container.innerHTML = `<div class="text-center text-sm text-red-400 mt-10">Search failed.</div>`;
+      });
+  }, 400);
+}
+
+window.initiateChatWithUser = function(userId) {
+  // Hit the start_conversation Django view you already created
+  fetch(`/chat/start/${userId}/`)
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        alert(data.error);
+        return;
+      }
+      
+      // Close the new chat view
+      toggleNewChatView(false);
+
+      // Reload the conversations list so the new chat appears in the inbox,
+      // then open it automatically!
+      loadConversations().then(() => {
+        openConversationById(data.conversation_id);
+      });
+    })
+    .catch(err => {
+      console.error("Error starting chat:", err);
+      alert("Unable to start conversation.");
+    });
+}
