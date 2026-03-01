@@ -65,7 +65,7 @@
               <img src="{{ c.author.avatar_url }}" alt="Avatar" class="w-8 h-8 rounded-full object-cover shrink-0 bg-gray-100 shadow-sm border border-gray-200">
               <div class="flex-1 bg-gray-50 rounded-2xl p-3 border border-gray-100">
                 <div class="flex items-center justify-between gap-2 mb-1">
-                  <span class="text-xs font-bold text-gray-900">{{ c.author.first_name|default:c.author.username }}</span>
+                  <span class="text-xs font-bold text-gray-900">{{ c.author.full_name|default:c.author.username }}</span>
                   
                   <div class="flex items-center gap-2">
                     <span class="text-[10px] font-medium text-gray-400">{{ c.created_at|naturaltime }}</span>
