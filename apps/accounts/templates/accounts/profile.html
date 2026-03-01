@@ -24,24 +24,28 @@
     </div>
 
     <div class="col-span-8 space-y-4">
+      
       {% include "accounts/components/dashboard_tabs.html" %}
 
-      {% if profile_user.is_teacher %}
-        {% if is_own_profile %}
-          {% include "courses/components/teacher_overview_strip.html" %}
-        {% endif %}
-        {% include "courses/components/teacher_courses.html" %}
-      
-      {% else %}
-        {% if tab == "my_courses" %}
+      {% if tab == "my_courses" or not tab %}
+        
+        {% if profile_user.is_teacher %}
+          {% if is_own_profile %}
+            {% include "courses/components/teacher_overview_strip.html" %}
+          {% endif %}
+          {% include "courses/components/teacher_courses.html" %}
+        {% else %}
           {% include "courses/components/student_courses.html" %}
-        {% elif tab == "all_courses" and is_own_profile %}
-          {% include "courses/components/all_courses.html" %}
         {% endif %}
-      {% endif %}
 
-      {% if tab == "status" %}
+      {% elif tab == "all_courses" and is_own_profile %}
+        
+        {% include "courses/components/all_courses.html" %}
+
+      {% elif tab == "status" %}
+        
         {% include "status/status_feed.html" %}
+
       {% endif %}
 
     </div>

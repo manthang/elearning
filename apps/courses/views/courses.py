@@ -204,6 +204,7 @@ def course_detail(request, course_id: int):
         "dashboard_url": dashboard_url,
         "is_teacher_view": is_teacher_view,
         "instructor_user": instructor.teacher if instructor else None,
+        "is_student": is_student,
         "is_enrolled": is_enrolled,
         "enrollment_count": enrollment_count,
         "total_reviews": feedback_data['total_reviews'],

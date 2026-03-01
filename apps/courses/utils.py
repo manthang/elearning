@@ -1,5 +1,32 @@
-from django.db.models import Prefetch, Avg, Count
+from django.db.models import Prefetch, Avg, Count, Exists, OuterRef
 from .models import *
+
+
+def _get_annotated_courses_queryset(user=None):
+    queryset = Course.objects.annotate(
+        students_total=Count("enrollments", distinct=True),
+        materials_total=Count("materials", distinct=True),
+        avg_rating=Avg("feedback__rating"),
+        rating_count=Count("feedback", distinct=True)
+    )
+
+    if user and user.is_authenticated:
+        # If they are a teacher, check if they teach this specific course
+        if user.role == user.Role.TEACHER:
+            queryset = queryset.annotate(
+                is_owner=Exists(
+                    Course.objects.filter(pk=OuterRef('pk'), teachings__teacher=user)
+                )
+            )
+        # If they are a student, check if they are enrolled
+        else:
+            queryset = queryset.annotate(
+                is_enrolled=Exists(
+                    Enrollment.objects.filter(course=OuterRef('pk'), student=user)
+                )
+            )
+    
+    return queryset.order_by("-updated_at", "-created_at", "title")
 
 
 def _get_enrolled_courses_data(user):
