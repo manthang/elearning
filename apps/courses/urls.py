@@ -35,4 +35,7 @@ urlpatterns = [
 
     # Feedback for a Course: GET to retrieve, POST to create
     path("<int:course_id>/feedback/", views.course_feedback, name="course_feedback"),
+
+    # Course Search
+    path("search/", views.course_search, name="search"),
 ]

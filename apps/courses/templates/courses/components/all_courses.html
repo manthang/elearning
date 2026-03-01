@@ -5,19 +5,17 @@
       <p class="text-sm text-gray-500 mt-1">Explore available courses and enroll when ready.</p>
     </div>
 
-    <form method="get" class="relative w-full sm:w-72 group">
-      <input type="hidden" name="tab" value="all">
-      
+    <form method="get" action="{% url 'courses:search' %}" class="relative w-full sm:w-72 group">
       <input type="text"
-             name="q"
-             value="{{ search_query|default:'' }}"
-             placeholder="Search catalog..."
-             class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200
+            name="q"
+            value="{{ search_query|default:'' }}"
+            placeholder="Search catalog..."
+            class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200
                     bg-white shadow-sm transition-all text-sm text-gray-700
                     focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent" />
       <svg xmlns="http://www.w3.org/2000/svg"
-           class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-600 transition-colors"
-           viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-600 transition-colors"
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
     </form>
@@ -132,3 +130,25 @@
     </div>
   {% endif %}
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const searchInput = document.getElementById("localCourseSearch");
+    const courseCards = document.querySelectorAll(".course-card");
+
+    if (searchInput) {
+      searchInput.addEventListener("input", function(e) {
+        const query = e.target.value.toLowerCase();
+        
+        courseCards.forEach(card => {
+          const title = card.getAttribute("data-course-title") || "";
+          if (title.includes(query)) {
+            card.style.display = "";
+          } else {
+            card.style.display = "none";
+          }
+        });
+      });
+    }
+  });
+</script>

@@ -2,7 +2,8 @@
   <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
     <div class="relative w-full sm:w-72 group">
       <input type="text"
-             placeholder="Search your courses..."
+              id="localCourseSearch"
+              placeholder="Search your courses..."
              class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white shadow-sm text-sm focus:ring-2 focus:ring-blue-600 focus:border-transparent" />
       <svg xmlns="http://www.w3.org/2000/svg" class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -20,9 +21,10 @@
     {% endif %}
   </div>
 
-  <div class="space-y-4">
+  <div class="space-y-4" id="taughtCoursesList">
     {% for c in taught_courses %}
-      <div class="relative bg-white rounded-2xl border border-gray-200 shadow-sm hover:border-blue-300 transition flex overflow-hidden">
+      <div class="taught-course-card relative bg-white rounded-2xl border border-gray-200 shadow-sm hover:border-blue-300 transition flex overflow-hidden"
+           data-course-title="{{ c.title|lower }}">
         
         <div class="w-48 shrink-0 bg-gray-100">
           {% if c.thumbnail %}
@@ -93,3 +95,25 @@
     {% endfor %}
   </div>
 </div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const searchInput = document.getElementById("localCourseSearch");
+    const courseCards = document.querySelectorAll(".taught-course-card");
+
+    if (searchInput) {
+      searchInput.addEventListener("input", function(e) {
+        const query = e.target.value.toLowerCase().trim();
+        
+        courseCards.forEach(card => {
+          const title = card.getAttribute("data-course-title") || "";
+          if (title.includes(query)) {
+            card.style.display = "flex"; // Match the flex display of the original card
+          } else {
+            card.style.display = "none";
+          }
+        });
+      });
+    }
+  });
+</script>

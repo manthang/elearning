@@ -14,7 +14,7 @@ from django.views.decorators.http import require_POST
 
 from ..models import *
 from ..forms import *
-from ..utils import _get_course_feedback_data
+from ..utils import _get_course_feedback_data, _get_annotated_courses_queryset
 
 
 # =========================
@@ -347,3 +347,46 @@ def course_feedback(request, course_id):
 
     messages.success(request, "Feedback submitted successfully!")
     return redirect(next_url)
+
+
+# =========================
+# Course Search
+# =========================
+def course_search(request):
+    # 1. Get query parameters
+    search_query = request.GET.get('q', '')
+    role_filter = request.GET.get('role', None) # Optional: filter by role
+    
+    # 2. Fetch the data using our centralized helper
+    queryset = _get_annotated_courses_queryset(
+        user=request.user, 
+        search_query=search_query
+    )
+    
+    # 3. Detect if it's an API request
+    # Checks for 'application/json' in headers or a '?format=json' param
+    is_api = (
+        request.headers.get('Accept') == 'application/json' or 
+        request.GET.get('format') == 'json'
+    )
+
+    if is_api:
+        # Return JSON for API/Frontend JS
+        data = list(queryset.values(
+            'id', 'title', 'avg_rating', 'rating_count', 'students_total'
+        ))
+        return JsonResponse({'results': data}, safe=False)
+
+    # Return HTML for standard page reloads
+    context = {
+        'all_courses': queryset,
+        'search_query': search_query,
+    }
+
+    # Redirect back to the profile page, specifically the all_courses tab
+    # We use a dummy or the current user's profile
+    target_username = request.user.username if request.user.is_authenticated else "catalog" 
+    
+    url = reverse('accounts:user_profile', kwargs={'username': target_username})
+
+    return redirect(f"{url}?tab=all_courses&q={search_query}")

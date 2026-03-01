@@ -1,8 +1,9 @@
-from django.db.models import Prefetch, Avg, Count, Exists, OuterRef
+from django.db.models import Prefetch, Avg, Count, Exists, OuterRef, Q, Value, BooleanField
 from .models import *
 
 
-def _get_annotated_courses_queryset(user=None):
+def _get_annotated_courses_queryset(user=None, search_query=None):
+    # 1. Base Annotations (Static stats)
     queryset = Course.objects.annotate(
         students_total=Count("enrollments", distinct=True),
         materials_total=Count("materials", distinct=True),
@@ -10,21 +11,33 @@ def _get_annotated_courses_queryset(user=None):
         rating_count=Count("feedback", distinct=True)
     )
 
+    # 2. Search Logic
+    if search_query:
+        queryset = queryset.filter(
+            Q(title__icontains=search_query) | 
+            Q(description__icontains=search_query)
+        ).distinct() # Prevent duplicates if searching via M2M joins
+
+    # 3. Relationship Annotations (Safe for AnonymousUsers)
     if user and user.is_authenticated:
-        # If they are a teacher, check if they teach this specific course
-        if user.role == user.Role.TEACHER:
-            queryset = queryset.annotate(
-                is_owner=Exists(
-                    Course.objects.filter(pk=OuterRef('pk'), teachings__teacher=user)
-                )
+        # Use string comparisons or hasattr to avoid 'AnonymousUser' attribute errors
+        user_role = getattr(user, 'role', None)
+        
+        queryset = queryset.annotate(
+            is_owner=Exists(
+                Course.objects.filter(pk=OuterRef('pk'), teachings__teacher=user)
+            ) if user_role == 'TEACHER' else Value(False, output_field=BooleanField()),
+            
+            is_enrolled=Exists(
+                Enrollment.objects.filter(course=OuterRef('pk'), student=user)
             )
-        # If they are a student, check if they are enrolled
-        else:
-            queryset = queryset.annotate(
-                is_enrolled=Exists(
-                    Enrollment.objects.filter(course=OuterRef('pk'), student=user)
-                )
-            )
+        )
+    else:
+        # For guests, set these to False so templates don't crash
+        queryset = queryset.annotate(
+            is_owner=Value(False, output_field=BooleanField()),
+            is_enrolled=Value(False, output_field=BooleanField())
+        )
     
     return queryset.order_by("-updated_at", "-created_at", "title")
 
