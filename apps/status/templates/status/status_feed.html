@@ -77,14 +77,26 @@
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        // Build the HTML for the new comment
+        // Build the HTML for the new comment (Now includes the Delete Button!)
         const newCommentHtml = `
-          <div class="flex gap-3 animate-fade-in">
+          <div id="comment-${data.comment_id}" class="flex gap-3 group relative animate-fade-in">
             <img src="${data.avatar_url}" class="w-8 h-8 rounded-full object-cover shrink-0 bg-gray-100 shadow-sm border border-gray-200">
             <div class="flex-1 bg-gray-50 rounded-2xl p-3 border border-gray-100 border-l-2 border-l-blue-400">
               <div class="flex items-center justify-between gap-2 mb-1">
                 <span class="text-xs font-bold text-gray-900">${data.author_name}</span>
-                <span class="text-[10px] font-medium text-blue-500">${data.time}</span>
+                
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] font-medium text-blue-500">${data.time}</span>
+                  
+                  <button type="button" 
+                          onclick="deleteCommentAjax(${data.comment_id}, ${statusId})" 
+                          class="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
+                          title="Delete comment">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                  </button>
+                </div>
               </div>
               <p class="text-sm text-gray-800">${data.content}</p>
             </div>
