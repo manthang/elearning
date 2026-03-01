@@ -180,8 +180,8 @@ def course_detail(request, course_id: int):
     is_student = (user.role == user.Role.STUDENT)
     is_teacher_view = is_teacher and Teaching.objects.filter(course=course, teacher=user).exists()
 
-    # Determine the correct Dashboard URL
-    dashboard_url = reverse("core:home")
+    # Try to get the previous URL; if it doesn't exist, fallback to home
+    dashboard_url = request.META.get('HTTP_REFERER') or reverse("core:home")
     
     # Check Enrollment Status
     is_enrolled = False

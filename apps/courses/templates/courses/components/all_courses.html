@@ -102,7 +102,7 @@
         </svg>
         <p class="text-sm font-medium text-gray-600">No courses match your search.</p>
         {% if search_query %}
-          <a href="?tab=all" class="mt-2 inline-block text-sm text-blue-600 hover:underline">Clear search</a>
+          <a href="?tab=all_courses" class="mt-2 inline-block text-sm text-blue-600 hover:underline">Clear search</a>
         {% endif %}
       </div>
     {% endfor %}
@@ -116,14 +116,14 @@
       
       <div class="flex items-center gap-2">
         {% if all_courses.has_previous %}
-          <a href="?tab=all&q={{ search_query }}&page={{ all_courses.previous_page_number }}" 
+          <a href="?tab=all_courses&q={{ search_query }}&page={{ all_courses.previous_page_number }}" 
              class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition">
             Previous
           </a>
         {% endif %}
 
         {% if all_courses.has_next %}
-          <a href="?tab=all&q={{ search_query }}&page={{ all_courses.next_page_number }}" 
+          <a href="?tab=all_courses&q={{ search_query }}&page={{ all_courses.next_page_number }}" 
              class="px-4 py-2 text-sm font-semibold text-gray-700 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition">
             Next
           </a>
