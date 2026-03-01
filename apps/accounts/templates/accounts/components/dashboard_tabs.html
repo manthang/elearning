@@ -1,7 +1,7 @@
 <nav class="flex items-center gap-8 border-b border-gray-200 overflow-x-auto no-scrollbar" aria-label="Profile Tabs">
   
   <a href="?tab=my_courses" 
-     class="relative py-4 text-sm transition-colors duration-200 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 rounded-t-md
+     class="relative py-4 pt-1 text-sm transition-colors duration-200 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 rounded-t-md
             {% if tab == 'my_courses' %}text-gray-900 font-bold{% else %}text-gray-500 font-medium hover:text-gray-800{% endif %}"
      {% if tab == 'my_courses' %}aria-current="page"{% endif %}>
     
@@ -18,7 +18,7 @@
 
   {% if is_own_profile %}
     <a href="?tab=all_courses"
-       class="relative py-4 text-sm transition-colors duration-200 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 rounded-t-md
+       class="relative py-4 pt-1 text-sm transition-colors duration-200 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 rounded-t-md
               {% if tab == 'all_courses' %}text-gray-900 font-bold{% else %}text-gray-500 font-medium hover:text-gray-800{% endif %}"
        {% if tab == 'all_courses' %}aria-current="page"{% endif %}>
       
@@ -31,7 +31,7 @@
   {% endif %}
 
   <a href="?tab=status"
-     class="relative py-4 text-sm transition-colors duration-200 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 rounded-t-md
+     class="relative py-4 pt-1 text-sm transition-colors duration-200 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 rounded-t-md
             {% if tab == 'status' %}text-gray-900 font-bold{% else %}text-gray-500 font-medium hover:text-gray-800{% endif %}"
      {% if tab == 'status' %}aria-current="page"{% endif %}>
       
