@@ -1,4 +1,4 @@
-from django.db.models import Count, Sum
+from django.db.models import Avg, Count, Sum
 from apps.courses.models import *
 
 
@@ -12,6 +12,8 @@ def _get_teacher_profile_data(teacher, is_own_profile):
         .annotate(
             students_total=Count("enrollments", distinct=True),
             materials_total=Count("materials", distinct=True),
+            course_avg_rating=Avg("feedback__rating"),
+            course_rating_count=Count("feedback", distinct=True)
         )
         .order_by("-updated_at", "-created_at", "title")
         .distinct()
@@ -32,6 +34,13 @@ def _get_teacher_profile_data(teacher, is_own_profile):
             .distinct()
             .count()
         )
+
+        rating_data = CourseFeedback.objects.filter(
+            course__teachings__teacher=teacher
+        ).aggregate(
+            global_avg=Avg('rating'),
+            total_reviews=Count('id')
+        )
         
         total_materials = CourseMaterial.objects.filter(course__teachings__teacher=teacher).count()
 
@@ -45,11 +54,13 @@ def _get_teacher_profile_data(teacher, is_own_profile):
 
         stats = {
             "courses_created": courses_created,
-            "active_courses": courses_created, # Update this later if you add an archived flag
+            "active_courses": courses_created, # Update this later when add an archived flag later
             "total_enrolled": total_enrolled,
             "total_students": total_students,
             "total_materials": total_materials,
-            "category_choices": Course.CATEGORY_CHOICES, # For the create modal
+            "category_choices": Course.CATEGORY_CHOICES, # For the create modal,
+            "teacher_avg_rating": rating_data['global_avg'] or 0.0,
+            "teacher_review_count": rating_data['total_reviews'],
         }
 
     return my_courses, stats
