@@ -34,11 +34,9 @@
           
           <div class="flex items-center gap-4 min-w-0 flex-1">
             <div class="w-12 h-12 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center shrink-0 overflow-hidden text-blue-600 font-bold">
-              {% if e.student.profile_photo %}
-                <img src="{{ e.student.profile_photo.url }}" class="w-full h-full object-cover">
-              {% else %}
-                <span class="text-sm">{{ e.student.get_full_name|slice:":1"|upper }}</span>
-              {% endif %}
+              <img src="{{ e.student.avatar_url }}" 
+                alt="{{ e.student.full_name|default:e.student.username }}" 
+                class="w-full h-full object-cover rounded-full bg-gray-100">
             </div>
 
             <div class="min-w-0">

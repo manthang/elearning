@@ -35,14 +35,19 @@ class User(AbstractUser):
 
     @property
     def avatar_url(self):
-        # If they have a custom uploaded photo, use it!
-        if self.profile_photo and hasattr(self.profile_photo, 'url'):
+        # If they have a custom uploaded photo, use it.
+        if self.profile_photo:
             return self.profile_photo.url
             
-        # If they don't (or just removed it), return a beautiful default.
-        # This generates a gray circle with their first initial, matching your Tailwind colors.
-        name_to_use = self.full_name if self.full_name else self.username
-        return f"https://ui-avatars.com/api/?name={name_to_use}&background=F3F4F6&color=4B5563&size=200&font-size=0.4"
+        # Get the name safely (use get_full_name() instead of full_name)
+        # If get_full_name() returns an empty string, fallback to username
+        raw_name = self.get_full_name() or self.username
+        
+        # Format the string for a URL (replace spaces with plus signs)
+        safe_name = raw_name.replace(" ", "+")
+        
+        # Return the beautifully formatted fallback
+        return f"https://ui-avatars.com/api/?name={safe_name}&background=F3F4F6&color=4B5563&size=200&font-size=0.4"
 
     @property
     def is_student(self):
