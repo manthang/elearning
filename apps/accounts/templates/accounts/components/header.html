@@ -11,7 +11,6 @@
       </p>
     {% else %}
       <h1 class="text-2xl font-semibold text-gray-900 leading-tight">{{ profile_user.full_name|default:profile_user.username }}'s Profile</h1>
-      <p class="mt-1 text-sm text-gray-500">See what they are learning</p>
     {% endif %}
   </div>
 
@@ -27,12 +26,14 @@
       </button>
     {% endif %}
 
-    <button onclick="openSearch()"
-            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm text-gray-600 shadow-sm hover:bg-gray-50 hover:border-gray-300 transition">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      Search students / teachers
-    </button>
+    {% if request.user.is_authenticated %}
+      <button onclick="openSearch()"
+              class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-gray-200 text-sm text-gray-600 shadow-sm hover:bg-gray-50 hover:border-gray-300 transition">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        Search students / teachers
+      </button>
+    {% endif %}
   </div>
 </div>

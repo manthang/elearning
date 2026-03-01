@@ -22,10 +22,18 @@ def dashboard_redirect(request):
     return redirect("accounts:user_profile", username=request.user.username)
 
 
-@login_required
 def user_profile(request, username):
+    # Fetch the user whose profile is being visited
     profile_user = get_object_or_404(User, username=username)
-    is_own_profile = (request.user == profile_user)
+
+    # PRIVACY CHECK: If it's a student profile and visitor is a guest
+    if profile_user.role == 'STUDENT' and not request.user.is_authenticated:
+        # Redirect to login and bring them back here after they sign in
+        login_url = reverse('accounts:login')
+        return redirect(f"{login_url}?next={request.path}")
+
+    # If they passed the check (or it's a teacher profile), continue...
+    is_own_profile = (request.user == profile_user) if request.user.is_authenticated else False
     
     tab = request.GET.get("tab", "my_courses")
     show_past = request.GET.get("show_past") == "1"

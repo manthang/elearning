@@ -30,6 +30,13 @@ ALLOWED_HOSTS = []
 # Application definition
 AUTH_USER_MODEL = "accounts.User"
 
+# This tells Django to use your 'accounts' app login route 
+# instead of the default /accounts/login/
+LOGIN_URL = 'accounts:login'
+
+# This is where users go if they log in without a ?next= parameter
+LOGIN_REDIRECT_URL = 'core:home'
+
 INSTALLED_APPS = [
     "daphne",
     "channels",
@@ -42,12 +49,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
 
-    "apps.accounts.apps.AccountsConfig",
     "apps.core.apps.CoreConfig",
+    "apps.accounts.apps.AccountsConfig",
     "apps.courses.apps.CoursesConfig",
+    "apps.status.apps.StatusConfig",
     "apps.chat.apps.ChatConfig",
     # "apps.notifications.apps.NotificationsConfig",
-    "apps.status.apps.StatusConfig",
     "apps.api.apps.ApiConfig",
 ]
 

@@ -42,7 +42,7 @@
         
         {% include "courses/components/all_courses.html" %}
 
-      {% elif tab == "status" %}
+      {% elif tab == 'status' and request.user.is_authenticated %}
         
         {% include "status/status_feed.html" %}
 

@@ -166,30 +166,41 @@ def course_edit(request, course_id):
 # =========================
 # Course Detail
 # =========================
-@login_required
 def course_detail(request, course_id: int):
     course = get_object_or_404(Course, id=course_id)
-    user = request.user
+
+    # Initialize flags with safe defaults
+    is_teacher_view = False
+    is_enrolled = False
+
+    # --- COMMON DATA (Needed for Permissions and the Top Header) ---
+    is_enrolled = False
+    user_feedback = None
+
+    # ONLY check roles and enrollments if the user is logged in
+    if request.user.is_authenticated:
+        # Check if the user is a teacher AND if they teach this specific course
+        # Note: Use 'role' or 'Role' depending on your model's field name
+        if hasattr(request.user, 'role') and request.user.role == 'TEACHER':
+            is_teacher_view = course.teachings.filter(teacher=request.user).exists()
+        
+        # If they aren't the teacher, check if they are a student enrolled in it and submitted feedback
+        if not is_teacher_view:
+            is_enrolled = course.enrollments.filter(student=request.user).exists()
+            # Fetch their existing feedback if they have one
+            user_feedback = CourseFeedback.objects.filter(student=request.user, course=course).first()
 
     # Which tab are we on? (Defaults to 'overview')
     current_tab = request.GET.get("tab", "overview")
 
-    # --- COMMON DATA (Needed for Permissions and the Top Header) ---
-    # Check roles
-    is_teacher = (user.role == user.Role.TEACHER)
-    is_student = (user.role == user.Role.STUDENT)
-    is_teacher_view = is_teacher and Teaching.objects.filter(course=course, teacher=user).exists()
+    # If users aren't authorized, force the tab to 'overview' no matter what the URL says.
+    protected_tabs = ['materials', 'deadlines', 'students']
+    if current_tab in protected_tabs:
+        if not (is_enrolled or is_teacher_view):
+            current_tab = 'overview'
 
     # Try to get the previous URL; if it doesn't exist, fallback to home
     dashboard_url = request.META.get('HTTP_REFERER') or reverse("core:home")
-    
-    # Check Enrollment Status
-    is_enrolled = False
-    user_feedback = None
-    if is_student:
-        is_enrolled = Enrollment.objects.filter(student=user, course=course).exists()
-        # Fetch their existing feedback if they have one
-        user_feedback = CourseFeedback.objects.filter(student=user, course=course).first()
 
     # Fetch all feedback data
     feedback_data = _get_course_feedback_data(course)
@@ -204,7 +215,6 @@ def course_detail(request, course_id: int):
         "dashboard_url": dashboard_url,
         "is_teacher_view": is_teacher_view,
         "instructor_user": instructor.teacher if instructor else None,
-        "is_student": is_student,
         "is_enrolled": is_enrolled,
         "enrollment_count": enrollment_count,
         "total_reviews": feedback_data['total_reviews'],

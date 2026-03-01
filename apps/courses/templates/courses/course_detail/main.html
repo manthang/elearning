@@ -12,7 +12,7 @@
       <div class="p-8 pb-8 bg-white">
         <div class="mb-6">
           <a href="{{ dashboard_url }}" class="inline-flex items-center gap-2 text-xs font-bold text-gray-400 hover:text-blue-600 transition uppercase tracking-widest">
-            <span class="text-lg leading-none">←</span> Back to Dashboard
+            <span class="text-lg leading-none">←</span> {{ back_label|default:"Back to Dashboard" }}
           </a>
         </div>
 
@@ -114,7 +114,7 @@
             </div>
           </div>
 
-          <div class="shrink-0 md:pt-2">
+          <div class="shrink-0 md:pt-2">              
             {% if is_teacher_view %}
               <button type="button" 
                       onclick="openEditCourseModal(this)"
@@ -138,7 +138,7 @@
                 </svg>
                 <span class="text-sm font-bold tracking-tight">Enrolled</span>
               </div>
-            {% elif is_student %}
+            {% elif request.user.is_authenticated %}
               <form action="{% url 'courses:course_enroll' course.id %}" method="POST">
                 {% csrf_token %}
                 <button type="submit" 
@@ -146,6 +146,18 @@
                   Enroll Now
                 </button>
               </form>
+            {% else %}
+
+              <div class="flex flex-col items-end gap-2">
+                <a href="{% url 'accounts:login' %}?next={{ request.path }}"
+                   class="px-8 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold hover:bg-blue-700 transition-all shadow-sm text-center w-full md:w-auto">
+                  Log in to Enroll
+                </a>
+                <span class="text-xs font-medium text-gray-500 mr-1">
+                  New here? <a href="{% url 'accounts:signup' %}?next={{ request.path }}" class="text-blue-600 hover:text-blue-700 hover:underline">Sign up</a>
+                </span>
+              </div>
+
             {% endif %}
           </div>
 
@@ -182,11 +194,11 @@
       <div class="p-8 bg-white min-h-[400px]">
         {% if current_tab == 'overview' %}
           {% include "courses/course_detail/_course_overview.html" %}
-        {% elif current_tab == 'students' %}
+        {% elif current_tab == 'students' and is_teacher_view %}
           {% include "courses/course_detail/_students.html" %}
-        {% elif current_tab == 'materials' %}
+        {% elif current_tab == 'materials' and is_enrolled or is_teacher_view %}
           {% include "courses/course_detail/_materials.html" %}
-        {% elif current_tab == 'deadlines' %}
+        {% elif current_tab == 'deadlines' and is_enrolled or is_teacher_view %}
           {% include "courses/course_detail/_deadlines.html" %}
         {% elif current_tab == 'feedback' %}
           {% include "courses/course_detail/_feedback.html" %}
@@ -197,6 +209,9 @@
   </div>
 </div>
 
-{% include "courses/shared/course_edit_modal.html" %}
-{% include "courses/shared/feedback_modal.html" %}
+{% if request.user.is_authenticated %}
+  {% include "courses/shared/course_edit_modal.html" %}
+  {% include "courses/shared/feedback_modal.html" %}
+{% endif %}
+
 {% endblock %}
