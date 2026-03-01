@@ -34,6 +34,13 @@ class User(AbstractUser):
     bio = models.TextField(blank=True)
 
     @property
+    def short_name(self):
+        # Splits the full name at the first space and returns the first word
+        if self.full_name:
+            return self.full_name.split()[0]
+        return self.username
+
+    @property
     def avatar_url(self):
         # If they have a custom uploaded photo, use it.
         if self.profile_photo:

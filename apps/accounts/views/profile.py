@@ -10,7 +10,10 @@ from django.urls import reverse
 
 from apps.courses.models import *
 from apps.courses.utils import _get_enrolled_courses_data, _get_all_courses_catalog
+from apps.status.utils import get_feed_queryset
+
 from ..utils import _get_teacher_profile_data
+
 
 
 User = get_user_model()
@@ -111,9 +114,13 @@ def user_profile(request, username):
             "category_choices": Course.CATEGORY_CHOICES,
         })
 
-    # 2. Social Wall
-    if tab == "status":
-        context["statuses"] = profile_user.status_updates.select_related("author").prefetch_related("liked_by")[:20]
+    # Only fetch updates if they are actually on the status tab
+    if tab == 'status':
+        # Since this is their personal home page, the target and requestor are the same.
+        context['statuses'] = get_feed_queryset(
+            target_user=request.user, 
+            requesting_user=request.user
+        )
 
     return render(request, "accounts/profile.html", context)
 
