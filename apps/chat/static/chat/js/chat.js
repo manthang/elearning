@@ -112,7 +112,7 @@ function createConversationItem(conv) {
   div.className = buildConversationItemClass(conv.id);
 
   // Use avatar_url to match Django properties consistently
-  const avatarSrc = conv.avatar || "/media/profile_photos/default-avatar.png";
+  const avatarSrc = conv.avatar_url || "/media/profile_photos/default-avatar.png";
 
   div.innerHTML = `
     <div class="px-2 py-3 flex items-center gap-3 border-b border-gray-100">
@@ -173,7 +173,7 @@ function updateHeader(user) {
 
   if (nameEl) nameEl.textContent = user.name || "Unknown";
   if (roleEl) roleEl.textContent = user.role || "";
-  if (avatarEl) avatarEl.src = user.avatar || "/media/profile_photos/default-avatar.png";
+  if (avatarEl) avatarEl.src = user.avatar_url || "/media/profile_photos/default-avatar.png";
 }
 
 function loadChatHistory(conversationId) {

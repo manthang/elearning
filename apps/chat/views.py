@@ -33,7 +33,7 @@ def conversation_list(request):
             "user_id": other.id,
             "name": other.full_name or other.username,
             "role": getattr(other, "role", ""),
-            "avatar": other.profile_photo.url if getattr(other, "profile_photo", None) else "",
+            "avatar_url": other.avatar_url,
             "last_message": last_message.content if last_message else "",
             "sender_id": last_message.sender_id if last_message else None,  # ADD THIS
             "time": last_message.created_at.strftime("%H:%M") if last_message else "",
@@ -96,5 +96,5 @@ def start_conversation(request, user_id):
         "id": other_user.id,
         "name": other_user.full_name or other_user.username,
         "role": other_user.get_role_display() if hasattr(other_user, 'get_role_display') else "",
-        "avatar": other_user.avatar_url, 
+        "avatar_url": other_user.avatar_url, 
     })

@@ -46,9 +46,8 @@ class User(AbstractUser):
         if self.profile_photo:
             return self.profile_photo.url
             
-        # Get the name safely (use get_full_name() instead of full_name)
-        # If get_full_name() returns an empty string, fallback to username
-        raw_name = self.get_full_name() or self.username
+        # If full_name is an empty string, fallback to username
+        raw_name = self.full_name or self.username
         
         # Format the string for a URL (replace spaces with plus signs)
         safe_name = raw_name.replace(" ", "+")
