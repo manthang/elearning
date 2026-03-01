@@ -176,6 +176,13 @@ function populateProfileUI(data) {
   setEl("profileJoined", data.joined);
   setEl("profileBio", data.bio);
 
+  // Update the Full Profile Link
+  const fullProfileLink = document.getElementById("profileFullLink");
+  if (fullProfileLink) {
+    // Construct the URL using the username from the API data
+    fullProfileLink.href = `/@${encodeURIComponent(data.username)}/`;
+  }
+
   // 1. Handle Student Stats (Count only)
   const studentStats = document.getElementById("profileStats");
   if (studentStats) {
