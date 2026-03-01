@@ -27,7 +27,7 @@ def user_profile(request, username):
     profile_user = get_object_or_404(User, username=username)
     is_own_profile = (request.user == profile_user)
     
-    tab = request.GET.get("tab", "courses")
+    tab = request.GET.get("tab", "my_courses")
     show_past = request.GET.get("show_past") == "1"
 
     context = {

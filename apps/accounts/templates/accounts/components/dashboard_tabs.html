@@ -1,32 +1,45 @@
-<div class="flex items-center gap-8 border-b border-gray-100">
-
+<nav class="flex items-center gap-8 border-b border-gray-200 overflow-x-auto no-scrollbar" aria-label="Profile Tabs">
+  
   <a href="?tab=my_courses" 
-     class="relative pb-3 text-sm font-semibold transition {% if tab == 'my_courses' %}text-gray-900{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+     class="relative py-4 text-sm transition-colors duration-200 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 rounded-t-md
+            {% if tab == 'my_courses' %}text-gray-900 font-bold{% else %}text-gray-500 font-medium hover:text-gray-800{% endif %}"
+     {% if tab == 'my_courses' %}aria-current="page"{% endif %}>
+    
     {% if is_own_profile %}
       My Courses
     {% else %}
       Enrolled Courses
     {% endif %}
+    
     {% if tab == 'my_courses' %}
-      <span class="absolute left-0 bottom-0 h-0.5 w-full bg-gray-900 rounded-full"></span>
+      <span class="absolute left-0 bottom-0 h-0.5 w-full bg-gray-900 rounded-t-full"></span>
     {% endif %}
   </a>
 
   {% if is_own_profile %}
     <a href="?tab=all_courses"
-       class="relative pb-3 text-sm font-semibold transition {% if tab == 'all_courses' %}text-gray-900{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+       class="relative py-4 text-sm transition-colors duration-200 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 rounded-t-md
+              {% if tab == 'all_courses' %}text-gray-900 font-bold{% else %}text-gray-500 font-medium hover:text-gray-800{% endif %}"
+       {% if tab == 'all_courses' %}aria-current="page"{% endif %}>
+      
       All Courses
-    {% if tab == 'all_courses' %}
-      <span class="absolute left-0 bottom-0 h-0.5 w-full bg-gray-900 rounded-full"></span>
-    {% endif %}
+      
+      {% if tab == 'all_courses' %}
+        <span class="absolute left-0 bottom-0 h-0.5 w-full bg-gray-900 rounded-t-full"></span>
+      {% endif %}
     </a>
   {% endif %}
 
   <a href="?tab=status"
-     class="relative pb-3 text-sm font-semibold transition {% if tab == 'status' %}text-gray-900{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+     class="relative py-4 text-sm transition-colors duration-200 whitespace-nowrap outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2 rounded-t-md
+            {% if tab == 'status' %}text-gray-900 font-bold{% else %}text-gray-500 font-medium hover:text-gray-800{% endif %}"
+     {% if tab == 'status' %}aria-current="page"{% endif %}>
+      
       Status Updates
+      
     {% if tab == 'status' %}
-      <span class="absolute left-0 bottom-0 h-0.5 w-full bg-gray-900 rounded-full"></span>
+      <span class="absolute left-0 bottom-0 h-0.5 w-full bg-gray-900 rounded-t-full"></span>
     {% endif %}
   </a>
-</div>
+
+</nav>

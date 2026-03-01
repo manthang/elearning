@@ -1,33 +1,56 @@
 <div class="mb-8">
-  <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider mb-4">Teaching Overview</h3>
+  <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Teaching Overview</h3>
   
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-    <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex flex-col justify-center">
-      <span class="text-sm text-gray-500 font-medium">Courses</span>
-      <span class="text-2xl font-bold text-gray-900 mt-1">{{ courses_created|default:0 }}</span>
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    
+    <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+        </div>
+        <span class="text-sm text-gray-500 font-medium">Courses</span>
+      </div>
+      <div class="text-3xl font-bold text-gray-900">{{ courses_created|default:0 }}</div>
     </div>
 
-    <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex flex-col justify-center">
-      <span class="text-sm text-gray-500 font-medium">Total Students</span>
-      <span class="text-2xl font-bold text-gray-900 mt-1">{{ total_students|default:0 }}</span>
+    <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <span class="text-sm text-gray-500 font-medium">Students</span>
+      </div>
+      <div class="text-3xl font-bold text-gray-900">{{ total_students|default:0 }}</div>
     </div>
 
-    <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex flex-col justify-center">
-      <span class="text-sm text-gray-500 font-medium">Materials</span>
-      <span class="text-2xl font-bold text-gray-900 mt-1">{{ total_materials|default:0 }}</span>
+    <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-purple-50 text-purple-600">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <span class="text-sm text-gray-500 font-medium">Materials</span>
+      </div>
+      <div class="text-3xl font-bold text-gray-900">{{ total_materials|default:0 }}</div>
     </div>
 
-    <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm flex flex-col justify-center">
-      <span class="text-sm text-gray-500 font-medium">Avg Rating</span>
-      <div class="flex items-center gap-1 mt-1">
-        <span class="text-2xl font-bold text-gray-900">{{ teacher_avg_rating|default:"0.0"|floatformat:1 }}</span>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
-          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-        </svg>
-        <span class="text-sm font-medium text-gray-400 ml-1">
-          / 5.0 ({{ teacher_review_count|default:0 }} review{{ teacher_review_count|pluralize }})
-        </span>
+    <div class="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-amber-50 text-amber-500">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+        </div>
+        <span class="text-sm text-gray-500 font-medium">Avg Rating</span>
+      </div>
+      
+      <div>
+        <div class="flex items-baseline gap-1.5">
+          <span class="text-3xl font-bold text-gray-900">{{ teacher_avg_rating|default:"0.0"|floatformat:1 }}</span>
+          <span class="text-sm font-semibold text-gray-400">/ 5.0</span>
+        </div>
+        <p class="text-[11px] font-medium text-gray-400 mt-0.5">
+          {{ teacher_review_count|default:0 }} review{{ teacher_review_count|pluralize }}
+        </p>
       </div>
     </div>
+
   </div>
 </div>
