@@ -15,9 +15,9 @@ def _get_enrolled_courses_data(user):
     )
     
     user_feedback_prefetch = Prefetch(
-        "feedbacks",
+        "feedback",
         queryset=CourseFeedback.objects.filter(student=user),
-        to_attr="user_feedbacks"
+        to_attr="user_feedback"
     )
 
     # Fetch only the courses this user is enrolled in
@@ -30,7 +30,7 @@ def _get_enrolled_courses_data(user):
         course.progress = progress_map.get(course.id, 0)
         course.teachers = [t.teacher for t in course.course_teachings]
         
-        feedback = course.user_feedbacks[0] if course.user_feedbacks else None
+        feedback = course.user_feedback[0] if course.user_feedback else None
         course.feedback_rating = feedback.rating if feedback else 0
         course.feedback_comment = feedback.comment if feedback else ""
         
@@ -44,8 +44,8 @@ def _get_all_courses_catalog(enrolled_course_ids):
     teachers_prefetch = Prefetch("teachings", queryset=Teaching.objects.select_related("teacher"), to_attr="course_teachings")
     
     catalog_qs = Course.objects.annotate(
-        avg_rating=Avg("feedbacks__rating"),
-        rating_count=Count("feedbacks")
+        avg_rating=Avg("feedback__rating"),
+        rating_count=Count("feedback")
     ).prefetch_related(teachers_prefetch)
 
     all_courses = []

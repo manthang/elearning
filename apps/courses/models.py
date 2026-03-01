@@ -171,12 +171,12 @@ class CourseFeedback(models.Model):
         User,
         on_delete=models.CASCADE,
         limit_choices_to={"role": "STUDENT"},
-        related_name="feedbacks"
+        related_name="feedback"
     )
     course = models.ForeignKey(
         Course,
         on_delete=models.CASCADE,
-        related_name="feedbacks"
+        related_name="feedback"
     )
     rating = models.PositiveSmallIntegerField(
         choices=[(i, i) for i in range(1, 6)]

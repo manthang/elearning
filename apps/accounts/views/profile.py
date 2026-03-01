@@ -72,7 +72,9 @@ def user_profile(request, username):
             students_total=Count('enrollments', distinct=True),
             is_enrolled=Exists(
                 Enrollment.objects.filter(course=OuterRef('pk'), student=request.user)
-            )
+            ),
+            avg_rating=Avg('feedback__rating'), 
+            rating_count=Count('feedback', distinct=True)
         )
         
         # Search Filter
