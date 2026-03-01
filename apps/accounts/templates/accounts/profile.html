@@ -27,9 +27,9 @@
         {% include "courses/components/teacher_courses.html" %}
       
       {% else %}
-        {% if tab == "courses" %}
+        {% if tab == "my_courses" %}
           {% include "courses/components/student_courses.html" %}
-        {% elif tab == "all" and is_own_profile %}
+        {% elif tab == "all_courses" and is_own_profile %}
           {% include "courses/components/all_courses.html" %}
         {% endif %}
       {% endif %}

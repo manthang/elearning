@@ -65,7 +65,7 @@ def user_profile(request, username):
     # ================= SHARED LOGIC =================
     
     # All Course Catalog (Accessible to both Teachers and Students)
-    if is_own_profile and tab == "all":
+    if is_own_profile and tab == "all_courses":
         
         # Optimize query and attach 'is_enrolled' boolean to every course
         catalog_qs = Course.objects.prefetch_related('teachings__teacher').annotate(
