@@ -4,9 +4,9 @@
       <h2 class="text-xl font-bold text-gray-900">Upcoming Deadlines</h2>
     </div>
 
-    <a href="?tab={{ tab|default:'overview' }}{% if not show_past %}&show_past=1{% endif %}"
+    <a href="?tab={{ tab|default:'overview' }}{% if not show_overdue %}&show_overdue=1{% endif %}"
        class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 bg-white text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition shadow-sm">
-      {% if show_past %}
+      {% if show_overdue %}
         <span>Hide overdue</span>
       {% else %}
         <span>Show overdue</span>
@@ -74,7 +74,7 @@
         </div>
         <h3 class="text-sm font-bold text-gray-900">You're all caught up!</h3>
         <p class="text-sm text-gray-500 mt-1 max-w-xs mx-auto">
-          {% if show_past %}
+          {% if show_overdue %}
             You don't have any overdue assignments dragging you down.
           {% else %}
             Take a breather. There are no upcoming deadlines on your radar.

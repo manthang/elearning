@@ -36,13 +36,13 @@ def user_profile(request, username):
     is_own_profile = (request.user == profile_user) if request.user.is_authenticated else False
     
     tab = request.GET.get("tab", "my_courses")
-    show_past = request.GET.get("show_past") == "1"
+    show_overdue = request.GET.get("show_overdue") == "1"
 
     context = {
         "profile_user": profile_user,
         "is_own_profile": is_own_profile,
         "tab": tab,
-        "show_past": show_past,
+        "show_overdue": show_overdue,
     }
 
     # ================= ROLE-BASED ROUTING =================
@@ -65,7 +65,7 @@ def user_profile(request, username):
         deadlines = Deadline.objects.filter(course_id__in=enrolled_course_ids)
 
     # Apply deadline filters (Done once for whoever is logged in)
-    if not show_past:
+    if not show_overdue:
         deadlines = deadlines.filter(due_at__gte=timezone.now())
     context["deadlines"] = deadlines.order_by("due_at")[:5]
 
