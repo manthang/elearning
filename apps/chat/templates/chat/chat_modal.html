@@ -1,20 +1,28 @@
-<!-- ================= MESSENGER MODAL (WhatsApp-like LIGHT) ================= -->
+{% load static %}
+
 <div id="messengerPanel"
      class="fixed inset-0 z-50 hidden items-center justify-center
-            bg-black/40 backdrop-blur-sm opacity-0 transition-opacity duration-200"
+            bg-black/60 backdrop-blur-sm opacity-0 transition-opacity duration-200 p-4 md:p-8"
      onclick="closeMessenger()">
 
   <div id="messengerBox"
-       class="w-full max-w-6xl h-[84vh]
+       class="relative w-full max-w-6xl h-[84vh]
               rounded-2xl overflow-hidden
               shadow-[0_24px_80px_rgba(0,0,0,0.25)]
               flex transform scale-95 opacity-0 transition-all duration-200 bg-white"
        onclick="event.stopPropagation()">
 
-    <!-- ================= LEFT (Sidebar) ================= -->
-    <aside class="w-[380px] flex flex-col bg-white border-r border-gray-100">
+    <button type="button" 
+            onclick="closeMessenger()"
+            class="absolute top-3 right-3 z-50 h-8 w-8 bg-white/80 backdrop-blur rounded-full flex items-center justify-center text-gray-500 hover:text-gray-900 hover:bg-gray-100 shadow-sm transition md:hidden"
+            aria-label="Close Messenger">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+      </svg>
+    </button>
 
-      <!-- Sidebar header -->
+    <aside class="w-full md:w-[320px] lg:w-[380px] flex flex-col bg-white border-r border-gray-100 shrink-0">
+
       <div class="px-4 py-3 flex items-center justify-between bg-white">
         <div class="flex items-center gap-3">
           <div class="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center">
@@ -26,7 +34,7 @@
         </div>
 
         <button type="button"
-                class="h-9 w-9 rounded-full hover:bg-gray-100 transition flex items-center justify-center"
+                class="h-9 w-9 rounded-full hover:bg-gray-100 transition flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-gray-200"
                 aria-label="New chat">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
             <path d="M17 3a1 1 0 011 1v11a2 2 0 01-2 2H7l-4 3v-3H4a2 2 0 01-2-2V4a1 1 0 011-1h14z"/>
@@ -34,9 +42,8 @@
         </button>
       </div>
 
-      <!-- Search (NO border-top line under Chats) -->
       <div class="px-3 pb-2 bg-white">
-        <div class="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2">
+        <div class="flex items-center gap-2 bg-gray-100 rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-blue-500/30 transition-shadow">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M12.9 14.32a8 8 0 111.414-1.414l3.387 3.387a1 1 0 01-1.414 1.414l-3.387-3.387zM14 8a6 6 0 11-12 0 6 6 0 0112 0z" clip-rule="evenodd"/>
           </svg>
@@ -48,24 +55,14 @@
         </div>
       </div>
 
-      <!-- Conversations -->
-      <div id="conversationList"
-           class="flex-1 overflow-y-auto">
-        <!-- injected by JS -->
-      </div>
-
-      <!-- ✅ removed: "Your messages are private." footer -->
+      <div id="conversationList" class="flex-1 overflow-y-auto">
+        </div>
     </aside>
 
-    <!-- ================= RIGHT (Chat) ================= -->
-    <main class="flex-1 flex flex-col bg-white">
+    <main class="hidden md:flex flex-1 flex-col bg-white">
 
-      <!-- Header -->
-      <div id="chatHeader"
-           class="hidden px-4 py-3 flex items-center gap-3 bg-white border-b border-gray-100">
-        <img id="chatAvatar"
-             class="w-10 h-10 rounded-full object-cover"
-             alt="Avatar" />
+      <div id="chatHeader" class="hidden px-4 py-3 flex items-center gap-3 bg-white border-b border-gray-100 pr-12 md:pr-4">
+        <img id="chatAvatar" class="w-10 h-10 rounded-full object-cover" alt="Avatar" />
 
         <div class="min-w-0">
           <div id="chatName" class="font-semibold text-sm text-gray-900 truncate"></div>
@@ -73,16 +70,12 @@
         </div>
 
         <div class="ml-auto flex items-center gap-1">
-          <button type="button"
-                  class="h-9 w-9 rounded-full hover:bg-gray-100 transition flex items-center justify-center"
-                  aria-label="Search">
+          <button type="button" class="h-9 w-9 rounded-full hover:bg-gray-100 transition flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-gray-200" aria-label="Search">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
               <path fill-rule="evenodd" d="M12.9 14.32a8 8 0 111.414-1.414l3.387 3.387a1 1 0 01-1.414 1.414l-3.387-3.387zM14 8a6 6 0 11-12 0 6 6 0 0112 0z" clip-rule="evenodd"/>
             </svg>
           </button>
-          <button type="button"
-                  class="h-9 w-9 rounded-full hover:bg-gray-100 transition flex items-center justify-center"
-                  aria-label="Menu">
+          <button type="button" class="h-9 w-9 rounded-full hover:bg-gray-100 transition flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-gray-200" aria-label="Menu">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
               <path d="M6 10a2 2 0 114 0 2 2 0 01-4 0zm6 0a2 2 0 114 0 2 2 0 01-4 0z"/>
             </svg>
@@ -90,44 +83,30 @@
         </div>
       </div>
 
-      <!-- Messages wrapper with subtle light pattern -->
       <div class="relative flex-1 overflow-hidden bg-[#efeae2]">
         <div class="absolute inset-0 opacity-[0.08]"
-             style="
-               background-image:
-                 radial-gradient(circle at 20% 30%, #000 0 1px, transparent 1px),
-                 radial-gradient(circle at 70% 60%, #000 0 1px, transparent 1px);
-               background-size: 70px 70px;
-             "></div>
-
-        <div id="chatMessages"
-             class="relative h-full overflow-y-auto px-6 py-4 space-y-2">
-          <!-- messages injected -->
+             style="background-image: radial-gradient(circle at 20% 30%, #000 0 1px, transparent 1px), radial-gradient(circle at 70% 60%, #000 0 1px, transparent 1px); background-size: 70px 70px;">
         </div>
 
-        <!-- Empty state -->
-        <div id="chatEmptyState"
-             class="absolute inset-0 flex items-center justify-center p-8">
+        <div id="chatMessages" class="relative h-full overflow-y-auto px-6 py-4 space-y-2">
+          </div>
+
+        <div id="chatEmptyState" class="absolute inset-0 flex items-center justify-center p-8">
           <div class="max-w-sm text-center text-gray-700">
             <div class="mx-auto mb-4 h-14 w-14 rounded-full bg-white/70 shadow-sm flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
                 <path d="M2 5a3 3 0 013-3h10a3 3 0 013 3v6a3 3 0 01-3 3H9l-4 3v-3H5a3 3 0 01-3-3V5z" />
               </svg>
             </div>
-            <div class="font-semibold">Choose a chat</div>
-            <div class="mt-1 text-xs text-gray-500">Pick a conversation on the left to start messaging.</div>
+            <div class="font-semibold text-gray-900">Choose a chat</div>
+            <div class="mt-1 text-sm text-gray-500">Pick a conversation on the left to start messaging.</div>
           </div>
         </div>
       </div>
 
-      <!-- Composer -->
-      <form id="chatForm"
-            onsubmit="sendMessage(event)"
-            class="px-4 py-3 bg-white border-t border-gray-100 flex items-center gap-3">
+      <form id="chatForm" onsubmit="sendMessage(event)" class="px-4 py-3 bg-white border-t border-gray-100 flex items-center gap-3">
 
-        <button type="button"
-                class="h-10 w-10 rounded-full hover:bg-gray-100 transition flex items-center justify-center"
-                aria-label="Emoji">
+        <button type="button" class="h-10 w-10 rounded-full hover:bg-gray-100 transition flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-gray-200" aria-label="Emoji">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
             <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm-3-7a1 1 0 100-2 1 1 0 000 2zm6 0a1 1 0 100-2 1 1 0 000 2zm-6.293 2.293a1 1 0 011.414 0A2.99 2.99 0 0010 14a2.99 2.99 0 002.121-.707 1 1 0 111.414 1.414A4.99 4.99 0 0110 16a4.99 4.99 0 01-3.535-1.293 1 1 0 010-1.414z"/>
           </svg>
@@ -137,17 +116,13 @@
                type="text"
                placeholder="Select a conversation to start typing…"
                autocomplete="off"
-               class="flex-1 bg-gray-100 rounded-lg px-4 py-2 text-sm
-                      outline-none text-gray-800 placeholder:text-gray-400
-                      disabled:opacity-60"
+               class="flex-1 bg-gray-100 rounded-lg px-4 py-2 text-sm outline-none focus:bg-white focus:ring-2 focus:ring-[#00a884]/50 transition-all text-gray-800 placeholder:text-gray-400 disabled:opacity-60"
                disabled
                required />
 
         <button id="chatSendBtn"
                 type="submit"
-                class="h-10 w-10 rounded-full bg-[#00a884] hover:bg-[#019c7a]
-                       transition flex items-center justify-center
-                       disabled:opacity-50 disabled:cursor-not-allowed"
+                class="h-10 w-10 rounded-full bg-[#00a884] hover:bg-[#019c7a] transition flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#00a884]"
                 disabled
                 aria-label="Send">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
@@ -159,3 +134,5 @@
 
   </div>
 </div>
+
+<script src="{% static 'chat/js/chat.js' %}"></script>

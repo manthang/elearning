@@ -1,105 +1,111 @@
-<div id="searchModal" class="fixed inset-0 z-50 hidden">
+{% load static %}
 
-  <!-- Overlay -->
-  <div class="absolute inset-0 bg-black/30" onclick="closeSearch()"></div>
+<div id="searchModal" class="fixed inset-0 z-[60] hidden">
 
-  <!-- Side panel -->
-  <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-xl flex flex-col">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onclick="closeSearch()"></div>
 
-    <!-- ================= SEARCH VIEW ================= -->
+  <div class="absolute right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl flex flex-col transform transition-transform">
+
     <div id="searchView" class="flex flex-col h-full">
 
-      <!-- Header -->
-      <div class="flex justify-between items-center px-6 py-4 border-b">
-        <h2 class="text-lg font-semibold">Search</h2>
-        <button onclick="closeSearch()" class="text-xl text-gray-400">×</button>
+      <div class="flex justify-between items-center px-6 py-4 border-b border-gray-100">
+        <h2 class="text-lg font-bold text-gray-900">User Directory</h2>
+        <button onclick="closeSearch()" class="text-2xl text-gray-400 hover:text-gray-700 transition" aria-label="Close">×</button>
       </div>
 
-      <!-- Role Tabs -->
-      <div class="flex gap-2 px-6 py-3">
+      <div class="flex gap-2 px-6 py-4">
         <button id="tabStudent"
                 onclick="setSearchRole('student')"
-                class="flex-1 py-2 rounded-xl bg-blue-600 text-white font-medium">
-          🎓 Students
+                class="flex-1 flex items-center justify-center gap-2 h-11 rounded-xl bg-blue-600 text-white font-bold text-sm shadow-sm transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path d="M12 14l9-5-9-5-9 5 9 5z" />
+            <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5zm0 0v6" />
+          </svg>
+          Students
         </button>
+        
         <button id="tabTeacher"
                 onclick="setSearchRole('teacher')"
-                class="flex-1 py-2 rounded-xl bg-gray-100 text-gray-600 font-medium">
-          👤 Teachers
+                class="flex-1 flex items-center justify-center gap-2 h-11 rounded-xl bg-gray-50 text-gray-500 font-bold text-sm hover:bg-gray-100 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          Teachers
         </button>
       </div>
 
-      <!-- Search Input -->
-      <div class="px-6">
-        <input id="searchInput"
-              type="text"
-              placeholder="Search by name or email"
-              class="w-full border rounded-xl px-4 py-3"
-              oninput="searchUsers()" />
+      <div class="px-6 pb-2">
+        <div class="relative">
+          <input id="searchInput"
+                type="text"
+                placeholder="Search by name..."
+                class="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-blue-500/50 outline-none transition"
+                oninput="searchUsers()" />
+          <svg class="w-4 h-4 text-gray-400 absolute left-4 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        </div>
       </div>
 
-      <!-- Results -->
-      <div id="searchResults"
-          class="flex-1 overflow-y-auto px-6 py-4 space-y-3">
-      </div>
-        <!-- injected by JS -->
+      <div id="searchResults" class="flex-1 overflow-y-auto px-6 py-4 space-y-3">
+        </div>
     </div>
 
-    <!-- ================= PROFILE VIEW ================= -->
-    <div id="profileView" class="hidden flex flex-col h-full">
+    <div id="profileView" class="hidden flex-col h-full bg-gray-50">
 
-      <!-- Header -->
-      <div class="flex items-center gap-3 px-6 py-4 border-b">
-        <button onclick="backToSearch()" class="text-xl">←</button>
-        <h2 class="text-lg font-semibold">User Profile</h2>
+      <div class="flex items-center gap-3 px-6 py-4 bg-white border-b border-gray-100">
+        <button onclick="backToSearch()" class="text-gray-400 hover:text-gray-800 transition p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+        </button>
+        <h2 class="text-lg font-bold text-gray-900">User Profile</h2>
       </div>
 
-      <!-- Profile content -->
-      <div class="flex-1 overflow-y-auto">
+      <div class="flex-1 overflow-y-auto pb-8">
 
-        <!-- Gradient -->
-        <div class="h-32 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+        <div class="h-32 bg-gradient-to-r from-blue-500 to-purple-600"></div>
 
-        <!-- Avatar -->
         <div class="-mt-12 flex justify-center">
           <img id="profileAvatar"
-              class="w-24 h-24 rounded-full object-cover border-4 border-white"
-              src="" />
+              class="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md bg-gray-200"
+              alt="Profile Picture" />
         </div>
 
-        <div class="p-6 text-center">
-          <h2 id="profileName" class="text-xl font-bold"></h2>
-          <p id="profileRole" class="text-gray-500"></p>
+        <div class="px-6 text-center">
+          <h2 id="profileName" class="text-xl font-bold text-gray-900 mt-3"></h2>
+          <p id="profileRole" class="text-xs font-bold uppercase tracking-widest text-blue-600 mt-1"></p>
 
-          <p id="profileBio" class="text-sm text-gray-600 mt-4"></p>
+          <p id="profileBio" class="text-sm text-gray-600 mt-4 leading-relaxed"></p>
 
-          <!-- Contact -->
-          <div class="mt-6 bg-gray-50 rounded-xl p-4 text-left space-y-2">
-            <p><strong>Email:</strong> <span id="profileEmail"></span></p>
-            <p><strong>Location:</strong> <span id="profileLocation"></span></p>
-            <p><strong>Member since:</strong> <span id="profileJoined"></span></p>
-          </div>
-
-          <!-- Stats -->
-          <div id="profileStats"
-              class="mt-4 bg-blue-50 rounded-xl p-4 hidden text-center">
-            <span class="text-2xl font-bold" id="profileCourses"></span><br>
-            Enrolled Courses
-          </div>
-
-          <!-- Chat button -->
-          <div class="flex justify-center mt-4">
-            <button
-              id="openChatBtn"
-              onclick="openMessengerWithUser()"
-              class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-xl flex items-center gap-2"
-            >
-              💬
+          <div class="mt-6 flex justify-center">
+            <button id="openChatBtn"
+                    onclick="openMessengerWithUser()"
+                    class="bg-[#00a884] hover:bg-[#019c7a] text-white font-bold px-8 py-2.5 rounded-xl flex items-center gap-2 shadow-sm transition transform hover:scale-105">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+              Message
             </button>
           </div>
+
+          <div class="mt-8 bg-white border border-gray-100 shadow-sm rounded-2xl p-5 text-left space-y-3">
+            <div class="flex items-start gap-3">
+              <span class="text-gray-400 mt-0.5">📧</span>
+              <div>
+                <p class="text-xs font-bold text-gray-400 uppercase">Email</p>
+                <p id="profileEmail" class="text-sm font-medium text-gray-900"></p>
+              </div>
+            </div>
+            <div class="h-px bg-gray-50 w-full"></div>
+            <div class="flex items-start gap-3">
+              <span class="text-gray-400 mt-0.5">📅</span>
+              <div>
+                <p class="text-xs font-bold text-gray-400 uppercase">Member Since</p>
+                <p id="profileJoined" class="text-sm font-medium text-gray-900"></p>
+              </div>
+            </div>
+          </div>
+          
         </div>
       </div>
     </div>
   </div>
-
 </div>
+
+<script src="{% static 'accounts/js/search.js' %}"></script>

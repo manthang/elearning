@@ -7,6 +7,7 @@ from django.db.models import Q, Prefetch, Avg, Count, Exists, OuterRef
 from django.contrib.auth import get_user_model
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
+from django.http import JsonResponse
 
 from apps.courses.models import *
 from apps.courses.utils import _get_enrolled_courses_data, _get_all_courses_catalog
@@ -14,10 +15,7 @@ from apps.status.utils import get_feed_queryset
 
 from ..utils import _get_teacher_profile_data
 
-
-
 User = get_user_model()
-
 
 @login_required
 def dashboard_redirect(request):
@@ -25,6 +23,9 @@ def dashboard_redirect(request):
     return redirect("accounts:user_profile", username=request.user.username)
 
 
+# =========================
+# Get User Profile for Dashboard
+# =========================
 def user_profile(request, username):
     # Fetch the user whose profile is being visited
     profile_user = get_object_or_404(User, username=username)
@@ -125,6 +126,9 @@ def user_profile(request, username):
     return render(request, "accounts/profile.html", context)
 
 
+# =========================
+# Edit User Profile
+# =========================
 @login_required
 @require_POST
 def edit_profile(request):
@@ -155,37 +159,3 @@ def edit_profile(request):
     # Safely redirect back to wherever they were
     next_url = request.POST.get("next") or reverse("accounts:user_profile", kwargs={"username": user.username})
     return redirect(next_url)
-
-
-@login_required
-def user_search(request):
-    query = request.GET.get("q", "").strip()
-    role = request.GET.get("role")
-
-    users = User.objects.all()
-
-    # Filter by role if provided
-    if role:
-        users = users.filter(role__iexact=role)
-
-    # Filter by search query
-    if query:
-        users = users.filter(
-            Q(full_name__icontains=query) |
-            Q(email__icontains=query)
-        )
-
-    users = users[:10]
-
-    results = []
-    for u in users:
-        results.append({
-            "id": u.id,
-            "username": u.username,
-            "name": u.full_name or u.username,
-            "email": u.email,
-            "location": u.location or "",
-            "avatar": u.avatar_url,
-        })
-
-    return JsonResponse({"results": results})
