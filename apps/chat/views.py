@@ -67,6 +67,9 @@ def chat_history(request, conversation_id):
     })
 
 
+# ========================
+# Start a Chat with a User
+# ========================
 @login_required
 def start_conversation(request, user_id):
     current_user = request.user
@@ -75,10 +78,12 @@ def start_conversation(request, user_id):
     if current_user == other_user:
         return JsonResponse({"error": "Cannot start a conversation with yourself."}, status=400)
 
+    # Find an existing conversation between exactly these two participants
     conversation = (
         Conversation.objects
         .filter(participants=current_user)
         .filter(participants=other_user)
+        .distinct()
         .first()
     )
 
@@ -88,7 +93,8 @@ def start_conversation(request, user_id):
 
     return JsonResponse({
         "conversation_id": conversation.id,
+        "id": other_user.id,
         "name": other_user.full_name or other_user.username,
-        "role": getattr(other_user, "role", ""),
-        "avatar": other_user.profile_photo.url if getattr(other_user, "profile_photo", None) else None,
+        "role": other_user.get_role_display() if hasattr(other_user, 'get_role_display') else "",
+        "avatar": other_user.avatar_url, 
     })

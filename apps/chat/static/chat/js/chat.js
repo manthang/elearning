@@ -1,13 +1,30 @@
+/* =========================================================
+   STATE MANAGEMENT & GETTERS
+========================================================= */
 let activeConversationId = null;
 let conversationsCache = [];
 let inboxSocket = null;
+let reconnectTimer = null;
 
 const unreadCounts = new Map();
 const seenMessageIds = new Set();
 
+// Dynamic getter to ensure we always have the latest ID from the template
+function getCurrentUserId() {
+  const id = window.CURRENT_USER_ID || null;
+  if (!id) {
+    console.warn("window.CURRENT_USER_ID is not defined yet.");
+  }
+  return id;
+}
+
+/* =========================================================
+   UI TOGGLES
+========================================================= */
 window.openMessenger = function (conversationId = null) {
   const panel = document.getElementById("messengerPanel");
   const box = document.getElementById("messengerBox");
+  if (!panel || !box) return;
 
   panel.classList.remove("hidden");
   panel.classList.add("flex");
@@ -24,6 +41,10 @@ window.openMessenger = function (conversationId = null) {
   setEmptyState(true);
   setComposerEnabled(false);
 
+  // Show loading state in sidebar
+  const list = document.getElementById("conversationList");
+  if (list) list.innerHTML = `<div class="p-4 text-center text-sm text-gray-400">Loading chats...</div>`;
+
   connectInboxSocket();
 
   loadConversations().then(() => {
@@ -35,6 +56,7 @@ window.openMessenger = function (conversationId = null) {
 window.closeMessenger = function () {
   const panel = document.getElementById("messengerPanel");
   const box = document.getElementById("messengerBox");
+  if (!panel || !box) return;
 
   panel.classList.add("opacity-0");
   box.classList.add("opacity-0", "scale-95");
@@ -46,6 +68,9 @@ window.closeMessenger = function () {
   }, 200);
 };
 
+/* =========================================================
+   CONVERSATION LIST
+========================================================= */
 function loadConversations() {
   return fetch("/chat/conversations/")
     .then(res => res.json())
@@ -56,49 +81,50 @@ function loadConversations() {
       list.innerHTML = "";
       conversationsCache = data.conversations || [];
 
-      conversationsCache.forEach(conv => list.appendChild(createConversationItem(conv)));
-      highlightActive();
+      if (conversationsCache.length === 0) {
+        list.innerHTML = `<div class="p-4 text-center text-sm text-gray-400">No conversations yet.</div>`;
+        return conversationsCache;
+      }
 
+      const fragment = document.createDocumentFragment();
+      conversationsCache.forEach(conv => fragment.appendChild(createConversationItem(conv)));
+      list.appendChild(fragment);
+      
+      highlightActive();
       return conversationsCache;
     })
-    .catch(err => console.error("Conversation load error:", err));
+    .catch(err => {
+      console.error("Conversation load error:", err);
+      const list = document.getElementById("conversationList");
+      if (list) list.innerHTML = `<div class="p-4 text-center text-sm text-red-400">Failed to load.</div>`;
+    });
 }
 
 function createConversationItem(conv) {
   const div = document.createElement("div");
   div.dataset.id = conv.id;
 
-  const isMine = String(conv.sender_id) === String(CURRENT_USER_ID);
+  const isMine = String(conv.sender_id) === String(getCurrentUserId());
   const previewText = conv.last_message
     ? (isMine ? `You: ${conv.last_message}` : conv.last_message)
-    : "";
+    : "Started a new conversation";
 
   div.className = buildConversationItemClass(conv.id);
 
+  // Use avatar_url to match Django properties consistently
+  const avatarSrc = conv.avatar || "/media/profile_photos/default-avatar.png";
+
   div.innerHTML = `
     <div class="px-2 py-3 flex items-center gap-3 border-b border-gray-100">
-      <img src="${conv.avatar || "/media/profile_photos/default-avatar.svg"}"
-           class="w-12 h-12 rounded-full object-cover bg-gray-100"
-           alt="avatar"/>
-
+      <img src="${avatarSrc}" class="w-12 h-12 rounded-full object-cover bg-gray-100" alt="avatar"/>
       <div class="flex-1 min-w-0">
         <div class="flex items-center justify-between gap-2">
-          <div class="text-[15px] font-semibold text-gray-900 truncate">
-            ${escapeHtml(conv.name || "")}
-          </div>
-          <div class="text-[11px] text-gray-400 convo-time">
-            ${escapeHtml(conv.time || "")}
-          </div>
+          <div class="text-[15px] font-semibold text-gray-900 truncate">${escapeHtml(conv.name || "Unknown User")}</div>
+          <div class="text-[11px] text-gray-400 convo-time">${escapeHtml(conv.time || "")}</div>
         </div>
-
         <div class="flex items-center justify-between gap-2 mt-0.5">
-          <div class="text-[13px] text-gray-600 truncate last-message">
-            ${escapeHtml(previewText)}
-          </div>
-
-          <span class="unread-badge hidden text-[11px] leading-none px-2 py-1 rounded-full bg-[#00a884] text-white font-semibold">
-            0
-          </span>
+          <div class="text-[13px] text-gray-600 truncate last-message">${escapeHtml(previewText)}</div>
+          <span class="unread-badge hidden text-[11px] leading-none px-2 py-1 rounded-full bg-[#00a884] text-white font-semibold shadow-sm">0</span>
         </div>
       </div>
     </div>
@@ -112,22 +138,14 @@ function createConversationItem(conv) {
 
 function buildConversationItemClass(conversationId) {
   const isActive = String(conversationId) === String(activeConversationId);
-
-  let cls = `
-    cursor-pointer select-none
-    px-2
-    transition
-  `;
-
-  // WhatsApp-like row feel
-  cls += isActive ? " bg-gray-100 " : " hover:bg-gray-50 ";
-
-  return cls;
+  return `cursor-pointer select-none px-2 transition ${isActive ? "bg-gray-100" : "hover:bg-gray-50"}`;
 }
 
+/* =========================================================
+   ACTIVE CONVERSATION & MESSAGES
+========================================================= */
 function openConversation(conv) {
   if (!conv || !conv.id) return;
-
   activeConversationId = conv.id;
 
   updateHeader(conv);
@@ -153,33 +171,83 @@ function updateHeader(user) {
   const roleEl = document.getElementById("chatRole");
   const avatarEl = document.getElementById("chatAvatar");
 
-  if (!nameEl || !roleEl || !avatarEl) return;
-
-  nameEl.textContent = user.name || "";
-  roleEl.textContent = user.role ? user.role : "";
-  avatarEl.src = user.avatar ?? "/media/profile_photos/default-avatar.svg";
+  if (nameEl) nameEl.textContent = user.name || "Unknown";
+  if (roleEl) roleEl.textContent = user.role || "";
+  if (avatarEl) avatarEl.src = user.avatar || "/media/profile_photos/default-avatar.png";
 }
 
 function loadChatHistory(conversationId) {
   const container = document.getElementById("chatMessages");
   if (!container) return;
 
-  container.innerHTML = "<div class='text-white/40 text-sm'>Loading...</div>";
+  container.innerHTML = `<div class="flex items-center justify-center h-full text-gray-400 text-sm">Loading history...</div>`;
 
   fetch(`/chat/history/${conversationId}/`)
     .then(res => res.json())
     .then(data => {
       container.innerHTML = "";
-      (data.messages || []).forEach(msg => {
+      
+      if (!data.messages || data.messages.length === 0) {
+        container.innerHTML = `<div class="text-center text-gray-400 text-xs mt-4">This is the start of your conversation.</div>`;
+        return;
+      }
+
+      // Batch render messages using DocumentFragment for high performance
+      const fragment = document.createDocumentFragment();
+      data.messages.forEach(msg => {
         if (msg.id) seenMessageIds.add(String(msg.id));
-        renderMessage(msg.content, msg.sender_id === CURRENT_USER_ID, msg.created_at);
+        fragment.appendChild(buildMessageDOM(msg.content, String(msg.sender_id) === String(getCurrentUserId()), msg.created_at));
       });
+      container.appendChild(fragment);
+
       scrollToBottom();
       focusInput();
     })
-    .catch(err => console.error("History error:", err));
+    .catch(err => {
+      console.error("History error:", err);
+      container.innerHTML = `<div class="text-center text-red-400 text-sm mt-4">Could not load messages.</div>`;
+    });
 }
 
+function buildMessageDOM(message, isMine, timeStr = "") {
+  const wrapper = document.createElement("div");
+  // CRITICAL FIX: Added 'w-full' to ensure justify-end actually pushes the bubble to the right
+  wrapper.className = `flex mb-3 w-full ${isMine ? "justify-end" : "justify-start"}`;
+
+  const bubbleClass = isMine
+    ? "bg-[#d9fdd3] text-gray-900 rounded-lg rounded-tr-sm"
+    : "bg-white text-gray-900 rounded-lg rounded-tl-sm border border-black/5";
+
+  const timeHtml = timeStr
+    ? `<span class="ml-2 mt-1 text-[10px] text-gray-500 float-right">${escapeHtml(timeStr)}</span>`
+    : "";
+
+  wrapper.innerHTML = `
+    <div class="max-w-[75%] px-3 py-2 text-[14px] leading-snug shadow-sm flex flex-col ${bubbleClass}">
+      <span class="break-words">${escapeHtml(message)}</span>
+      ${timeHtml}
+    </div>
+  `;
+  return wrapper;
+}
+
+function renderMessage(message, isMine, timeStr = "") {
+  const container = document.getElementById("chatMessages");
+  if (!container) return;
+  
+  // Remove empty state text if it exists
+  const firstChild = container.firstElementChild;
+  if (firstChild && firstChild.innerText.includes("start of your conversation")) {
+    container.innerHTML = "";
+  }
+
+  container.appendChild(buildMessageDOM(message, isMine, timeStr));
+  scrollToBottom();
+}
+
+/* =========================================================
+   WEBSOCKETS
+========================================================= */
 function connectInboxSocket() {
   if (inboxSocket && inboxSocket.readyState === WebSocket.OPEN) return;
 
@@ -202,8 +270,7 @@ function connectInboxSocket() {
     }
 
     if (String(activeConversationId) === conversationId) {
-      renderMessage(data.message, data.sender_id === CURRENT_USER_ID, data.created_at);
-      scrollToBottom();
+      renderMessage(data.message, String(data.sender_id) === String(getCurrentUserId()), data.created_at);
       return;
     }
 
@@ -211,10 +278,17 @@ function connectInboxSocket() {
     unreadCounts.set(conversationId, prev + 1);
     renderUnreadBadge(conversationId);
   };
+
+  inboxSocket.onclose = () => {
+    console.warn("Chat connection lost. Reconnecting in 3s...");
+    reconnectTimer = setTimeout(connectInboxSocket, 3000);
+  };
 }
 
 function disconnectInboxSocket() {
+  if (reconnectTimer) clearTimeout(reconnectTimer);
   if (inboxSocket) {
+    inboxSocket.onclose = null; // Prevent auto-reconnect trigger
     inboxSocket.close();
     inboxSocket = null;
   }
@@ -227,25 +301,37 @@ window.sendMessage = function (event) {
   if (!input) return;
 
   const message = input.value.trim();
-  if (!message) return;
+  if (!message || !activeConversationId) return;
 
-  if (!activeConversationId) return;
-  if (!inboxSocket || inboxSocket.readyState !== WebSocket.OPEN) return;
+  if (!inboxSocket || inboxSocket.readyState !== WebSocket.OPEN) {
+    alert("Not connected to chat server. Trying to reconnect...");
+    return;
+  }
 
+  // 1. Send to server
   inboxSocket.send(JSON.stringify({
     type: "send",
     conversation_id: activeConversationId,
     message: message
   }));
 
+  // 2. Clear input
   input.value = "";
 
-  // Optimistic preview (time optional)
-  updateConversationPreview(String(activeConversationId), message, CURRENT_USER_ID, "");
+  // 3. Update the sidebar preview instantly (this is fine because it just overwrites text)
+  const localTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  updateConversationPreview(String(activeConversationId), message, getCurrentUserId(), localTime);
   moveConversationToTop(String(activeConversationId));
+  
+  // REMOVED: renderMessage(...) 
+  // We now let the inboxSocket.onmessage handler draw the bubble when the server confirms it.
+
   focusInput();
 };
 
+/* =========================================================
+   UTILITIES & HELPERS
+========================================================= */
 function updateConversationPreview(conversationId, message, senderId = null, timeStr = "") {
   const item = document.querySelector(`#conversationList > div[data-id="${conversationId}"]`);
   if (!item) return;
@@ -254,7 +340,7 @@ function updateConversationPreview(conversationId, message, senderId = null, tim
   const timeEl = item.querySelector(".convo-time");
 
   if (preview) {
-    const isMine = String(senderId) === String(CURRENT_USER_ID);
+    const isMine = String(senderId) === String(getCurrentUserId());
     preview.textContent = isMine ? `You: ${message}` : message;
   }
   if (timeEl && timeStr) timeEl.textContent = timeStr;
@@ -287,7 +373,7 @@ function renderUnreadBadge(conversationId) {
 
   if (count > 0 && !isActive) {
     badge.classList.remove("hidden");
-    badge.textContent = String(count);
+    badge.textContent = String(count > 99 ? "99+" : count);
   } else {
     badge.classList.add("hidden");
     badge.textContent = "0";
@@ -296,34 +382,8 @@ function renderUnreadBadge(conversationId) {
 
 function highlightActive() {
   document.querySelectorAll("#conversationList > div").forEach(div => {
-    const id = div.dataset.id;
-    div.className = buildConversationItemClass(id);
+    div.className = buildConversationItemClass(div.dataset.id);
   });
-}
-
-function renderMessage(message, isMine, timeStr = "") {
-  const container = document.getElementById("chatMessages");
-  if (!container) return;
-
-  const wrapper = document.createElement("div");
-  wrapper.className = `flex ${isMine ? "justify-end" : "justify-start"}`;
-
-  const bubbleClass = isMine
-    ? "bg-[#d9fdd3] text-gray-900 rounded-lg rounded-tr-sm"
-    : "bg-white text-gray-900 rounded-lg rounded-tl-sm border border-black/5";
-
-  const timeHtml = timeStr
-    ? `<span class="ml-2 text-[10px] text-gray-500 whitespace-nowrap">${escapeHtml(timeStr)}</span>`
-    : "";
-
-  wrapper.innerHTML = `
-    <div class="max-w-[72%] px-3 py-2 text-[14px] leading-snug shadow-[0_1px_0_rgba(0,0,0,0.08)] ${bubbleClass}">
-      <span>${escapeHtml(message)}</span>
-      ${timeHtml}
-    </div>
-  `;
-
-  container.appendChild(wrapper);
 }
 
 function scrollToBottom() {
@@ -341,8 +401,9 @@ function focusInput() {
 
 function setEmptyState(isEmpty) {
   const empty = document.getElementById("chatEmptyState");
-  if (!empty) return;
-  empty.classList.toggle("hidden", !isEmpty);
+  const messages = document.getElementById("chatMessages");
+  if (empty) empty.classList.toggle("hidden", !isEmpty);
+  if (messages) messages.classList.toggle("hidden", isEmpty);
 }
 
 function setComposerEnabled(enabled) {
@@ -352,8 +413,7 @@ function setComposerEnabled(enabled) {
 
   input.disabled = !enabled;
   btn.disabled = !enabled;
-
-  input.placeholder = enabled ? "Type a message" : "Select a conversation to start typing…";
+  input.placeholder = enabled ? "Type a message..." : "Select a conversation to start typing...";
 }
 
 function wireSearch() {
@@ -374,12 +434,19 @@ function wireSearch() {
           (c.last_message || "").toLowerCase().includes(q)
         );
 
-    filtered.forEach(conv => list.appendChild(createConversationItem(conv)));
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="p-4 text-center text-sm text-gray-400">No matches found.</div>`;
+    } else {
+      const fragment = document.createDocumentFragment();
+      filtered.forEach(conv => fragment.appendChild(createConversationItem(conv)));
+      list.appendChild(fragment);
+    }
     highlightActive();
   });
 }
 
 function escapeHtml(str) {
+  if (!str) return "";
   return String(str)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
