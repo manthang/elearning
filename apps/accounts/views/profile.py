@@ -114,11 +114,11 @@ def user_profile(request, username):
             "category_choices": Course.CATEGORY_CHOICES,
         })
 
-    # Only fetch updates if they are actually on the status tab
+    # Only run the feed query if we are on the status tab
     if tab == 'status':
-        # Since this is their personal home page, the target and requestor are the same.
+        # target_user is the profile_owner, requesting_user is you (request.user)
         context['statuses'] = get_feed_queryset(
-            target_user=request.user, 
+            target_user=profile_user,
             requesting_user=request.user
         )
 

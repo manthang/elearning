@@ -15,7 +15,7 @@
             </span>
             
             {% if s.author.role == 'TEACHER' %}
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 uppercase tracking-widest">Instructor</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700 uppercase tracking-widest">Teacher</span>
             {% elif s.author == request.user %}
               <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-600 uppercase tracking-widest">You</span>
             {% endif %}
