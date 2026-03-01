@@ -8,8 +8,8 @@ from django.db.models import Q
 User = get_user_model()
 
 def get_user_data_payload(user):
-    """Helper function to ensure consistent data across all User APIs."""
-    return {
+    """Unified data structure for search results and profile view."""
+    data = {
         "id": user.id,
         "username": user.username,
         "full_name": user.full_name or user.username,
@@ -18,9 +18,22 @@ def get_user_data_payload(user):
         "location": user.location or "—",
         "joined": user.date_joined.strftime("%B %Y"),
         "bio": user.bio or "No bio available.",
-        "avatar_url": user.avatar_url, #
-        "enrolled_courses": user.enrollments.count() if user.is_student else None
+        "avatar_url": user.avatar_url,
     }
+
+    if user.is_teacher:
+        # Access through the 'teachings' related_name on the Teaching model
+        data["teaching_courses"] = [
+            {"id": t.course.id, "title": t.course.title} 
+            for t in user.teachings.all().select_related('course')
+        ]
+        data["enrolled_courses"] = None
+    else:
+        # For students, count via 'enrollments' related_name
+        data["enrolled_courses"] = user.enrollments.count()
+        data["teaching_courses"] = None
+        
+    return data
 
 
 # =========================
@@ -38,21 +51,18 @@ def user_profile_api(request, username):
 @login_required
 def user_search(request):
     query = request.GET.get("q", "").strip()
-    role = request.GET.get("role", "").upper() # Normalize to match TextChoices
+    role = request.GET.get("role", "STUDENT").upper() # Normalize to match TextChoices
 
     # Don't hit the DB if the query is empty
     if not query:
         return JsonResponse({"results": []})
 
-    users = User.objects.all()
-
-    if role:
-        users = users.filter(role=role) # Exact match is faster than iexact
+    users = User.objects.filter(role=role)
 
     users = users.filter(
         Q(full_name__icontains=query) |
         Q(email__icontains=query) |
-        Q(username__icontains=query) # Added username search for better UX
+        Q(username__icontains=query)
     )[:10]
 
     results = [get_user_data_payload(u) for u in users]
