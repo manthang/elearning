@@ -203,14 +203,19 @@
       <div class="p-8 bg-white min-h-[400px]">
         {% if current_tab == 'overview' %}
           {% include "courses/course_detail/_course_overview.html" %}
-        {% elif current_tab == 'students' and is_teacher_view %}
+          
+        {% elif current_tab == 'students' %}
           {% include "courses/course_detail/_students.html" %}
-        {% elif current_tab == 'materials' and is_enrolled or is_teacher_view %}
+          
+        {% elif current_tab == 'materials' %}
           {% include "courses/course_detail/_materials.html" %}
-        {% elif current_tab == 'deadlines' and is_enrolled or is_teacher_view %}
+          
+        {% elif current_tab == 'deadlines' %}
           {% include "courses/course_detail/_deadlines.html" %}
+          
         {% elif current_tab == 'feedback' %}
           {% include "courses/course_detail/_feedback.html" %}
+          
         {% endif %}
       </div>
     </div>
