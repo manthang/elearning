@@ -37,5 +37,5 @@ urlpatterns = [
     path("<int:course_id>/feedback/", views.course_feedback, name="course_feedback"),
 
     # Course Search
-    path("search/", views.course_search, name="search"),
+    path("search/", views.course_search, name="course_search"),
 ]

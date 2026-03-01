@@ -5,7 +5,7 @@
       <p class="text-sm text-gray-500 mt-1">Explore available courses and enroll when ready.</p>
     </div>
 
-    <form method="get" action="{% url 'courses:search' %}" class="relative w-full sm:w-72 group">
+    <form method="get" action="{% url 'courses:course_search' %}" class="relative w-full sm:w-72 group">
       <input type="text"
             name="q"
             value="{{ search_query|default:'' }}"

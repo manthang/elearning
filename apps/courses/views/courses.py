@@ -22,13 +22,17 @@ from ..utils import _get_course_feedback_data, _get_annotated_courses_queryset
 # =========================
 @login_required
 def course_create(request):
-
-    if request.user.role != request.user.Role.TEACHER:
+    # SAFELY check the role without triggering an attribute error on custom User models
+    if getattr(request.user, 'role', '') != 'TEACHER':
         return HttpResponseForbidden("Teachers only")
 
     COURSE_ID_RE = re.compile(r"^[A-Z0-9_-]+$")
 
     if request.method == "POST":
+        # Capture the page the user submitted the form from. 
+        # Fallback to teacher_home if the browser blocks the referer header.
+        next_url = request.META.get('HTTP_REFERER') or reverse("core:home")
+
         title = (request.POST.get("title") or "").strip()
         description = (request.POST.get("description") or "").strip()
         course_id_input = (request.POST.get("course_id") or "").strip().upper()
@@ -44,39 +48,40 @@ def course_create(request):
                 max_students = int(max_students_raw)
                 if max_students <= 0:
                     messages.error(request, "Max students must be a positive number.")
-                    return redirect("courses:teacher_home")
+                    return redirect(next_url)
             except ValueError:
                 messages.error(request, "Max students must be a number.")
-                return redirect("courses:teacher_home")
+                return redirect(next_url)
 
         if not title:
             messages.error(request, "Course title is required.")
-            return redirect("courses:teacher_home")
+            return redirect(next_url)
 
-        # ✅ Validate category strictly
+        # Validate category strictly
         valid_categories = {c[0] for c in Course.CATEGORY_CHOICES}
         if not category:
-            category = Course.CATEGORY_GENERAL
+            category = Course.CATEGORY_GENERAL # Make sure CATEGORY_GENERAL exists on your model
         elif category not in valid_categories:
             messages.error(request, "Invalid category selected.")
-            return redirect("courses:teacher_home")
+            return redirect(next_url)
 
         # Validate course_id ONLY if provided
         if course_id_input:
             if len(course_id_input) > 20:
                 messages.error(request, "Course ID must be 20 characters or fewer.")
-                return redirect("courses:teacher_home")
+                return redirect(next_url)
 
             if not COURSE_ID_RE.match(course_id_input):
                 messages.error(request, "Course ID can only contain A–Z, 0–9, -, _")
-                return redirect("courses:teacher_home")
+                return redirect(next_url)
 
             if Course.objects.filter(course_id=course_id_input).exists():
                 messages.error(request, "Course ID already exists.")
-                return redirect("courses:teacher_home")
+                return redirect(next_url)
 
         files = request.FILES.getlist("materials")
 
+        # Atomic transaction ensures we don't create a course if the materials fail to upload
         with transaction.atomic():
             course = Course.objects.create(
                 course_id=course_id_input or None,
@@ -101,13 +106,12 @@ def course_create(request):
                 )
 
         messages.success(request, "Course created successfully.")
-        return redirect("courses:teacher_home")
+        return redirect(next_url)
 
-    # If someone visits /course_create directly, still provide choices
+    # If someone visits /course_create directly via GET, provide the standalone page
     return render(request, "courses/course_create.html", {
         "category_choices": Course.CATEGORY_CHOICES
     })
-
 
 # =========================
 # Edit Course
@@ -200,7 +204,7 @@ def course_detail(request, course_id: int):
             current_tab = 'overview'
 
     # Try to get the previous URL; if it doesn't exist, fallback to home
-    dashboard_url = request.META.get('HTTP_REFERER') or reverse("core:home")
+    dashboard_url = reverse("core:home") or request.META.get('HTTP_REFERER')
 
     # Fetch all feedback data
     feedback_data = _get_course_feedback_data(course)
