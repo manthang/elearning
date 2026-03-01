@@ -66,9 +66,13 @@ def user_profile(request, username):
     
     # All Course Catalog (Accessible to both Teachers and Students)
     if is_own_profile and tab == "all":
-        # Optimized query to prevent N+1 database issues
+        
+        # Optimize query and attach 'is_enrolled' boolean to every course
         catalog_qs = Course.objects.prefetch_related('teachings__teacher').annotate(
-            students_total=Count('enrollments', distinct=True)
+            students_total=Count('enrollments', distinct=True),
+            is_enrolled=Exists(
+                Enrollment.objects.filter(course=OuterRef('pk'), student=request.user)
+            )
         )
         
         # Search Filter
