@@ -51,20 +51,26 @@ def user_profile_api(request, username):
 @login_required
 def user_search(request):
     query = request.GET.get("q", "").strip()
-    role = request.GET.get("role", "STUDENT").upper() # Normalize to match TextChoices
+    
+    # Default to an empty string instead of "STUDENT"
+    role = request.GET.get("role", "").upper()
 
-    # Don't hit the DB if the query is empty
-    if not query:
-        return JsonResponse({"results": []})
+    # Start with all active users
+    users = User.objects.filter(is_active=True)
 
-    users = User.objects.filter(role=role)
+    # Only filter by role if the frontend specifically asked for one
+    if role and role != "ALL":
+        users = users.filter(role=role)
 
-    users = users.filter(
-        Q(full_name__icontains=query) |
-        Q(email__icontains=query) |
-        Q(username__icontains=query)
-    )[:10]
+    # Apply the text search
+    if query:
+        users = users.filter(
+            Q(full_name__icontains=query) | 
+            Q(username__icontains=query) | 
+            Q(email__icontains=query)
+        )
 
-    results = [get_user_data_payload(u) for u in users]
-
+    # Limit results to 15 to keep the chat search UI snappy
+    results = [get_user_data_payload(u) for u in users[:15]]
+    
     return JsonResponse({"results": results})
