@@ -114,7 +114,8 @@
             </div>
           </div>
 
-          <div class="shrink-0 md:pt-2">              
+          <div class="shrink-0 md:pt-2">
+
             {% if is_teacher_view %}
               <button type="button" 
                       onclick="openEditCourseModal(this)"
@@ -131,6 +132,7 @@
                 </svg>
                 Edit Course
               </button>
+            
             {% elif is_enrolled %}
               <div class="flex items-center gap-2 px-5 py-2.5 bg-green-50 border border-green-100 rounded-2xl text-green-700">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -138,26 +140,33 @@
                 </svg>
                 <span class="text-sm font-bold tracking-tight">Enrolled</span>
               </div>
-            {% elif request.user.is_authenticated %}
-              <form action="{% url 'courses:course_enroll' course.id %}" method="POST">
-                {% csrf_token %}
-                <button type="submit" 
-                        class="px-8 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold hover:bg-blue-700 transition-all shadow-blue-200">
-                  Enroll Now
-                </button>
-              </form>
-            {% else %}
 
+            {% elif request.user.is_authenticated %}
+              {% if request.user.role == 'STUDENT' %}
+                <form action="{% url 'courses:course_enroll' course.id %}" method="POST">
+                  {% csrf_token %}
+                  <button type="submit" 
+                          class="px-8 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold hover:bg-blue-700 transition-all shadow-blue-200">
+                    Enroll Now
+                  </button>
+                </form>
+              {% else %}
+                <div class="px-6 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-sm font-medium text-gray-500 text-center cursor-not-allowed">
+                  <span class="block">View Only</span>
+                  <span class="text-xs text-gray-400 font-normal">Teachers cannot enroll</span>
+                </div>
+              {% endif %}
+            
+            {% else %}
               <div class="flex flex-col items-end gap-2">
                 <a href="{% url 'accounts:login' %}?next={{ request.path }}"
-                   class="px-8 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold hover:bg-blue-700 transition-all shadow-sm text-center w-full md:w-auto">
+                  class="px-8 py-3 bg-blue-600 text-white rounded-2xl text-sm font-bold hover:bg-blue-700 transition-all shadow-sm text-center w-full md:w-auto">
                   Log in to Enroll
                 </a>
                 <span class="text-xs font-medium text-gray-500 mr-1">
                   New here? <a href="{% url 'accounts:signup' %}?next={{ request.path }}" class="text-blue-600 hover:text-blue-700 hover:underline">Sign up</a>
                 </span>
               </div>
-
             {% endif %}
           </div>
 

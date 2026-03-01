@@ -278,32 +278,44 @@ def course_detail(request, course_id: int):
 # Enroll Course
 # =========================
 @login_required
+@require_POST  # Security check: prevents users from enrolling via a URL GET request
 def course_enroll(request, course_id):
-    if request.user.role != request.user.Role.STUDENT:
-        return HttpResponseForbidden("Students only")
-
     course = get_object_or_404(Course, id=course_id)
+    course_url = reverse('courses:course_detail', args=[course.id])
 
-    # enforce max_students if set
-    if course.max_students is not None:
-        current = Enrollment.objects.filter(course=course).count()
-        if current >= course.max_students:
-            messages.error(request, "This course is full.")
-            return redirect("courses:student_home")
+    # Enforce Role (Teachers cannot enroll in any course)
+    # Using getattr safely prevents AttributeError if a custom user model or admin is involved
+    if getattr(request.user, 'role', '') != 'STUDENT':
+        messages.error(request, "Only student accounts can enroll in courses.")
+        # Send them back to where they clicked the button
+        return redirect(request.META.get('HTTP_REFERER', course_url))
 
-
-    # 🔒 Course must have at least one teacher
+    # Check Course Availability (Must have an assigned teacher)
     if not Teaching.objects.filter(course=course).exists():
-        return HttpResponseForbidden(
-            "This course is not yet available for enrollment."
-        )
+        messages.error(request, "This course is not yet available for enrollment.")
+        return redirect(course_url)
 
-    Enrollment.objects.get_or_create(
+    # Enforce Max Capacity
+    if course.max_students is not None:
+        current_enrollments = Enrollment.objects.filter(course=course).count()
+        if current_enrollments >= course.max_students:
+            messages.error(request, "This course is full. Enrollment is closed.")
+            return redirect(course_url)
+
+    # Enroll the Student
+    enrollment, created = Enrollment.objects.get_or_create(
         student=request.user,
         course=course
     )
 
-    return redirect(f"{reverse('courses:course_detail', args=[course.id])}?tab=overview")
+    # Provide Feedback
+    if created:
+        messages.success(request, f"Successfully enrolled in {course.title}!")
+    else:
+        messages.info(request, "You are already enrolled in this course.")
+
+    # Redirect directly to the course overview
+    return redirect(f"{course_url}?tab=overview")
 
 
 # =========================
