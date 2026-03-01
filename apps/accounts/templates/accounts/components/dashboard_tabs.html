@@ -1,13 +1,13 @@
 <div class="flex items-center gap-8 border-b border-gray-100">
 
-  <a href="?tab=courses" 
-     class="relative pb-3 text-sm font-semibold transition {% if tab == 'courses' %}text-gray-900{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+  <a href="?tab=my_courses" 
+     class="relative pb-3 text-sm font-semibold transition {% if tab == 'my_courses' %}text-gray-900{% else %}text-gray-500 hover:text-gray-700{% endif %}">
     {% if is_own_profile %}
       My Courses
     {% else %}
       Enrolled Courses
     {% endif %}
-    {% if tab == 'courses' %}
+    {% if tab == 'my_courses' %}
       <span class="absolute left-0 bottom-0 h-0.5 w-full bg-gray-900 rounded-full"></span>
     {% endif %}
   </a>
