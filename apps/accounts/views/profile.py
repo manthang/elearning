@@ -1,8 +1,9 @@
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
+from django.core.paginator import Paginator
 from django.utils import timezone
-from django.db.models import Prefetch, Avg, Count
+from django.db.models import Q, Prefetch, Avg, Count, Exists, OuterRef
 from django.contrib.auth import get_user_model
 from django.shortcuts import redirect, render, get_object_or_404
 from django.urls import reverse
@@ -40,37 +41,63 @@ def user_profile(request, username):
     if profile_user.role == profile_user.Role.TEACHER:
         # Teacher Logic
         taught_courses, teacher_stats = _get_teacher_profile_data(profile_user, is_own_profile)
-        
-        # Deadlines
-        deadlines = Deadline.objects.filter(course__teachings__teacher=profile_user)
-        if not show_past:
-            deadlines = deadlines.filter(due_at__gte=timezone.now())
-        
-        context.update(teacher_stats)  # Unpacks stats dict directly into context
+        context.update(teacher_stats)  
         context["taught_courses"] = taught_courses
-        context["deadlines"] = deadlines.order_by("due_at")[:5]
+        
+        # Deadlines Base Query
+        deadlines = Deadline.objects.filter(course__teachings__teacher=profile_user)
 
     else:
-        # Student Logic (The helper we wrote previously)
+        # Student Logic 
         enrolled_courses, enrolled_course_ids = _get_enrolled_courses_data(profile_user)
-        
-        # Public "All Courses" tab catalog
-        all_courses = []
-        if is_own_profile and tab == "all":
-            all_courses = _get_all_courses_catalog(enrolled_course_ids)
-            
-        # Deadlines
-        deadlines = Deadline.objects.filter(course_id__in=enrolled_course_ids)
-        if not show_past:
-            deadlines = deadlines.filter(due_at__gte=timezone.now())
-
         context["enrolled_courses"] = enrolled_courses
-        context["all_courses"] = all_courses
         context["enrolled_count"] = len(enrolled_courses)
-        context["deadlines"] = deadlines.order_by("due_at")[:5]
+        
+        # Deadlines Base Query
+        deadlines = Deadline.objects.filter(course_id__in=enrolled_course_ids)
+
+    # Apply deadline filters (Done once for whoever is logged in)
+    if not show_past:
+        deadlines = deadlines.filter(due_at__gte=timezone.now())
+    context["deadlines"] = deadlines.order_by("due_at")[:5]
+
 
     # ================= SHARED LOGIC =================
-    # Both students and teachers have the social wall!
+    
+    # All Course Catalog (Accessible to both Teachers and Students)
+    if is_own_profile and tab == "all":
+        # Optimized query to prevent N+1 database issues
+        catalog_qs = Course.objects.prefetch_related('teachings__teacher').annotate(
+            students_total=Count('enrollments', distinct=True)
+        )
+        
+        # Search Filter
+        search_query = request.GET.get('q', '').strip()
+        if search_query:
+            catalog_qs = catalog_qs.filter(
+                Q(title__icontains=search_query) | 
+                Q(description__icontains=search_query)
+            )
+            
+        # Category Filter
+        category_filter = request.GET.get('category', '').strip()
+        if category_filter:
+            catalog_qs = catalog_qs.filter(category=category_filter)
+            
+        catalog_qs = catalog_qs.order_by('-created_at')
+        
+        # Pagination Setup (12 courses per page)
+        paginator = Paginator(catalog_qs, 12)
+        page_number = request.GET.get('page')
+        
+        context.update({
+            "all_courses": paginator.get_page(page_number),
+            "search_query": search_query,
+            "current_category": category_filter,
+            "category_choices": Course.CATEGORY_CHOICES,
+        })
+
+    # 2. Social Wall
     if tab == "status":
         context["statuses"] = profile_user.status_updates.select_related("author").prefetch_related("liked_by")[:20]
 

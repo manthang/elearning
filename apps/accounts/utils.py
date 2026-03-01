@@ -5,7 +5,7 @@ from apps.courses.models import *
 def _get_teacher_profile_data(teacher, is_own_profile):
     """Fetches teacher courses, and optionally private stats if it's their own dashboard."""
     
-    # 1. Base Query (Visible to everyone)
+    # Base Query (Visible to everyone)
     my_courses = (
         Course.objects
         .filter(teachings__teacher=teacher)
@@ -19,7 +19,7 @@ def _get_teacher_profile_data(teacher, is_own_profile):
 
     stats = {}
 
-    # 2. Heavy Math (Strictly private to the owner)
+    # Strictly private to the owner
     if is_own_profile:
         courses_created = my_courses.count()
         
@@ -43,17 +43,12 @@ def _get_teacher_profile_data(teacher, is_own_profile):
             course__max_students__isnull=False
         ).count()
 
-        capacity_used_pct = None
-        if capacity_total > 0:
-            capacity_used_pct = round((capped_enrolled / capacity_total) * 100)
-
         stats = {
             "courses_created": courses_created,
             "active_courses": courses_created, # Update this later if you add an archived flag
             "total_enrolled": total_enrolled,
             "total_students": total_students,
             "total_materials": total_materials,
-            "capacity_used_pct": capacity_used_pct,
             "category_choices": Course.CATEGORY_CHOICES, # For the create modal
         }
 
