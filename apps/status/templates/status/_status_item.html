@@ -44,19 +44,66 @@
         <form method="post" action="{% url 'status:toggle_like' s.id %}">
           {% csrf_token %}
           <button type="submit" class="flex items-center gap-2 text-sm font-bold transition {% if s.is_liked_by_me %}text-red-500{% else %}text-gray-400 hover:text-gray-600{% endif %}">
-            <svg class="w-5 h-5" fill="{% if s.is_liked_by_me %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
-            </svg>
+            <svg class="w-5 h-5" fill="{% if s.is_liked_by_me %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
             {{ s.like_count }}
           </button>
         </form>
         
-        <button class="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-blue-600 transition">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-          </svg>
-          {{ s.comment_count }}
+        <button type="button" 
+                onclick="document.getElementById('comments-{{ s.id }}').classList.toggle('hidden')" 
+                class="flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-blue-600 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+          <span id="comment-count-{{ s.id }}">{{ s.comment_count }}</span>
         </button>
+      </div>
+
+      <div id="comments-{{ s.id }}" class="hidden mt-4 pt-4 border-t border-gray-50">
+        
+        <div id="comment-list-{{ s.id }}" class="space-y-4 mb-4">
+          {% for c in s.comments.all %}
+            <div id="comment-{{ c.id }}" class="flex gap-3 group relative">
+              <img src="{{ c.author.avatar_url }}" alt="Avatar" class="w-8 h-8 rounded-full object-cover shrink-0 bg-gray-100 shadow-sm border border-gray-200">
+              <div class="flex-1 bg-gray-50 rounded-2xl p-3 border border-gray-100">
+                <div class="flex items-center justify-between gap-2 mb-1">
+                  <span class="text-xs font-bold text-gray-900">{{ c.author.first_name|default:c.author.username }}</span>
+                  
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-medium text-gray-400">{{ c.created_at|naturaltime }}</span>
+                    
+                    {% if c.author == request.user %}
+                    <button type="button" 
+                            onclick="deleteCommentAjax({{ c.id }}, {{ s.id }})" 
+                            class="text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
+                            title="Delete comment">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                    </button>
+                    {% endif %}
+                  </div>
+
+                </div>
+                <p class="text-sm text-gray-800">{{ c.content }}</p>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <form method="post" action="{% url 'status:post_comment' s.id %}" onsubmit="submitCommentAjax(event, this, {{ s.id }})" class="flex gap-3">
+          {% csrf_token %}
+          <img src="{{ request.user.avatar_url }}" alt="Avatar" class="w-8 h-8 rounded-full object-cover shrink-0 mt-1">
+          
+          <div class="flex-1 flex items-center border border-gray-200 rounded-full bg-white px-4 py-1.5 focus-within:ring-2 focus-within:ring-blue-200 focus-within:border-blue-400 transition-all shadow-sm">
+            <input type="text" 
+                   name="content" 
+                   required 
+                   placeholder="Write a comment..." 
+                   autocomplete="off"
+                   class="w-full bg-transparent border-none text-sm focus:ring-0 px-0 py-1 placeholder-gray-400 outline-none">
+            <button type="submit" class="ml-2 text-blue-600 hover:text-blue-800 font-bold text-sm shrink-0 transition disabled:opacity-50">
+              Post
+            </button>
+          </div>
+        </form>
+        
       </div>
     </div>
   </div>

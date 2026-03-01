@@ -1,3 +1,4 @@
+from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
@@ -86,4 +87,70 @@ def delete_status(request, status_id):
     if not next_url:
         next_url = reverse("courses:student_home") + "?tab=status"
 
+    return redirect(next_url)
+
+
+@login_required
+@require_POST
+def post_comment(request, status_id):
+    status = get_object_or_404(StatusUpdate, id=status_id)
+    content = request.POST.get("content", "").strip()
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+
+    if not content:
+        if is_ajax:
+            return JsonResponse({"success": False, "error": "Comment cannot be empty."}, status=400)
+        messages.error(request, "Comment cannot be empty.")
+        return redirect(request.META.get('HTTP_REFERER', reverse("core:home")))
+
+    # Save the comment
+    comment = Comment.objects.create(
+        status_update=status,
+        author=request.user,
+        content=content
+    )
+
+    # If it's an AJAX request, return the data as JSON to inject into the page
+    if is_ajax:
+        return JsonResponse({
+            "success": True,
+            "comment_id": comment.id,
+            "author_name": request.user.first_name or request.user.username,
+            "avatar_url": request.user.avatar_url if hasattr(request.user, 'avatar_url') else '',
+            "content": comment.content,
+            "time": "Just now"
+        })
+
+    # Standard fallback for users with JS disabled
+    next_url = request.POST.get("next") or request.META.get('HTTP_REFERER') or reverse("core:home")
+    if "?tab=status" not in next_url:
+        separator = "&" if "?" in next_url else "?"
+        next_url = f"{next_url}{separator}tab=status"
+        
+    messages.success(request, "Comment posted!")
+    return redirect(next_url)
+
+
+@login_required
+@require_POST
+def delete_comment(request, comment_id):
+    comment = get_object_or_404(Comment, id=comment_id)
+    status_id = comment.status_update.id
+
+    # Security check: Only the author can delete it
+    if comment.author != request.user:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({"success": False, "error": "Unauthorized"}, status=403)
+        return HttpResponseForbidden("You cannot delete this comment.")
+
+    # Delete the comment
+    comment.delete()
+
+    # If it's an AJAX background request, return a success JSON
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({"success": True})
+
+    # Standard fallback
+    messages.success(request, "Comment deleted.")
+    next_url = request.POST.get("next") or request.META.get('HTTP_REFERER') or reverse("core:home")
     return redirect(next_url)
