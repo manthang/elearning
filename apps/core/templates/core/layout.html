@@ -8,4 +8,8 @@
   </main>
 
   {% include "core/toast.html" %}
+
+  {% if user.is_authenticated %}
+      {% include "accounts/components/profile_edit_modal.html" %} 
+  {% endif %}
 {% endblock %}
