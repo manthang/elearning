@@ -7,7 +7,7 @@ def get_feed_queryset(target_user, requesting_user):
     qs = StatusUpdate.objects.filter(author=target_user).select_related('author').annotate(
         like_count=Count('likes', distinct=True),
         comment_count=Count('comments', distinct=True)
-    )
+    ).order_by('-created_at')
 
     # 2. Check if the *visitor* has liked these posts
     if requesting_user.is_authenticated:
