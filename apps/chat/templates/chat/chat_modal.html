@@ -93,8 +93,13 @@
            class="hidden px-4 py-3 flex items-center gap-3 bg-white border-b border-gray-100">
         <img id="chatAvatar" class="w-10 h-10 rounded-full object-cover bg-gray-100" alt="Avatar" />
 
-        <div class="min-w-0">
-          <div id="chatName" class="font-semibold text-sm text-gray-900 truncate"></div>
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-2">
+            <div id="chatName" class="font-semibold text-sm text-gray-900 truncate"></div>
+            <span id="chatBlockedBadge" class="hidden px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-600 uppercase tracking-wider shrink-0">
+              Blocked
+            </span>
+          </div>
           <div id="chatRole" class="text-[11px] text-gray-500 uppercase tracking-wide truncate"></div>
         </div>
 

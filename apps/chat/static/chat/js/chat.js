@@ -110,16 +110,22 @@ function createConversationItem(conv) {
     : "Started a new conversation";
 
   div.className = buildConversationItemClass(conv.id);
-
-  // Use avatar_url to match Django properties consistently
   const avatarSrc = conv.avatar_url || "/media/profile_photos/default-avatar.png";
+
+  // Generate the badge HTML if the user is blocked
+  const blockedBadgeHtml = conv.is_blocked 
+    ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-100 text-red-600 uppercase tracking-wider shrink-0">Blocked</span>` 
+    : "";
 
   div.innerHTML = `
     <div class="px-2 py-3 flex items-center gap-3 border-b border-gray-100">
       <img src="${avatarSrc}" class="w-12 h-12 rounded-full object-cover bg-gray-100" alt="avatar"/>
       <div class="flex-1 min-w-0">
         <div class="flex items-center justify-between gap-2">
-          <div class="text-[15px] font-semibold text-gray-900 truncate">${escapeHtml(conv.name || "Unknown User")}</div>
+          <div class="flex items-center gap-1 min-w-0">
+              <div class="text-[15px] font-semibold text-gray-900 truncate">${escapeHtml(conv.name || "Unknown User")}</div>
+              ${blockedBadgeHtml}
+          </div>
           <div class="text-[11px] text-gray-400 convo-time">${escapeHtml(conv.time || "")}</div>
         </div>
         <div class="flex items-center justify-between gap-2 mt-0.5">
@@ -179,12 +185,18 @@ function updateHeader(user) {
   const nameEl = document.getElementById("chatName");
   const roleEl = document.getElementById("chatRole");
   const avatarEl = document.getElementById("chatAvatar");
+  const badgeEl = document.getElementById("chatBlockedBadge"); // NEW
 
   if (nameEl) nameEl.textContent = user.name || "Unknown";
   if (roleEl) roleEl.textContent = user.role || "";
   if (avatarEl) avatarEl.src = user.avatar_url || "/media/profile_photos/default-avatar.png";
+  
+  // NEW: Toggle the badge
+  if (badgeEl) {
+      badgeEl.classList.toggle("hidden", !user.is_blocked);
+  }
 
-  activeChatUsername = user.username;
+  activeChatUsername = user.username; 
 }
 
 function loadChatHistory(conversationId) {
@@ -654,7 +666,6 @@ function getDjangoCSRFToken() {
 
 
 window.blockChatUser = function() {
-    // Make sure this is activeConversationId!
     if (!activeConversationId) return; 
     
     if (!confirm("Are you sure you want to block this user? They will no longer be able to message you.")) {
@@ -662,7 +673,6 @@ window.blockChatUser = function() {
         return; 
     }
 
-    // Securely fetching using the conversation ID
     fetch(`/chat/block/${activeConversationId}/`, {
         method: "POST",
         headers: {
@@ -673,17 +683,31 @@ window.blockChatUser = function() {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            alert(data.message);
-            
-            // Update the cache so the browser remembers
+            // 1. Update the cache
             const conv = conversationsCache.find(c => String(c.id) === String(activeConversationId));
             if (conv) {
                 conv.is_blocked = true;
             }
             
+            // 2. Disable Composer
             setComposerEnabled(false);
             const input = document.getElementById("chatInput");
             if (input) input.placeholder = "You have blocked this user.";
+
+            // 3. Show Header Badge
+            const badgeEl = document.getElementById("chatBlockedBadge");
+            if (badgeEl) badgeEl.classList.remove("hidden");
+
+            // 4. Force the sidebar to re-render so the badge appears there too
+            const list = document.getElementById("conversationList");
+            if (list) {
+                list.innerHTML = "";
+                const fragment = document.createDocumentFragment();
+                conversationsCache.forEach(c => fragment.appendChild(createConversationItem(c)));
+                list.appendChild(fragment);
+                highlightActive();
+            }
+
         } else {
             alert(data.error);
         }
