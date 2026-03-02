@@ -1,6 +1,5 @@
 from django.contrib import admin
-from .models import Conversation, Message
-
+from .models import *
 
 # -----------------------------
 # Message Inline (inside Conversation)
@@ -81,3 +80,30 @@ class MessageAdmin(admin.ModelAdmin):
     def short_content(self, obj):
         return obj.content[:40] + "..." if len(obj.content) > 40 else obj.content
     short_content.short_description = "Message"
+
+
+@admin.register(UserBlock)
+class UserBlockAdmin(admin.ModelAdmin):
+    # What columns to show in the main list view
+    list_display = ('id', 'blocker', 'blocked', 'created_at')
+    
+    # Adds a filter sidebar for dates
+    list_filter = ('created_at',)
+    
+    # Allows searching by the username or email of either user
+    search_fields = (
+        'blocker__username', 
+        'blocker__email', 
+        'blocked__username', 
+        'blocked__email'
+    )
+    
+    # Performance optimization: prevents N+1 query issues in the admin list view
+    list_select_related = ('blocker', 'blocked')
+    
+    # created_at is auto_now_add, so it must be explicitly marked as readonly 
+    # if you want it visible on the detail page
+    readonly_fields = ('created_at',)
+    
+    # Adds a date-based drilldown navigation at the top of the list
+    date_hierarchy = 'created_at'

@@ -1,9 +1,11 @@
 import json
-from django.views.decorators.http import require_POST
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404
+
 from django.contrib.auth import get_user_model
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+from django.views.decorators.http import require_POST
 
 from .models import *
 
@@ -22,10 +24,16 @@ def conversation_list(request):
 
     data = []
     for convo in conversations:
-        other = convo.participants.exclude(id=request.user.id).first()
-        if not other:
+        other_user = convo.participants.exclude(id=request.user.id).first()
+        if not other_user:
             # Edge case: convo with only yourself (shouldn't happen, but avoid crashing)
             continue
+
+        # Check if a block exists between these two users
+        is_blocked = UserBlock.objects.filter(
+            Q(blocker=request.user, blocked=other_user) | 
+            Q(blocker=other_user, blocked=request.user)
+        ).exists()
 
         last_message = (
             Message.objects
@@ -36,14 +44,15 @@ def conversation_list(request):
 
         data.append({
             "id": convo.id,
-            "user_id": other.id,
-            "name": other.full_name or other.username,
-            "username": other.username,
-            "role": getattr(other, "role", ""),
-            "avatar_url": other.avatar_url,
+            "user_id": other_user.id,
+            "name": other_user.full_name or other_user.username,
+            "username": other_user.username,
+            "role": getattr(other_user, "role", ""),
+            "avatar_url": other_user.avatar_url,
             "last_message": last_message.content if last_message else "",
-            "sender_id": last_message.sender_id if last_message else None,  # ADD THIS
+            "sender_id": last_message.sender_id if last_message else None,
             "time": last_message.created_at.strftime("%H:%M") if last_message else "",
+            "is_blocked": is_blocked,
         })
 
     return JsonResponse({"conversations": data})
@@ -59,16 +68,30 @@ def chat_history(request, conversation_id):
     except Conversation.DoesNotExist:
         return JsonResponse({"error": "Invalid conversation"}, status=403)
 
+    # Find the other user in this conversation first
+    other_user = conversation.participants.exclude(id=request.user.id).first()
+
     # Exclude messages cleared by the current user
     messages = conversation.messages.exclude(cleared_by=request.user).order_by('created_at')
 
+    # Check if a block exists between these two users (Fail-safe if other_user somehow doesn't exist)
+    is_blocked = False
+    if other_user:
+        is_blocked = UserBlock.objects.filter(
+            Q(blocker=request.user, blocked=other_user) | 
+            Q(blocker=other_user, blocked=request.user)
+        ).exists()
+
     return JsonResponse({
+        # Actually send the block status to your JavaScript
+        "is_blocked": is_blocked,
         "messages": [
             {
                 "id": msg.id,
                 "content": msg.content,
                 "sender_id": msg.sender_id,
-                "created_at": msg.created_at.strftime("%H:%M"),
+                # Updated to "%I:%M %p" (e.g., 03:30 PM) to match your updated consumers.py
+                "created_at": msg.created_at.strftime("%I:%M %p"),
             }
             for msg in messages
         ]
@@ -99,13 +122,20 @@ def start_conversation(request, user_id):
         conversation = Conversation.objects.create()
         conversation.participants.add(current_user, other_user)
 
+    # Check if there is a block between these two users
+    is_blocked = UserBlock.objects.filter(
+        Q(blocker=current_user, blocked=other_user) | 
+        Q(blocker=other_user, blocked=current_user)
+    ).exists()
+
     return JsonResponse({
         "conversation_id": conversation.id,
         "id": other_user.id,
         "name": other_user.full_name or other_user.username,
         "username": other_user.username,
         "role": other_user.get_role_display() if hasattr(other_user, 'get_role_display') else "",
-        "avatar_url": other_user.avatar_url, 
+        "avatar_url": other_user.avatar_url,
+        "is_blocked": is_blocked,
     })
 
 
@@ -127,14 +157,21 @@ def clear_chat(request, conversation_id):
 
 @login_required
 @require_POST
-def block_user(request, user_id):
-    """Blocks a user, preventing them from sending messages to the requesting user."""
-    user_to_block = get_object_or_404(User, id=user_id)
+def block_user(request, conversation_id):
+    """Blocks the other participant in a given conversation."""
+    # Fetch the conversation
+    conversation = get_object_or_404(Conversation, id=conversation_id, participants=request.user)
     
-    if request.user == user_to_block:
-        return JsonResponse({"error": "You cannot block yourself."}, status=400)
+    # Find the other user in this chat
+    user_to_block = conversation.participants.exclude(id=request.user.id).first()
+    
+    if not user_to_block:
+        return JsonResponse({"error": "Could not find the user to block."}, status=404)
 
     # Create the block relationship
     UserBlock.objects.get_or_create(blocker=request.user, blocked=user_to_block)
     
-    return JsonResponse({"success": True, "message": f"You have blocked {user_to_block.full_name or user_to_block.username}."})
+    return JsonResponse({
+        "success": True, 
+        "message": f"You have blocked {user_to_block.full_name or user_to_block.username}."
+    })

@@ -145,7 +145,6 @@ function buildConversationItemClass(conversationId) {
    ACTIVE CONVERSATION & MESSAGES
 ========================================================= */
 let activeChatUsername = null; 
-let activeChatUserId = null;
 
 function openConversation(conv) {
   if (!conv || !conv.id) return;
@@ -153,9 +152,16 @@ function openConversation(conv) {
 
   updateHeader(conv);
   document.getElementById("chatHeader")?.classList.remove("hidden");
-
   setEmptyState(false);
-  setComposerEnabled(true);
+
+  // Check if blocked before enabling the composer
+  if (conv.is_blocked) {
+      setComposerEnabled(false);
+      const input = document.getElementById("chatInput");
+      if (input) input.placeholder = "You cannot reply to this conversation.";
+  } else {
+      setComposerEnabled(true);
+  }
 
   loadChatHistory(conv.id);
 
@@ -179,7 +185,6 @@ function updateHeader(user) {
   if (avatarEl) avatarEl.src = user.avatar_url || "/media/profile_photos/default-avatar.png";
 
   activeChatUsername = user.username;
-  activeChatUserId = user.id;
 }
 
 function loadChatHistory(conversationId) {
@@ -649,14 +654,16 @@ function getDjangoCSRFToken() {
 
 
 window.blockChatUser = function() {
-    if (!activeChatUserId) return;
+    // Make sure this is activeConversationId!
+    if (!activeConversationId) return; 
     
     if (!confirm("Are you sure you want to block this user? They will no longer be able to message you.")) {
         toggleChatMenu();
         return; 
     }
 
-    fetch(`/chat/block/${activeChatUserId}/`, {
+    // Securely fetching using the conversation ID
+    fetch(`/chat/block/${activeConversationId}/`, {
         method: "POST",
         headers: {
             "X-CSRFToken": getDjangoCSRFToken(),
@@ -668,12 +675,15 @@ window.blockChatUser = function() {
         if (data.success) {
             alert(data.message);
             
-            // Disable the composer so the current user can't send messages either
+            // Update the cache so the browser remembers
+            const conv = conversationsCache.find(c => String(c.id) === String(activeConversationId));
+            if (conv) {
+                conv.is_blocked = true;
+            }
+            
             setComposerEnabled(false);
             const input = document.getElementById("chatInput");
             if (input) input.placeholder = "You have blocked this user.";
-            
-            // Optionally close the chat or show a blocked UI state
         } else {
             alert(data.error);
         }
