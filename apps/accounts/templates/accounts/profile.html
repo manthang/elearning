@@ -55,9 +55,6 @@
 {% if is_own_profile %}
 
   {% include "accounts/components/profile_edit_modal.html" %}
-
-  {% include "chat/chat_modal.html" %}
-
   {% if profile_user.is_teacher %}
     {% include "courses/shared/course_create_modal.html" %}
     {% include "courses/shared/course_edit_modal.html" %}
@@ -65,6 +62,7 @@
 
 {% endif %}
 
+{% include "chat/chat_modal.html" %}
 {% include "accounts/components/search_modal.html" %}
 
 {% endblock %}

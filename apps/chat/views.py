@@ -29,11 +29,14 @@ def conversation_list(request):
             # Edge case: convo with only yourself (shouldn't happen, but avoid crashing)
             continue
 
-        # Check if a block exists between these two users
-        is_blocked = UserBlock.objects.filter(
-            Q(blocker=request.user, blocked=other_user) | 
-            Q(blocker=other_user, blocked=request.user)
-        ).exists()
+        # 1. Did the currently logged-in user block the other person?
+        i_blocked_them = False
+        # 2. Did the other person block the currently logged-in user?
+        they_blocked_me = False
+
+        if other_user:
+            i_blocked_them = UserBlock.objects.filter(blocker=request.user, blocked=other_user).exists()
+            they_blocked_me = UserBlock.objects.filter(blocker=other_user, blocked=request.user).exists()
 
         last_message = (
             Message.objects
@@ -52,7 +55,8 @@ def conversation_list(request):
             "last_message": last_message.content if last_message else "",
             "sender_id": last_message.sender_id if last_message else None,
             "time": last_message.created_at.strftime("%H:%M") if last_message else "",
-            "is_blocked": is_blocked,
+            "i_blocked_them": i_blocked_them,
+            "they_blocked_me": they_blocked_me,
         })
 
     return JsonResponse({"conversations": data})
@@ -74,17 +78,19 @@ def chat_history(request, conversation_id):
     # Exclude messages cleared by the current user
     messages = conversation.messages.exclude(cleared_by=request.user).order_by('created_at')
 
-    # Check if a block exists between these two users (Fail-safe if other_user somehow doesn't exist)
-    is_blocked = False
+    # Did the currently logged-in user block the other person?
+    i_blocked_them = False
+    # Did the other person block the currently logged-in user?
+    they_blocked_me = False
+
     if other_user:
-        is_blocked = UserBlock.objects.filter(
-            Q(blocker=request.user, blocked=other_user) | 
-            Q(blocker=other_user, blocked=request.user)
-        ).exists()
+        i_blocked_them = UserBlock.objects.filter(blocker=request.user, blocked=other_user).exists()
+        they_blocked_me = UserBlock.objects.filter(blocker=other_user, blocked=request.user).exists()
 
     return JsonResponse({
         # Actually send the block status to your JavaScript
-        "is_blocked": is_blocked,
+        "i_blocked_them": i_blocked_them,
+        "they_blocked_me": they_blocked_me,
         "messages": [
             {
                 "id": msg.id,
@@ -122,11 +128,14 @@ def start_conversation(request, user_id):
         conversation = Conversation.objects.create()
         conversation.participants.add(current_user, other_user)
 
-    # Check if there is a block between these two users
-    is_blocked = UserBlock.objects.filter(
-        Q(blocker=current_user, blocked=other_user) | 
-        Q(blocker=other_user, blocked=current_user)
-    ).exists()
+    # 1. Did the currently logged-in user block the other person?
+    i_blocked_them = False
+    # 2. Did the other person block the currently logged-in user?
+    they_blocked_me = False
+
+    if other_user:
+        i_blocked_them = UserBlock.objects.filter(blocker=request.user, blocked=other_user).exists()
+        they_blocked_me = UserBlock.objects.filter(blocker=other_user, blocked=request.user).exists()
 
     return JsonResponse({
         "conversation_id": conversation.id,
@@ -135,7 +144,8 @@ def start_conversation(request, user_id):
         "username": other_user.username,
         "role": other_user.get_role_display() if hasattr(other_user, 'get_role_display') else "",
         "avatar_url": other_user.avatar_url,
-        "is_blocked": is_blocked,
+        "i_blocked_them": i_blocked_them,
+        "they_blocked_me": they_blocked_me,
     })
 
 

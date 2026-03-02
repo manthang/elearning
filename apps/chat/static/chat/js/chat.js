@@ -113,7 +113,8 @@ function createConversationItem(conv) {
   const avatarSrc = conv.avatar_url || "/media/profile_photos/default-avatar.png";
 
   // Generate the badge HTML if the user is blocked
-  const blockedBadgeHtml = conv.is_blocked 
+  // Change `conv.is_blocked` to `conv.i_blocked_them`
+  const blockedBadgeHtml = conv.i_blocked_them 
     ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-bold bg-red-100 text-red-600 uppercase tracking-wider shrink-0">Blocked</span>` 
     : "";
 
@@ -160,8 +161,12 @@ function openConversation(conv) {
   document.getElementById("chatHeader")?.classList.remove("hidden");
   setEmptyState(false);
 
-  // Check if blocked before enabling the composer
-  if (conv.is_blocked) {
+  // Disable the composer if EITHER user blocked the other
+  if (conv.i_blocked_them) {
+      setComposerEnabled(false);
+      const input = document.getElementById("chatInput");
+      if (input) input.placeholder = "You have blocked this user.";
+  } else if (conv.they_blocked_me) {
       setComposerEnabled(false);
       const input = document.getElementById("chatInput");
       if (input) input.placeholder = "You cannot reply to this conversation.";
@@ -185,15 +190,19 @@ function updateHeader(user) {
   const nameEl = document.getElementById("chatName");
   const roleEl = document.getElementById("chatRole");
   const avatarEl = document.getElementById("chatAvatar");
-  const badgeEl = document.getElementById("chatBlockedBadge"); // NEW
+  const badgeEl = document.getElementById("chatBlockedBadge");
 
   if (nameEl) nameEl.textContent = user.name || "Unknown";
   if (roleEl) roleEl.textContent = user.role || "";
   if (avatarEl) avatarEl.src = user.avatar_url || "/media/profile_photos/default-avatar.png";
   
-  // NEW: Toggle the badge
   if (badgeEl) {
-      badgeEl.classList.toggle("hidden", !user.is_blocked);
+      // Only show the badge if I blocked them
+      if (user.i_blocked_them) {
+          badgeEl.classList.remove("hidden");
+      } else {
+          badgeEl.classList.add("hidden");
+      }
   }
 
   activeChatUsername = user.username; 
@@ -686,7 +695,8 @@ window.blockChatUser = function() {
             // 1. Update the cache
             const conv = conversationsCache.find(c => String(c.id) === String(activeConversationId));
             if (conv) {
-                conv.is_blocked = true;
+                // Change this from is_blocked to i_blocked_them
+                conv.i_blocked_them = true; 
             }
             
             // 2. Disable Composer
