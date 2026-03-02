@@ -144,6 +144,9 @@ function buildConversationItemClass(conversationId) {
 /* =========================================================
    ACTIVE CONVERSATION & MESSAGES
 ========================================================= */
+let activeChatUsername = null; 
+let activeChatUserId = null;
+
 function openConversation(conv) {
   if (!conv || !conv.id) return;
   activeConversationId = conv.id;
@@ -572,9 +575,6 @@ window.initiateChatWithUser = function(userId) {
 /* =========================================================
    CHAT MENU OPTIONS (View Profile, Clear, Block)
 ========================================================= */
-let activeChatUsername = null; 
-let activeChatUserId = null;
-
 window.toggleChatMenu = function() {
     const menu = document.getElementById("chatOptionsMenu");
     if (!menu) return;

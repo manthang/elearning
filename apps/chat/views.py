@@ -38,6 +38,7 @@ def conversation_list(request):
             "id": convo.id,
             "user_id": other.id,
             "name": other.full_name or other.username,
+            "username": other.username,
             "role": getattr(other, "role", ""),
             "avatar_url": other.avatar_url,
             "last_message": last_message.content if last_message else "",
@@ -102,6 +103,7 @@ def start_conversation(request, user_id):
         "conversation_id": conversation.id,
         "id": other_user.id,
         "name": other_user.full_name or other_user.username,
+        "username": other_user.username,
         "role": other_user.get_role_display() if hasattr(other_user, 'get_role_display') else "",
         "avatar_url": other_user.avatar_url, 
     })
