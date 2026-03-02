@@ -1,44 +1,24 @@
-# notifications/models.py
-from django.conf import settings
 from django.db import models
-from django.utils import timezone
+from django.conf import settings
+
+User = settings.AUTH_USER_MODEL
 
 class Notification(models.Model):
-    recipient = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name="notifications",
+    TYPE_CHOICES = (
+        ('ENROLLMENT', 'New Enrollment'),
+        ('MATERIAL', 'New Course Material'),
+        ('SYSTEM', 'System Alert'),
     )
 
-    # optional: who caused it (student who enrolled, teacher who uploaded, etc.)
-    actor = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        null=True, blank=True,
-        on_delete=models.SET_NULL,
-        related_name="notifications_actor",
-    )
-
-    # optional: course context
-    course = models.ForeignKey(
-        "courses.Course",
-        null=True, blank=True,
-        on_delete=models.CASCADE,
-        related_name="notifications",
-    )
-
-    # message payload
-    verb = models.CharField(max_length=80)             # "enrolled", "uploaded material"
-    title = models.CharField(max_length=140)
-    message = models.TextField(blank=True)
-
-    # where to go when clicking notification
-    url = models.CharField(max_length=255, blank=True)
-
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    notification_type = models.CharField(max_length=20, choices=TYPE_CHOICES, default='SYSTEM')
+    message = models.CharField(max_length=255)
+    link = models.CharField(max_length=255, blank=True)
     is_read = models.BooleanField(default=False)
-    created_at = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["-created_at"]
+        ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.recipient} - {self.title}"
+        return f"To {self.recipient.username}: {self.message}"

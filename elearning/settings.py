@@ -49,12 +49,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
 
+    'rest_framework',
+
     "apps.core.apps.CoreConfig",
     "apps.accounts.apps.AccountsConfig",
     "apps.courses.apps.CoursesConfig",
     "apps.status.apps.StatusConfig",
     "apps.chat.apps.ChatConfig",
-    # "apps.notifications.apps.NotificationsConfig",
+    "apps.notifications.apps.NotificationsConfig",
     "apps.api.apps.ApiConfig",
 ]
 

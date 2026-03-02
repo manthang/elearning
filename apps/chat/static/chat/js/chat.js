@@ -290,6 +290,18 @@ function connectInboxSocket() {
     let data;
     try { data = JSON.parse(event.data); } catch { return; }
 
+    // 1. Check for standard errors
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
+
+    // 2. NEW: Handle live notifications!
+    if (data.type === "notification") {
+        handleRealtimeNotification(data.payload);
+        return; 
+    }
+
     const conversationId = String(data.conversation_id);
     const messageId = data.message_id ? String(data.message_id) : null;
 
@@ -316,6 +328,50 @@ function connectInboxSocket() {
     reconnectTimer = setTimeout(connectInboxSocket, 3000);
   };
 }
+
+// --- Helper function to update the UI live ---
+window.handleRealtimeNotification = function(notif) {
+    // A. Increment the Red Badge
+    const badge = document.getElementById("notificationBadge");
+    if (badge) {
+        let currentCount = parseInt(badge.textContent) || 0;
+        currentCount += 1;
+        badge.textContent = currentCount > 9 ? '9+' : currentCount;
+        badge.classList.remove("hidden");
+    }
+
+    // B. Inject the new notification at the top of the dropdown list
+    const list = document.getElementById("notificationList");
+    if (!list) return;
+
+    // Clear the "No new notifications" text if it's there
+    if (list.innerHTML.includes("No new notifications") || list.innerHTML.includes("Loading...")) {
+        list.innerHTML = "";
+    }
+
+    // Determine the icon based on the type
+    let iconHtml = '';
+    if (notif.notification_type === 'ENROLLMENT') {
+        iconHtml = `<div class="h-8 w-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg></div>`;
+    } else if (notif.notification_type === 'MATERIAL') {
+        iconHtml = `<div class="h-8 w-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>`;
+    }
+
+    const newItemHtml = `
+        <a href="javascript:void(0)" onclick="handleNotificationClick(null, '${notif.link}')" class="block px-4 py-3 border-b border-gray-50 bg-blue-50/30 hover:bg-blue-50/80 transition cursor-pointer">
+            <div class="flex items-start gap-3">
+                ${iconHtml}
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 leading-snug">${escapeHtml(notif.message)}</p>
+                    <p class="text-xs text-blue-600 font-semibold mt-1">${notif.time_ago}</p>
+                </div>
+            </div>
+        </a>
+    `;
+
+    // Insert it right at the top
+    list.insertAdjacentHTML('afterbegin', newItemHtml);
+};
 
 function disconnectInboxSocket() {
   if (reconnectTimer) clearTimeout(reconnectTimer);

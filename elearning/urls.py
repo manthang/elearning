@@ -13,6 +13,7 @@ urlpatterns = [
     path("courses/", include("apps.courses.urls")),
     path("status/", include("apps.status.urls")),
     path("chat/", include("apps.chat.urls")),
+    path("", include("apps.notifications.urls")),
 ]
 
 if settings.DEBUG:

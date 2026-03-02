@@ -1,23 +1,52 @@
-<nav class="bg-white border-b border-gray-100">
+<nav class="bg-white border-b border-gray-100 relative z-40">
   <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-    <!-- Brand / Home -->
-    <a href="{% url 'core:home' %}"
-        class="inline-flex items-center gap-2 font-semibold text-gray-900">
-      <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="m22 10-10-5L2 10l10 5 10-5Z"/>
-          <path d="M6 12v5c0 1 3 3 6 3s6-2 6-3v-5"/>
+    <a href="{% url 'core:home' %}" class="inline-flex items-center gap-2.5 font-semibold text-gray-900 group">
+      <span class="inline-flex items-center justify-center w-10 h-10 rounded-[14px] bg-blue-600 text-white shadow-lg shadow-blue-600/20 group-hover:rotate-12 transition-transform duration-300">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="18" cy="5" r="3" />
+          <circle cx="6" cy="12" r="3" />
+          <circle cx="18" cy="19" r="3" />
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
         </svg>
       </span>
-      <span class="text-lg">eLearning</span>
+      <span class="text-lg font-extrabold tracking-tight">e<span class="text-blue-600 font-medium">Learning</span></span>
     </a>
 
-    <!-- Right -->
     <div class="flex items-center gap-3">
       {% if user.is_authenticated %}
 
-        <!-- User menu -->
+        <div class="relative flex items-center">
+          <button type="button"
+                  id="notificationBtn"
+                  onclick="toggleNotificationMenu()"
+                  class="relative p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-xl transition focus:outline-none"
+                  aria-haspopup="menu"
+                  aria-expanded="false">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+
+            <span id="notificationBadge" 
+                  class="hidden absolute top-0.5 right-0.5 flex items-center justify-center h-4 w-4 bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white">
+              0
+            </span>
+          </button>
+
+          <div id="notificationMenu"
+               class="hidden absolute right-0 top-12 w-80 bg-white border border-gray-100 rounded-2xl shadow-lg z-50 overflow-hidden"
+               role="menu"
+               aria-labelledby="notificationBtn">
+            <div class="px-4 py-3 border-b border-gray-50 bg-gray-50/50 flex justify-between items-center">
+              <span class="font-semibold text-gray-800 text-sm">Notifications</span>
+            </div>
+            
+            <div id="notificationList" class="max-h-80 overflow-y-auto">
+              <div class="p-4 text-center text-sm text-gray-500">Loading...</div>
+            </div>
+          </div>
+        </div>
+
         <div class="relative">
           <button type="button"
                   id="userMenuBtn"
@@ -82,6 +111,7 @@
 </nav>
 
 <script>
+  // --- User Menu Functions ---
   function closeUserMenu() {
     const menu = document.getElementById("userMenu");
     const btn = document.getElementById("userMenuBtn");
@@ -90,36 +120,68 @@
     btn.setAttribute("aria-expanded", "false");
   }
 
-  function openUserMenu() {
-    const menu = document.getElementById("userMenu");
-    const btn = document.getElementById("userMenuBtn");
-    if (!menu || !btn) return;
-    menu.classList.remove("hidden");
-    btn.setAttribute("aria-expanded", "true");
-  }
-
   function toggleUserMenu() {
     const menu = document.getElementById("userMenu");
+    const btn = document.getElementById("userMenuBtn");
     if (!menu) return;
+    
     if (menu.classList.contains("hidden")) {
-      openUserMenu();
+      closeNotificationMenu(); // Close notifs if open
+      menu.classList.remove("hidden");
+      btn.setAttribute("aria-expanded", "true");
     } else {
       closeUserMenu();
     }
   }
 
-  // Close on click outside + Esc
-  document.addEventListener("click", function (e) {
-    const menu = document.getElementById("userMenu");
-    const btn = document.getElementById("userMenuBtn");
+  // --- Notification Menu Functions ---
+  function closeNotificationMenu() {
+    const menu = document.getElementById("notificationMenu");
+    const btn = document.getElementById("notificationBtn");
     if (!menu || !btn) return;
-    if (menu.classList.contains("hidden")) return;
+    menu.classList.add("hidden");
+    btn.setAttribute("aria-expanded", "false");
+  }
 
-    const clickedInside = menu.contains(e.target) || btn.contains(e.target);
-    if (!clickedInside) closeUserMenu();
+  function toggleNotificationMenu() {
+    const menu = document.getElementById("notificationMenu");
+    const btn = document.getElementById("notificationBtn");
+    if (!menu) return;
+
+    if (menu.classList.contains("hidden")) {
+      closeUserMenu(); // Close user profile if open
+      menu.classList.remove("hidden");
+      btn.setAttribute("aria-expanded", "true");
+    } else {
+      closeNotificationMenu();
+    }
+  }
+
+  // --- Global Listeners (Click Outside & Escape) ---
+  document.addEventListener("click", function (e) {
+    // User Menu
+    const userMenu = document.getElementById("userMenu");
+    const userBtn = document.getElementById("userMenuBtn");
+    if (userMenu && !userMenu.classList.contains("hidden")) {
+      if (!userMenu.contains(e.target) && !userBtn.contains(e.target)) {
+        closeUserMenu();
+      }
+    }
+
+    // Notification Menu
+    const notifMenu = document.getElementById("notificationMenu");
+    const notifBtn = document.getElementById("notificationBtn");
+    if (notifMenu && !notifMenu.classList.contains("hidden")) {
+      if (!notifMenu.contains(e.target) && !notifBtn.contains(e.target)) {
+        closeNotificationMenu();
+      }
+    }
   });
 
   document.addEventListener("keydown", function (e) {
-    if (e.key === "Escape") closeUserMenu();
+    if (e.key === "Escape") {
+      closeUserMenu();
+      closeNotificationMenu();
+    }
   });
 </script>

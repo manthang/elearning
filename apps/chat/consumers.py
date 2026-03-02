@@ -87,6 +87,15 @@ class InboxConsumer(AsyncWebsocketConsumer):
             "created_at": event.get("created_at", ""),
         }))
 
+    async def live_notification(self, event):
+        """
+        Catches the signal from Django and forwards it to the client's browser.
+        """
+        await self.send(text_data=json.dumps({
+            "type": "notification",
+            "payload": event["payload"]
+        }))
+
     # -------------------------
     # DB helpers
     # -------------------------

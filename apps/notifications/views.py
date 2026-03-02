@@ -1,21 +1,43 @@
-# notifications/views.py
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render, get_object_or_404
+from rest_framework import serializers, views, status
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
 from .models import Notification
 
-@login_required
-def notifications_list(request):
-    qs = request.user.notifications.all()[:50]
-    return render(request, "notifications/list.html", {"notifications": qs})
+# --- Serializer ---
+class NotificationSerializer(serializers.ModelSerializer):
+    # Format the time nicely for the frontend (e.g., "Oct 24, 2:30 PM")
+    time_ago = serializers.SerializerMethodField()
 
-@login_required
-def notification_mark_read(request, pk):
-    n = get_object_or_404(Notification, pk=pk, recipient=request.user)
-    n.is_read = True
-    n.save(update_fields=["is_read"])
-    return redirect(n.url or "notifications:list")
+    class Meta:
+        model = Notification
+        fields = ['id', 'notification_type', 'message', 'link', 'is_read', 'time_ago']
 
-@login_required
-def notifications_mark_all_read(request):
-    request.user.notifications.filter(is_read=False).update(is_read=True)
-    return redirect("notifications:list")
+    def get_time_ago(self, obj):
+        return obj.created_at.strftime("%b %d, %I:%M %p")
+
+# --- Views ---
+class UnreadNotificationsAPI(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Fetch the 10 most recent unread notifications
+        notifications = Notification.objects.filter(
+            recipient=request.user, 
+            is_read=False
+        ).order_by('-created_at')[:10]
+        
+        serializer = NotificationSerializer(notifications, many=True)
+        return Response({
+            "count": Notification.objects.filter(recipient=request.user, is_read=False).count(),
+            "notifications": serializer.data
+        })
+
+class MarkNotificationReadAPI(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        notification = get_object_or_404(Notification, id=pk, recipient=request.user)
+        notification.is_read = True
+        notification.save(update_fields=['is_read'])
+        return Response({"success": True})
