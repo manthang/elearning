@@ -1,8 +1,14 @@
+import json
+from django.views.decorators.http import require_POST
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404
-from .models import Conversation, Message
-from apps.accounts.models import User
+from django.contrib.auth import get_user_model
+
+from .models import *
+
+# Get the actual Model class, not the string
+User = get_user_model()
 
 
 @login_required
@@ -52,7 +58,8 @@ def chat_history(request, conversation_id):
     except Conversation.DoesNotExist:
         return JsonResponse({"error": "Invalid conversation"}, status=403)
 
-    messages = Message.objects.filter(conversation=conversation).order_by("created_at")
+    # Exclude messages cleared by the current user
+    messages = conversation.messages.exclude(cleared_by=request.user).order_by('created_at')
 
     return JsonResponse({
         "messages": [
@@ -98,3 +105,34 @@ def start_conversation(request, user_id):
         "role": other_user.get_role_display() if hasattr(other_user, 'get_role_display') else "",
         "avatar_url": other_user.avatar_url, 
     })
+
+
+@login_required
+@require_POST
+def clear_chat(request, conversation_id):
+    """Hides all current messages in a conversation for the requesting user."""
+    conversation = get_object_or_404(Conversation, id=conversation_id, participants=request.user)
+    
+    # Get all messages currently in this conversation
+    messages = conversation.messages.exclude(cleared_by=request.user)
+    
+    # Add the current user to the 'cleared_by' field for all these messages
+    for msg in messages:
+        msg.cleared_by.add(request.user)
+        
+    return JsonResponse({"success": True, "message": "Chat history cleared."})
+
+
+@login_required
+@require_POST
+def block_user(request, user_id):
+    """Blocks a user, preventing them from sending messages to the requesting user."""
+    user_to_block = get_object_or_404(User, id=user_id)
+    
+    if request.user == user_to_block:
+        return JsonResponse({"error": "You cannot block yourself."}, status=400)
+
+    # Create the block relationship
+    UserBlock.objects.get_or_create(blocker=request.user, blocked=user_to_block)
+    
+    return JsonResponse({"success": True, "message": f"You have blocked {user_to_block.full_name or user_to_block.username}."})

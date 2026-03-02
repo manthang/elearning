@@ -22,8 +22,21 @@ class Message(models.Model):
     content = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # Tracks which users have chosen to hide/clear this message from their screen
+    cleared_by = models.ManyToManyField(User, related_name="cleared_messages", blank=True)
+
     class Meta:
         ordering = ["created_at"]  # optional: keeps consistent ordering
 
     def __str__(self):
         return f"{self.sender}: {self.content[:20]}"
+
+
+class UserBlock(models.Model):
+    blocker = models.ForeignKey(User, related_name='blocking', on_delete=models.CASCADE)
+    blocked = models.ForeignKey(User, related_name='blocked_by', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('blocker', 'blocked')
+

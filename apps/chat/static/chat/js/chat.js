@@ -174,6 +174,9 @@ function updateHeader(user) {
   if (nameEl) nameEl.textContent = user.name || "Unknown";
   if (roleEl) roleEl.textContent = user.role || "";
   if (avatarEl) avatarEl.src = user.avatar_url || "/media/profile_photos/default-avatar.png";
+
+  activeChatUsername = user.username;
+  activeChatUserId = user.id;
 }
 
 function loadChatHistory(conversationId) {
@@ -322,9 +325,6 @@ window.sendMessage = function (event) {
   const localTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   updateConversationPreview(String(activeConversationId), message, getCurrentUserId(), localTime);
   moveConversationToTop(String(activeConversationId));
-  
-  // REMOVED: renderMessage(...) 
-  // We now let the inboxSocket.onmessage handler draw the bubble when the server confirms it.
 
   focusInput();
 };
@@ -568,3 +568,119 @@ window.initiateChatWithUser = function(userId) {
       alert("Unable to start conversation.");
     });
 }
+
+/* =========================================================
+   CHAT MENU OPTIONS (View Profile, Clear, Block)
+========================================================= */
+let activeChatUsername = null; 
+let activeChatUserId = null;
+
+window.toggleChatMenu = function() {
+    const menu = document.getElementById("chatOptionsMenu");
+    if (!menu) return;
+    menu.classList.toggle("hidden");
+    menu.classList.toggle("flex");
+};
+
+// Auto-close menu if user clicks outside of it
+document.addEventListener("click", (e) => {
+    const menu = document.getElementById("chatOptionsMenu");
+    if (menu && !menu.classList.contains("hidden")) {
+        const btn = menu.previousElementSibling;
+        if (!menu.contains(e.target) && !btn.contains(e.target)) {
+            menu.classList.add("hidden");
+            menu.classList.remove("flex");
+        }
+    }
+});
+
+window.viewChatUserProfile = function() {
+    if (activeChatUsername) {
+        // Navigates to the Django profile page
+        window.location.href = `/@${encodeURIComponent(activeChatUsername)}/`;
+    }
+    toggleChatMenu();
+};
+
+window.clearChatHistory = function() {
+    if (!activeConversationId) return;
+    
+    // Require confirmation so they don't do it accidentally
+    if (!confirm("Are you sure you want to clear this chat? This cannot be undone.")) {
+        toggleChatMenu();
+        return; 
+    }
+
+    // Call your Django backend to delete the messages
+    fetch(`/chat/clear/${activeConversationId}/`, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getDjangoCSRFToken(),
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            // Instantly clear the screen
+            document.getElementById("chatMessages").innerHTML = `<div class="text-center text-gray-400 text-xs mt-4">Conversation cleared.</div>`;
+            updateConversationPreview(activeConversationId, "Chat cleared", null, "");
+        }
+        toggleChatMenu();
+    });
+};
+
+
+// Helper function to grab the CSRF token for Django POST requests
+function getDjangoCSRFToken() {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, 10) === ('csrftoken=')) {
+                cookieValue = decodeURIComponent(cookie.substring(10));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+
+window.blockChatUser = function() {
+    if (!activeChatUserId) return;
+    
+    if (!confirm("Are you sure you want to block this user? They will no longer be able to message you.")) {
+        toggleChatMenu();
+        return; 
+    }
+
+    fetch(`/chat/block/${activeChatUserId}/`, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getDjangoCSRFToken(),
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            
+            // Disable the composer so the current user can't send messages either
+            setComposerEnabled(false);
+            const input = document.getElementById("chatInput");
+            if (input) input.placeholder = "You have blocked this user.";
+            
+            // Optionally close the chat or show a blocked UI state
+        } else {
+            alert(data.error);
+        }
+        toggleChatMenu();
+    })
+    .catch(err => {
+        console.error("Block error:", err);
+        toggleChatMenu();
+    });
+};
