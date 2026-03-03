@@ -32,8 +32,8 @@ def notify_teachers_on_enrollment(sender, instance, created, **kwargs):
         
         notifications_to_create = []
         for teaching in teachings:
-            msg = f"{student.username} enrolled in {course.title}."
-            link = f"/courses/{course.id or course.course_id}/"
+            msg = f"<b>{student.full_name}</b> enrolled in <b>{course.title}</b>."
+            link = f"/courses/{course.id or course.course_id}/?tab=students/"
             
             notifications_to_create.append(
                 Notification(recipient=teaching.teacher, notification_type='ENROLLMENT', message=msg, link=link)
@@ -61,8 +61,8 @@ def notify_students_new_material(sender, instance, created, **kwargs):
         
         notifications_to_create = []
         for enrollment in enrollments:
-            msg = f"New material uploaded to {course.title}: {instance.original_name}."
-            link = f"/courses/{course.course_id or course.id}/materials/"
+            msg = f"New material uploaded to <b>{course.title}</b>: <b>{instance.original_name}</b>"
+            link = f"/courses/{course.id or course.course_id}/?tab=materials/"
             
             notifications_to_create.append(
                 Notification(recipient=enrollment.student, notification_type='MATERIAL', message=msg, link=link)
