@@ -23,6 +23,15 @@
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div class="bg-white py-8 px-4 sm:rounded-2xl sm:px-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
             
+            {% if error %}
+                <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 text-sm font-medium text-red-700 flex items-start gap-3 animate-fade-in-down">
+                    <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{{ error }}</span>
+                </div>
+            {% endif %}
+            
             <form method="post" class="space-y-5">
                 {% csrf_token %}
 
@@ -30,7 +39,7 @@
                     <label class="block text-sm font-semibold text-gray-700">I am joining as a...</label>
                     <div class="grid grid-cols-2 gap-4">
                         <label class="relative cursor-pointer group">
-                            <input type="radio" name="role" value="STUDENT" class="peer sr-only" checked>
+                            <input type="radio" name="role" value="STUDENT" class="peer sr-only" {% if request.POST.role != 'TEACHER' %}checked{% endif %}>
                             <div class="p-4 rounded-xl border-2 border-gray-100 hover:bg-gray-50 peer-checked:border-blue-600 peer-checked:bg-blue-50 transition-all text-center">
                                 <div class="font-bold text-gray-900 group-hover:text-blue-600 peer-checked:text-blue-700 transition-colors">Student</div>
                                 <div class="text-[11px] text-gray-500 mt-1 uppercase tracking-wide font-medium">To learn</div>
@@ -38,7 +47,7 @@
                         </label>
 
                         <label class="relative cursor-pointer group">
-                            <input type="radio" name="role" value="TEACHER" class="peer sr-only">
+                            <input type="radio" name="role" value="TEACHER" class="peer sr-only" {% if request.POST.role == 'TEACHER' %}checked{% endif %}>
                             <div class="p-4 rounded-xl border-2 border-gray-100 hover:bg-gray-50 peer-checked:border-blue-600 peer-checked:bg-blue-50 transition-all text-center">
                                 <div class="font-bold text-gray-900 group-hover:text-blue-600 peer-checked:text-blue-700 transition-colors">Teacher</div>
                                 <div class="text-[11px] text-gray-500 mt-1 uppercase tracking-wide font-medium">To instruct</div>
@@ -52,21 +61,21 @@
                 <div>
                     <label for="fullname" class="block text-sm font-medium text-gray-700">Full Name</label>
                     <div class="mt-1.5">
-                        <input id="fullname" name="fullname" type="text" required class="block w-full appearance-none rounded-xl border border-gray-200 px-4 py-2.5 placeholder-gray-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 sm:text-sm transition-colors" placeholder="e.g. Joanna Sexton">
+                        <input id="fullname" name="fullname" type="text" value="{{ request.POST.fullname }}" required class="block w-full appearance-none rounded-xl border border-gray-200 px-4 py-2.5 placeholder-gray-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 sm:text-sm transition-colors" placeholder="e.g. Joanna Sexton">
                     </div>
                 </div>
 
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700">Email address</label>
                     <div class="mt-1.5">
-                        <input id="email" name="email" type="email" autocomplete="email" required class="block w-full appearance-none rounded-xl border border-gray-200 px-4 py-2.5 placeholder-gray-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 sm:text-sm transition-colors" placeholder="you@example.com">
+                        <input id="email" name="email" type="email" value="{{ request.POST.email }}" autocomplete="email" required class="block w-full appearance-none rounded-xl border border-gray-200 px-4 py-2.5 placeholder-gray-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 sm:text-sm transition-colors" placeholder="you@example.com">
                     </div>
                 </div>
 
                 <div>
                     <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
                     <div class="mt-1.5">
-                        <input id="username" name="username" type="text" required class="block w-full appearance-none rounded-xl border border-gray-200 px-4 py-2.5 placeholder-gray-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 sm:text-sm transition-colors" placeholder="jsexton99">
+                        <input id="username" name="username" type="text" value="{{ request.POST.username }}" required class="block w-full appearance-none rounded-xl border {% if error %}border-red-300 focus:border-red-500 focus:ring-red-500{% else %}border-gray-200 focus:border-blue-600 focus:ring-blue-600{% endif %} px-4 py-2.5 placeholder-gray-400 focus:outline-none focus:ring-1 sm:text-sm transition-colors" placeholder="jsexton99">
                     </div>
                 </div>
 
