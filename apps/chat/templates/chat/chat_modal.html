@@ -210,11 +210,6 @@
 </div>
 
 <script>
-    // Global User Context for Chat & Search
-    window.DJANGO_USER = {
-        id: "{{ request.user.id|escapejs }}",
-        username: "{{ request.user.username|escapejs }}",
-        role: "{{ request.user.role|escapejs }}",
-        avatar: "{{ request.user.avatar_url|escapejs }}"
-    };
+  // Bridge Django template variables to global JS variables
+  window.CURRENT_USER_ID = "{{ request.user.id|escapejs }}";
 </script>
