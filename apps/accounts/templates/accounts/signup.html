@@ -1,26 +1,99 @@
 {% extends "core/layout.html" %}
-{% block title %}Sign Up{% endblock %}
+{% block title %}Sign Up - eLearning{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white p-6 rounded shadow">
-  <h1 class="text-2xl font-bold mb-4 text-center">Create Account</h1>
+<div class="min-h-[80vh] flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gray-50/50">
+    
+    <div class="sm:mx-auto sm:w-full sm:max-w-md text-center">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-600 text-white shadow-lg shadow-blue-600/20 mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+            </svg>
+        </div>
+        <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">Create your account</h2>
+        <p class="mt-2 text-sm text-gray-600">
+            Join our community of learners and educators
+        </p>
+    </div>
 
-  <form method="post" class="space-y-4">
-    {% csrf_token %}
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 sm:rounded-2xl sm:px-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
+            
+            <form method="post" class="space-y-5">
+                {% csrf_token %}
 
-    <input name="fullname" class="w-full border p-2 rounded" placeholder="Full name">
-    <input name="email" class="w-full border p-2 rounded" placeholder="Email">
-    <input name="username" class="w-full border p-2 rounded" placeholder="Username">
-    <input type="password" name="password" class="w-full border p-2 rounded" placeholder="Password">
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-gray-700">I am joining as a...</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <label class="relative cursor-pointer group">
+                            <input type="radio" name="role" value="STUDENT" class="peer sr-only" checked>
+                            <div class="p-4 rounded-xl border-2 border-gray-100 hover:bg-gray-50 peer-checked:border-blue-600 peer-checked:bg-blue-50 transition-all text-center">
+                                <div class="font-bold text-gray-900 group-hover:text-blue-600 peer-checked:text-blue-700 transition-colors">Student</div>
+                                <div class="text-[11px] text-gray-500 mt-1 uppercase tracking-wide font-medium">To learn</div>
+                            </div>
+                        </label>
 
-    <select name="role" class="w-full border p-2 rounded">
-      <option value="STUDENT">Student</option>
-      <option value="TEACHER">Teacher</option>
-    </select>
+                        <label class="relative cursor-pointer group">
+                            <input type="radio" name="role" value="TEACHER" class="peer sr-only">
+                            <div class="p-4 rounded-xl border-2 border-gray-100 hover:bg-gray-50 peer-checked:border-blue-600 peer-checked:bg-blue-50 transition-all text-center">
+                                <div class="font-bold text-gray-900 group-hover:text-blue-600 peer-checked:text-blue-700 transition-colors">Teacher</div>
+                                <div class="text-[11px] text-gray-500 mt-1 uppercase tracking-wide font-medium">To instruct</div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
 
-    <button class="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
-      Sign Up
-    </button>
-  </form>
+                <div class="border-t border-gray-100 my-6"></div>
+
+                <div>
+                    <label for="fullname" class="block text-sm font-medium text-gray-700">Full Name</label>
+                    <div class="mt-1.5">
+                        <input id="fullname" name="fullname" type="text" required class="block w-full appearance-none rounded-xl border border-gray-200 px-4 py-2.5 placeholder-gray-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 sm:text-sm transition-colors" placeholder="e.g. Joanna Sexton">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email address</label>
+                    <div class="mt-1.5">
+                        <input id="email" name="email" type="email" autocomplete="email" required class="block w-full appearance-none rounded-xl border border-gray-200 px-4 py-2.5 placeholder-gray-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 sm:text-sm transition-colors" placeholder="you@example.com">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                    <div class="mt-1.5">
+                        <input id="username" name="username" type="text" required class="block w-full appearance-none rounded-xl border border-gray-200 px-4 py-2.5 placeholder-gray-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 sm:text-sm transition-colors" placeholder="jsexton99">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                    <div class="mt-1.5">
+                        <input id="password" name="password" type="password" autocomplete="new-password" required class="block w-full appearance-none rounded-xl border border-gray-200 px-4 py-2.5 placeholder-gray-400 focus:border-blue-600 focus:outline-none focus:ring-1 focus:ring-blue-600 sm:text-sm transition-colors" placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-xl shadow-[0_8px_20px_rgba(37,99,235,0.15)] text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition-all active:scale-[0.98]">
+                        Create Account
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-8 text-center">
+                <p class="text-sm text-gray-600">
+                    Already have an account? 
+                    <a href="{% url 'accounts:login' %}" class="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
+                        Sign in instead
+                    </a>
+                </p>
+            </div>
+
+        </div>
+    </div>
 </div>
 {% endblock %}
