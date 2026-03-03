@@ -19,36 +19,38 @@ def broadcast_notification(user_id, notif_data):
     )
 
 # ========================================================
-# Notify Teachers when a Student enrolls
+# Notify ONLY Teachers on Student Enrollment
 # ========================================================
 @receiver(post_save, sender=Enrollment)
-def notify_teachers_on_enrollment(sender, instance, created, **kwargs):
-    print(f"DEBUG ALARM: The Enrollment signal just fired for {instance.student.username}!")
-    
+def notify_teacher_on_enrollment(sender, instance, created, **kwargs):
     if created:
         course = instance.course
         student = instance.student
+        
         teachings = Teaching.objects.filter(course=course).select_related('teacher')
         
-        notifications_to_create = []
         for teaching in teachings:
             msg = f"<b>{student.full_name}</b> enrolled in <b>{course.title}</b>."
             link = f"/courses/{course.id or course.course_id}/?tab=students"
             
-            notifications_to_create.append(
-                Notification(recipient=teaching.teacher, notification_type='ENROLLMENT', message=msg, link=link)
+            # 1. Save to Database FIRST to generate the ID
+            notif = Notification.objects.create(
+                recipient=teaching.teacher, 
+                notification_type='ENROLLMENT', 
+                message=msg, 
+                link=link
             )
             
-            # SEND WEBSOCKET BROADCAST
+            # 2. Broadcast with the exact ID and read status
             broadcast_notification(teaching.teacher.id, {
+                "id": notif.id,
+                "is_read": False,
                 "message": msg,
                 "link": link,
                 "notification_type": "ENROLLMENT",
                 "time_ago": "Just now"
             })
-            
-        if notifications_to_create:
-            Notification.objects.bulk_create(notifications_to_create)
+
 
 # ========================================================
 # Notify Students when new material is added
@@ -59,22 +61,24 @@ def notify_students_new_material(sender, instance, created, **kwargs):
         course = instance.course
         enrollments = course.enrollments.select_related('student').all()
         
-        notifications_to_create = []
         for enrollment in enrollments:
             msg = f"New material uploaded to <b>{course.title}</b>: <b>{instance.original_name}</b>"
             link = f"/courses/{course.id or course.course_id}/?tab=materials"
             
-            notifications_to_create.append(
-                Notification(recipient=enrollment.student, notification_type='MATERIAL', message=msg, link=link)
+            # 1. Save to Database FIRST
+            notif = Notification.objects.create(
+                recipient=enrollment.student, 
+                notification_type='MATERIAL', 
+                message=msg, 
+                link=link
             )
             
-            # SEND WEBSOCKET BROADCAST
+            # 2. Broadcast
             broadcast_notification(enrollment.student.id, {
+                "id": notif.id,
+                "is_read": False,
                 "message": msg,
                 "link": link,
                 "notification_type": "MATERIAL",
                 "time_ago": "Just now"
             })
-            
-        if notifications_to_create:
-            Notification.objects.bulk_create(notifications_to_create)

@@ -19,6 +19,37 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchUnreadNotifications();
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+    fetchUnreadNotifications();
+});
+
+// ========================================================
+// 🔌 REAL-TIME WEBSOCKET CONNECTION
+// ========================================================
+const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+const notificationSocket = new WebSocket(wsProtocol + window.location.host + '/ws/notifications/');
+
+notificationSocket.onmessage = function(e) {
+    let data;
+    try { 
+        data = JSON.parse(e.data); 
+    } catch (err) { 
+        console.error("Error parsing websocket message", err);
+        return; 
+    }
+
+    // When the consumer sends the notification, route it to your UI function
+    if (data.type === "notification") {
+        console.log("Live notification received!", data.payload);
+        handleRealtimeNotification(data.payload);
+    }
+};
+
+notificationSocket.onclose = function(e) {
+    console.error('Notification WebSocket closed unexpectedly.');
+};
+// ========================================================
+
 window.toggleNotificationMenu = function() {
     const menu = document.getElementById("notificationMenu");
     if (!menu) return;
@@ -217,4 +248,60 @@ window.markAllNotificationsRead = function() {
         }
     })
     .catch(error => console.error("Error marking all as read:", error));
+};
+
+
+window.handleRealtimeNotification = function(notif) {
+    // 1. Un-hide and Increment the Red Badge
+    const badge = document.getElementById("notificationBadge");
+    if (badge) {
+        badge.classList.remove("hidden");
+        let currentCount = parseInt(badge.textContent) || 0;
+        badge.textContent = currentCount + 1;
+    }
+
+    // 2. Locate the Dropdown List
+    const list = document.getElementById("notificationList");
+    if (!list) return;
+
+    // Remove the "Loading..." spinner if this is the very first notification
+    const loadingSpinner = list.querySelector(".animate-spin");
+    if (loadingSpinner) list.innerHTML = "";
+
+    // 3. Build the new HTML Element
+    const item = document.createElement("a");
+    item.href = "javascript:void(0)";
+    item.onclick = () => handleNotificationClick(notif.id, notif.link);
+    
+    // Apply the "Unread" styling (blue background)
+    item.className = "block relative px-4 py-3.5 border-b border-gray-50 transition-colors cursor-pointer group bg-blue-50/40 hover:bg-blue-50/60";
+
+    // Set the correct Icon
+    let iconHtml = '';
+    if (notif.notification_type === 'ENROLLMENT') {
+        iconHtml = `<div class="w-9 h-9 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 mt-0.5"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg></div>`;
+    } else if (notif.notification_type === 'MATERIAL') {
+        iconHtml = `<div class="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>`;
+    }
+
+    const unreadDot = `<span class="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-blue-600 shadow-[0_0_4px_rgba(37,99,235,0.6)]"></span>`;
+
+    item.innerHTML = `
+        ${unreadDot}
+        <div class="flex items-start gap-3 pl-2">
+            <div>${iconHtml}</div>
+            <div class="flex-1 min-w-0">
+                <p class="text-sm text-gray-600 leading-snug group-hover:text-blue-700 transition-colors">
+                    ${formatNotificationText(notif.message, false)} 
+                </p>
+                <div class="flex items-center gap-1 mt-1.5">
+                    <svg class="w-3 h-3 text-blue-500/80" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <p class="text-[11px] font-medium text-blue-500/80 uppercase tracking-wide">${notif.time_ago}</p>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // 4. Prepend puts the newest notification at the TOP of the list
+    list.prepend(item);
 };
