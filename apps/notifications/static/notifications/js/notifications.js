@@ -368,7 +368,7 @@ window.deleteSingleNotif = function(notifId, btnElement) {
     });
 };
 
-// Mark a single notification as read without redirecting
+// UPDATE: Modify your existing 'markSingleNotifRead' to toggle the button instead of deleting it
 window.markSingleNotifRead = function(notifId, btnElement) {
     fetch(`/api/notifications/${notifId}/read/`, {
         method: 'POST',
@@ -378,38 +378,35 @@ window.markSingleNotifRead = function(notifId, btnElement) {
         }
     }).then(response => response.json())
     .then(data => {
-        // Find the main <a> tag and apply our "read" styling
-        const item = btnElement.closest('a');
-        
-        // 1. Swap background
-        item.classList.remove("bg-blue-50/40", "hover:bg-blue-50/60");
-        item.classList.add("bg-white", "hover:bg-gray-50");
-        
-        // 2. Remove blue dot
-        const dot = item.querySelector("span.bg-blue-600");
-        if (dot) dot.remove();
-        
-        // 3. Grayscale icon
-        const iconWrapper = item.querySelector(".flex.items-start > div:first-child");
-        if (iconWrapper) iconWrapper.classList.add("opacity-50", "grayscale");
-        
-        // 4. Dim text
-        const messageText = item.querySelector("p.text-sm");
-        if (messageText) {
-            messageText.classList.remove("text-gray-600");
-            messageText.classList.add("text-gray-400");
-            const bTags = messageText.querySelectorAll("span.text-gray-900");
-            bTags.forEach(b => {
-                b.classList.remove("text-gray-900", "font-semibold");
-                b.classList.add("text-gray-600", "font-medium");
-            });
+        if (data.success) {
+            const item = btnElement.closest('a');
+            
+            item.classList.remove("bg-blue-50/40", "hover:bg-blue-50/60");
+            item.classList.add("bg-white", "hover:bg-gray-50");
+            
+            const dot = item.querySelector("span.bg-blue-600");
+            if (dot) dot.remove();
+            
+            const iconWrapper = item.querySelector(".flex.items-start > div:first-child");
+            if (iconWrapper) iconWrapper.classList.add("opacity-50", "grayscale");
+            
+            const messageText = item.querySelector("p.text-sm");
+            if (messageText) {
+                messageText.classList.remove("text-gray-600");
+                messageText.classList.add("text-gray-400");
+                const bTags = messageText.querySelectorAll("span.text-gray-900");
+                bTags.forEach(b => {
+                    b.classList.remove("text-gray-900", "font-semibold");
+                    b.classList.add("text-gray-600", "font-medium");
+                });
+            }
+            
+            // THIS IS THE CHANGE: Morph the button into "Mark as unread"
+            btnElement.textContent = "Mark as unread";
+            btnElement.setAttribute("onclick", `markSingleNotifUnread(${notifId}, this)`);
+            
+            decrementBadge();
         }
-        
-        // 5. Hide the "Mark as read" button since it's now read
-        btnElement.remove();
-        
-        // 6. Decrement badge
-        decrementBadge();
     });
 };
 
@@ -434,3 +431,61 @@ document.addEventListener("click", function () {
     });
 });
 
+// NEW: Mark a notification as Unread
+window.markSingleNotifUnread = function(notifId, btnElement) {
+    fetch(`/api/notifications/${notifId}/unread/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getDjangoCSRFToken(),
+            'Content-Type': 'application/json'
+        }
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const item = btnElement.closest('a');
+            
+            // 1. Swap background back to unread blue
+            item.classList.remove("bg-white", "hover:bg-gray-50");
+            item.classList.add("bg-blue-50/40", "hover:bg-blue-50/60");
+            
+            // 2. Add the glowing blue dot back
+            if (!item.querySelector("span.bg-blue-600")) {
+                const dotHtml = `<span class="absolute left-1.5 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-blue-600 shadow-[0_0_4px_rgba(37,99,235,0.6)]"></span>`;
+                item.insertAdjacentHTML('afterbegin', dotHtml);
+            }
+            
+            // 3. Remove grayscale from the icon
+            const iconWrapper = item.querySelector(".flex.items-start > div:first-child");
+            if (iconWrapper) iconWrapper.classList.remove("opacity-50", "grayscale");
+            
+            // 4. Restore the bold, dark text
+            const messageText = item.querySelector("p.text-sm");
+            if (messageText) {
+                messageText.classList.remove("text-gray-400");
+                messageText.classList.add("text-gray-600");
+                const bTags = messageText.querySelectorAll("span.text-gray-600.font-medium");
+                bTags.forEach(b => {
+                    b.classList.remove("text-gray-600", "font-medium");
+                    b.classList.add("text-gray-900", "font-semibold");
+                });
+            }
+            
+            // 5. Morph the button back into "Mark as read"
+            btnElement.textContent = "Mark as read";
+            btnElement.setAttribute("onclick", `markSingleNotifRead(${notifId}, this)`);
+            
+            // 6. Increase the red bell badge
+            incrementBadge();
+        }
+    });
+};
+
+// NEW: Helper to increase the red badge
+function incrementBadge() {
+    const badge = document.getElementById("notificationBadge");
+    if (badge) {
+        badge.classList.remove("hidden");
+        let currentCount = parseInt(badge.textContent) || 0;
+        badge.textContent = currentCount + 1;
+    }
+}
