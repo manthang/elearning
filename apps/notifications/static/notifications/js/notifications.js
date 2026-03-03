@@ -152,7 +152,7 @@ window.markAllNotificationsRead = function() {
     fetch('/api/notifications/read-all/', {
         method: 'POST',
         headers: {
-            'X-CSRFToken': getDjangoCSRFToken(), // Ensure your CSRF token function is accessible here
+            'X-CSRFToken': getDjangoCSRFToken(),
             'Content-Type': 'application/json'
         }
     })
