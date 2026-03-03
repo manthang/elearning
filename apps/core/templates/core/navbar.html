@@ -93,7 +93,9 @@
                 <p class="text-sm font-semibold text-gray-900 truncate">
                   {{ user.full_name|default:user.username }}
                 </p>
-                <p class="text-xs text-gray-500 truncate">@{{ user.username }}</p>
+                <p class="text-xs text-gray-500 truncate" title="{{ user.email }}">
+                  {{ user.email }}
+                </p>
               </div>
             </a>
 
