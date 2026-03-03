@@ -17,15 +17,12 @@ class NotificationSerializer(serializers.ModelSerializer):
         return obj.created_at.strftime("%b %d, %I:%M %p")
 
 # --- Views ---
-class UnreadNotificationsAPI(views.APIView):
+class GetNotificationsAPI(views.APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Fetch the 10 most recent unread notifications
-        notifications = Notification.objects.filter(
-            recipient=request.user, 
-            is_read=False
-        ).order_by('-created_at')[:10]
+        # Fetch the latest 30 notifications, BOTH read and unread
+        notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')[:30]
         
         serializer = NotificationSerializer(notifications, many=True)
         return Response({
