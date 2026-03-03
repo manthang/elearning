@@ -116,18 +116,6 @@ class InboxConsumer(AsyncWebsocketConsumer):
             if not other_user:
                 return False
 
-            # DEBUG: confirm the WS process sees the same DB rows
-            print(
-                "BLOCK CHECK",
-                "me=", self.user.id,
-                "other=", other_user.id,
-                "UserBlock.count=", UserBlock.objects.count(),
-                "exists_between=", UserBlock.objects.filter(
-                    Q(blocker=self.user, blocked=other_user) |
-                    Q(blocker=other_user, blocked=self.user)
-                ).exists()
-            )
-
             if other_user:
                 return UserBlock.objects.filter(
                     Q(blocker=self.user, blocked=other_user) |
