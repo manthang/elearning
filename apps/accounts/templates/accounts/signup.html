@@ -23,12 +23,18 @@
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div class="bg-white py-8 px-4 sm:rounded-2xl sm:px-10 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100">
             
-            {% if error %}
-                <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-100 text-sm font-medium text-red-700 flex items-start gap-3 animate-fade-in-down">
-                    <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <span>{{ error }}</span>
+            {% if form.errors %}
+                <div class="mb-6 space-y-2">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <div class="p-4 rounded-xl bg-red-50 border border-red-100 text-sm font-medium text-red-700 flex items-start gap-3 animate-fade-in-down">
+                                <svg class="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <span>{{ error }}</span>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
                 </div>
             {% endif %}
             
