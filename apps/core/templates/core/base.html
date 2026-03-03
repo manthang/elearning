@@ -1,28 +1,51 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}eLearning{% endblock %}</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          animation: {
+            'fade-in-down': 'fadeInDown 0.3s ease-out forwards',
+          },
+          keyframes: {
+            fadeInDown: {
+              '0%': { opacity: '0', transform: 'translateY(-10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
 
   {% block extra_head %}{% endblock %}
 </head>
 
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-50 min-h-screen font-sans text-gray-900 antialiased">
 
   {% block body %}{% endblock %}
 
   {% block extra_js %}{% endblock %}
 
-{% if user.is_authenticated %}
+  {% if user.is_authenticated %}
     <script src="{% static 'notifications/js/notifications.js' %}"></script>
-    
     <script>
+        // Global auth flag for JS components
         window.userIsAuthenticated = true;
+        
+        // Helper to get CSRF for AJAX/Fetch requests
+        function getDjangoCSRFToken() {
+            return document.querySelector('[name=csrfmiddlewaretoken]')?.value;
+        }
     </script>
-{% endif %}
+  {% endif %}
 
 </body>
 </html>
