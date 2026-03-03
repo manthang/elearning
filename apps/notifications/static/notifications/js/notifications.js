@@ -19,12 +19,8 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchUnreadNotifications();
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-    fetchUnreadNotifications();
-});
-
 // ========================================================
-// 🔌 REAL-TIME WEBSOCKET CONNECTION
+// REAL-TIME WEBSOCKET CONNECTION
 // ========================================================
 const wsProtocol = window.location.protocol === "https:" ? "wss://" : "ws://";
 const notificationSocket = new WebSocket(wsProtocol + window.location.host + '/ws/notifications/');
@@ -38,7 +34,7 @@ notificationSocket.onmessage = function(e) {
         return; 
     }
 
-    // When the consumer sends the notification, route it to your UI function
+    // When the consumer sends the notification, route it UI function
     if (data.type === "notification") {
         console.log("Live notification received!", data.payload);
         handleRealtimeNotification(data.payload);
