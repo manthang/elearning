@@ -7,7 +7,6 @@ from django.conf.urls.static import static
 urlpatterns = [
     path("admin/", admin.site.urls),
 
-    # Core app for home page redirect
     path("", include("apps.core.urls")),
     path("", include("apps.accounts.urls")),
     path("courses/", include("apps.courses.urls")),

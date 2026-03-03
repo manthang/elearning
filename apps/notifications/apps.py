@@ -6,5 +6,4 @@ class NotificationsConfig(AppConfig):
     name = "apps.notifications"
 
     def ready(self):
-        print("====== DJANGO IS LOADING SIGNALS! ======")
         from . import signals
