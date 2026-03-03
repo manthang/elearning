@@ -657,6 +657,23 @@ window.initiateChatWithUser = function(userId) {
 /* =========================================================
    CHAT MENU OPTIONS (View Profile, Clear, Block)
 ========================================================= */
+
+// Helper function to grab the CSRF token for Django POST requests
+function getDjangoCSRFToken() {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, 10) === ('csrftoken=')) {
+                cookieValue = decodeURIComponent(cookie.substring(10));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 window.toggleChatMenu = function() {
     const menu = document.getElementById("chatOptionsMenu");
     if (!menu) return;
@@ -711,24 +728,6 @@ window.clearChatHistory = function() {
         toggleChatMenu();
     });
 };
-
-
-// Helper function to grab the CSRF token for Django POST requests
-function getDjangoCSRFToken() {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, 10) === ('csrftoken=')) {
-                cookieValue = decodeURIComponent(cookie.substring(10));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
 
 window.blockChatUser = function() {
     if (!activeConversationId) return; 
