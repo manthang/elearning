@@ -34,3 +34,19 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             "type": "notification",
             "payload": event["payload"]
         }))
+
+    # This is the missing handler
+    async def inbox_message(self, event):
+        """
+        Handles 'inbox_message' type messages sent from the channel layer.
+        """
+        # Extract the data from the event
+        message = event.get("message")
+        sender = event.get("sender")
+
+        # Send the data to the actual WebSocket (frontend)
+        await self.send(text_data=json.dumps({
+            "type": "inbox_message",
+            "message": message,
+            "sender": sender,
+        }))
