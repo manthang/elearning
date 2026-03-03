@@ -11,5 +11,7 @@
 
   {% if user.is_authenticated %}
       {% include "accounts/components/profile_edit_modal.html" %} 
+      {% include "accounts/components/search_modal.html" %}
+      {% include "chat/chat_modal.html" %}
   {% endif %}
 {% endblock %}
