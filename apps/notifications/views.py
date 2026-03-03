@@ -47,3 +47,22 @@ class MarkAllNotificationsReadAPI(views.APIView):
         # Find all unread notifications for this user and mark them read
         Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
         return Response({"success": True})
+
+
+class DeleteNotificationAPI(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, pk):
+        # Filter by user to ensure they only delete their own!
+        deleted, _ = Notification.objects.filter(id=pk, recipient=request.user).delete()
+        if deleted:
+            return Response({"success": True})
+        return Response({"success": False}, status=404)
+
+
+class MarkNotificationUnreadAPI(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        Notification.objects.filter(id=pk, recipient=request.user).update(is_read=False)
+        return Response({"success": True})

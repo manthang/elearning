@@ -125,7 +125,7 @@ function updateNotificationUI(count, notifications) {
 
         item.innerHTML = `
             ${unreadDot}
-            <div class="flex items-start gap-3 pl-2">
+            <div class="flex items-start gap-3 pl-2 w-full">
                 <div class="${iconWrapperClass}">
                     ${iconHtml}
                 </div>
@@ -136,6 +136,22 @@ function updateNotificationUI(count, notifications) {
                     <div class="flex items-center gap-1 mt-1.5">
                         <svg class="w-3 h-3 ${timeColor}" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         <p class="text-[11px] font-medium ${timeColor} uppercase tracking-wide">${notif.time_ago}</p>
+                    </div>
+                </div>
+                
+                <div class="shrink-0 relative opacity-0 group-hover:opacity-100 transition-opacity" onclick="event.stopPropagation();">
+                    <button type="button" 
+                            onclick="toggleSingleNotifMenu('notif-menu-${notif.id}')" 
+                            class="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-200/50 transition-colors">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
+                    </button>
+                    
+                    <div id="notif-menu-${notif.id}" class="single-notif-menu hidden absolute right-0 top-8 w-36 bg-white rounded-xl shadow-[0_4px_20px_rgb(0,0,0,0.15)] border border-gray-100 py-1 z-50">
+                        ${!isRead 
+                            ? `<button type="button" onclick="markSingleNotifRead(${notif.id}, this)" class="w-full text-left px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">Mark as read</button>`
+                            : `<button type="button" onclick="markSingleNotifUnread(${notif.id}, this)" class="w-full text-left px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">Mark as unread</button>`
+                        }
+                        <button type="button" onclick="deleteSingleNotif(${notif.id}, this)" class="w-full text-left px-4 py-2.5 text-xs font-medium text-red-600 hover:bg-red-50">Delete</button>
                     </div>
                 </div>
             </div>
@@ -284,8 +300,7 @@ window.handleRealtimeNotification = function(notif) {
 
     item.innerHTML = `
         ${unreadDot}
-        <div class="flex items-start gap-3 pl-2">
-            <div>${iconHtml}</div>
+        <div class="flex items-start gap-3 pl-2 w-full"> <div>${iconHtml}</div>
             <div class="flex-1 min-w-0">
                 <p class="text-sm text-gray-600 leading-snug group-hover:text-blue-700 transition-colors">
                     ${formatNotificationText(notif.message, false)} 
@@ -295,9 +310,127 @@ window.handleRealtimeNotification = function(notif) {
                     <p class="text-[11px] font-medium text-blue-500/80 uppercase tracking-wide">${notif.time_ago}</p>
                 </div>
             </div>
+            
+            <div class="shrink-0 relative opacity-0 group-hover:opacity-100 transition-opacity" onclick="event.stopPropagation();">
+                <button type="button" 
+                        onclick="toggleSingleNotifMenu('notif-menu-${notif.id}')" 
+                        class="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-200/50 transition-colors">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" /></svg>
+                </button>
+                
+                <div id="notif-menu-${notif.id}" class="single-notif-menu hidden absolute right-0 top-8 w-36 bg-white rounded-xl shadow-[0_4px_20px_rgb(0,0,0,0.15)] border border-gray-100 py-1 z-50">
+                    <button type="button" onclick="markSingleNotifRead(${notif.id}, this)" class="w-full text-left px-4 py-2.5 text-xs font-medium text-gray-700 hover:bg-gray-50">Mark as read</button>
+                    <button type="button" onclick="deleteSingleNotif(${notif.id}, this)" class="w-full text-left px-4 py-2.5 text-xs font-medium text-red-600 hover:bg-red-50">Delete</button>
+                </div>
+            </div>
         </div>
     `;
     
     // 4. Prepend puts the newest notification at the TOP of the list
     list.prepend(item);
 };
+
+
+// Toggle the individual notification menu
+window.toggleSingleNotifMenu = function(menuId) {
+    // First, close any other open menus
+    document.querySelectorAll('.single-notif-menu').forEach(menu => {
+        if (menu.id !== menuId) menu.classList.add('hidden');
+    });
+    
+    // Toggle the target menu
+    const menu = document.getElementById(menuId);
+    if (menu) menu.classList.toggle('hidden');
+};
+
+// Delete a single notification
+window.deleteSingleNotif = function(notifId, btnElement) {
+    fetch(`/api/notifications/${notifId}/delete/`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRFToken': getDjangoCSRFToken(),
+            'Content-Type': 'application/json'
+        }
+    }).then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Find the main <a> tag (parent of the menu) and remove it smoothly
+            const item = btnElement.closest('a');
+            
+            // Check if it was unread to decrement the badge
+            if (item.classList.contains('bg-blue-50/40')) {
+                decrementBadge();
+            }
+            
+            // Remove from DOM
+            item.remove();
+        }
+    });
+};
+
+// Mark a single notification as read without redirecting
+window.markSingleNotifRead = function(notifId, btnElement) {
+    fetch(`/api/notifications/${notifId}/read/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getDjangoCSRFToken(),
+            'Content-Type': 'application/json'
+        }
+    }).then(response => response.json())
+    .then(data => {
+        // Find the main <a> tag and apply our "read" styling
+        const item = btnElement.closest('a');
+        
+        // 1. Swap background
+        item.classList.remove("bg-blue-50/40", "hover:bg-blue-50/60");
+        item.classList.add("bg-white", "hover:bg-gray-50");
+        
+        // 2. Remove blue dot
+        const dot = item.querySelector("span.bg-blue-600");
+        if (dot) dot.remove();
+        
+        // 3. Grayscale icon
+        const iconWrapper = item.querySelector(".flex.items-start > div:first-child");
+        if (iconWrapper) iconWrapper.classList.add("opacity-50", "grayscale");
+        
+        // 4. Dim text
+        const messageText = item.querySelector("p.text-sm");
+        if (messageText) {
+            messageText.classList.remove("text-gray-600");
+            messageText.classList.add("text-gray-400");
+            const bTags = messageText.querySelectorAll("span.text-gray-900");
+            bTags.forEach(b => {
+                b.classList.remove("text-gray-900", "font-semibold");
+                b.classList.add("text-gray-600", "font-medium");
+            });
+        }
+        
+        // 5. Hide the "Mark as read" button since it's now read
+        btnElement.remove();
+        
+        // 6. Decrement badge
+        decrementBadge();
+    });
+};
+
+// Helper to lower the red badge number
+function decrementBadge() {
+    const badge = document.getElementById("notificationBadge");
+    if (badge && !badge.classList.contains("hidden")) {
+        let currentCount = parseInt(badge.textContent) || 0;
+        if (currentCount > 1) {
+            badge.textContent = currentCount - 1;
+        } else {
+            badge.classList.add("hidden");
+            badge.textContent = "0";
+        }
+    }
+}
+
+// Ensure clicking anywhere else closes the mini-menus
+document.addEventListener("click", function () {
+    document.querySelectorAll('.single-notif-menu').forEach(menu => {
+        menu.classList.add('hidden');
+    });
+});
+
