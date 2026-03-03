@@ -33,6 +33,7 @@ class UnreadNotificationsAPI(views.APIView):
             "notifications": serializer.data
         })
 
+
 class MarkNotificationReadAPI(views.APIView):
     permission_classes = [IsAuthenticated]
 
@@ -40,4 +41,12 @@ class MarkNotificationReadAPI(views.APIView):
         notification = get_object_or_404(Notification, id=pk, recipient=request.user)
         notification.is_read = True
         notification.save(update_fields=['is_read'])
+        return Response({"success": True})
+
+class MarkAllNotificationsReadAPI(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # Find all unread notifications for this user and mark them read
+        Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
         return Response({"success": True})

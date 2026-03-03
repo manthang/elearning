@@ -93,7 +93,7 @@ TEMPLATES = [
 # ]
 
 WSGI_APPLICATION = 'elearning.wsgi.application'
-ASGI_APPLICATION = "elearning.routing.application"
+ASGI_APPLICATION = "elearning.asgi.application"
 
 # Development (no Redis required)
 CHANNEL_LAYERS = {

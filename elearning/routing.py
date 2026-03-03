@@ -1,21 +1,14 @@
-import os
-from django.core.asgi import get_asgi_application
-from channels.routing import ProtocolTypeRouter, URLRouter
-from channels.auth import AuthMiddlewareStack
+# elearning/routing.py
 
-import apps.chat.routing
+from channels.routing import URLRouter
+from django.urls import path
+from apps.chat import routing as chat_routing
+from apps.notifications import routing as notification_routing # If you created this
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "elearning.settings")
-
-django_asgi_app = get_asgi_application()
-
-application = ProtocolTypeRouter({
-    "http": django_asgi_app,
-
-    # WebSocket support
-    "websocket": AuthMiddlewareStack(
-        URLRouter(
-            apps.chat.routing.websocket_urlpatterns
-        )
-    ),
-})
+websocket_urlpatterns = [
+    # Include all paths from the chat app
+    path('', URLRouter(chat_routing.websocket_urlpatterns)),
+    
+    # Include all paths from the notification app
+    path('', URLRouter(notification_routing.websocket_urlpatterns)),
+]

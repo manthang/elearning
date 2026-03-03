@@ -67,7 +67,7 @@ function updateNotificationUI(count, notifications) {
 
         let iconHtml = '';
         if (notif.notification_type === 'ENROLLMENT') {
-            iconHtml = `<div class="w-9 h-9 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 mt-0.5"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg></div>`;
+            iconHtml = `<div class="w-9 h-9 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 mt-0.5"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg></div>`;
         } else if (notif.notification_type === 'MATERIAL') {
             // Document icon for materials
             iconHtml = `<div class="w-9 h-9 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mt-0.5"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg></div>`;
@@ -120,10 +120,6 @@ function handleNotificationClick(notifId, redirectLink) {
     });
 }
 
-// Utility to escape HTML to prevent XSS
-function escapeHtml(unsafe) {
-    return (unsafe || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-}
 
 function formatNotificationText(unsafe) {
     // 1. Escape ALL HTML first to prevent XSS attacks
@@ -134,3 +130,38 @@ function formatNotificationText(unsafe) {
                .replace(/&lt;\/b&gt;/g, '</span>');
 }
 
+
+window.markAllNotificationsRead = function() {
+    fetch('/api/notifications/read-all/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getDjangoCSRFToken(), // Ensure your CSRF token function is accessible here
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // 1. Hide the red badge on the bell
+            const badge = document.getElementById("notificationBadge");
+            if (badge) {
+                badge.classList.add("hidden");
+                badge.textContent = "0";
+            }
+
+            // 2. Remove the blue "unread" styling from all items in the dropdown
+            const list = document.getElementById("notificationList");
+            if (list) {
+                const unreadItems = list.querySelectorAll(".bg-blue-50\\/30");
+                unreadItems.forEach(item => {
+                    // Remove blue background
+                    item.classList.remove("bg-blue-50/30");
+                    // Find and remove the blue dot
+                    const dot = item.querySelector("span.bg-blue-600");
+                    if (dot) dot.remove();
+                });
+            }
+        }
+    })
+    .catch(error => console.error("Error marking all as read:", error));
+};
