@@ -101,18 +101,19 @@
 
             <button type="button"
                     onclick="openProfileModal(); closeUserMenu();"
-                    class="w-full text-left px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 mt-1"
+                    class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 transition-colors cursor-pointer"
                     role="menuitem">
               Edit profile
             </button>
 
             <div class="border-t border-gray-100 my-1"></div>
 
-            <a href="{% url 'accounts:logout' %}"
-               class="block px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 mb-1"
-               role="menuitem">
-              Logout
-            </a>
+            <form method="post" action="{% url 'accounts:logout' %}" class="block m-0 p-0 w-full">
+                {% csrf_token %}
+                <button type="submit" class="w-full text-left block px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors cursor-pointer">
+                    Sign out
+                </button>
+            </form>
           </div>
         </div>
 

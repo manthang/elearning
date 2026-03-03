@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login, logout
 from django.shortcuts import render, redirect
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
 
 from ..models import *
 from ..forms import SignupForm
@@ -68,6 +69,10 @@ def login_view(request):
     return render(request, "accounts/login.html")
 
 
+# Add the @require_POST decorator to ensure no one can accidentally (or maliciously)
+# trigger a logout just by visiting the URL.
+@require_POST
 def logout_view(request):
     logout(request)
+    messages.success(request, "You have been successfully logged out.")
     return redirect("accounts:login")
